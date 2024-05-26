@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Field Lists</title>
+</head>
+<body>
+    <nav></nav>
+    <main>
+        <div>
+            <table id="fieldListsTable" width="100%" cellspacing="0" cellpadding="5" border="1">
+                <thead>
+                    <tr>
+                        <th>data_source</th>
+                        <th>field_list_name</th>
+                        <th>field_list_description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for field_list in field_lists %}
+                    <tr>
+                        <td><a href="">{{ field_list.data_source }}</a></td>
+                        <td><a href="">{{ field_list.field_list_name }}</a></td>
+                        <td>{{ field_list.field_list_description }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </main>
+</body>
+</html>

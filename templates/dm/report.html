@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Report form</title>
+    {{ bootstrap_link|safe }}
+</head>
+<body>
+<header>
+    {{ nav_bar|safe }}
+</header>
+<h5>Report details</h5>
+            <table id="reportTable" class="table table-sm table-striped table-hover">
+                <tbody class="table-group-divider">
+                    <tr>
+                        <th>report_name</th>
+                        <td>{{ report.report_name }}</td>
+                    </tr>
+                    <tr>
+                        <th>diagram</th>
+                        <td><a href="/dm/diagram/report/{{ report.report_name }}/"  target="_blank">diagram</a></td>
+                    </tr>
+                    <tr>
+                        <th>field_list</th>
+                        <td><a href="/dm/fields/{{ report.field_list }}/">{{ report.field_list }}</a></td>
+                    </tr>
+                    <tr>
+                        <th>source_list</th>
+                        <td><a href="/dm/sources/{{ report.source_list }}/union/">{{ report.source_list }}</a></td>
+                    </tr>
+                    <tr>
+                        <th>report_description</th>
+                        <td>{{ report.report_description }}</td>
+                    </tr>
+                    <tr>
+                        <th>report_url</th>
+                        <td>{{ report.report_url }}</td>
+                    </tr>
+                    <tr>
+                        <th>version</th>
+                        <td>{{ report.version }}</td>
+                    </tr>
+                    <tr>
+                        <th>change_description</th>
+                        <td>{{ report.change_description }}</td>
+                    </tr>
+                    <tr>
+                        <th>change_date</th>
+                        <td>{{ report.change_date }}</td>
+                    </tr>
+                    <tr>
+                        <th>changed_by</th>
+                        <td>{{ report.changed_by }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+</body>
+</html>

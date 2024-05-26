@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Markmap</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      #mindmap {
+        display: block;
+        width: 100vw;
+        height: 100vh;
+      }
+    </style>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.8.0/styles/default.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/markmap-toolbar@0.16.0/dist/style.css"
+    />
+  </head>
+  <body>
+    <svg id="mindmap"></svg>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7.8.5/dist/d3.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/markmap-view@0.16.0/dist/browser/index.js"></script>
+    <script>
+      ((getMarkmap) => {
+        window.WebFontConfig = {
+          custom: {
+            families: [
+              "KaTeX_AMS",
+              "KaTeX_Caligraphic:n4,n7",
+              "KaTeX_Fraktur:n4,n7",
+              "KaTeX_Main:n4,n7,i4,i7",
+              "KaTeX_Math:i4,i7",
+              "KaTeX_Script",
+              "KaTeX_SansSerif:n4,n7,i4",
+              "KaTeX_Size1",
+              "KaTeX_Size2",
+              "KaTeX_Size3",
+              "KaTeX_Size4",
+              "KaTeX_Typewriter",
+            ],
+          },
+          active: () => {
+            getMarkmap().refreshHook.call();
+          },
+        };
+      })(() => window.markmap);
+    </script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/webfontloader@1.6.28/webfontloader.js"
+      defer
+    ></script>
+    <script src="https://cdn.jsdelivr.net/npm/markmap-toolbar@0.16.0/dist/index.js"></script>
+    <script>
+      ((r) => {
+        setTimeout(r);
+      })(() => {
+        const { markmap, mm } = window;
+        const toolbar = new markmap.Toolbar();
+        toolbar.attach(mm);
+        const el = toolbar.render();
+        el.setAttribute("style", "position:absolute;bottom:20px;right:20px");
+        document.body.append(el);
+      });
+    </script>
+    <script>
+      ((getMarkmap, getOptions, root2, jsonOptions) => {
+        const markmap = getMarkmap();
+        window.mm = markmap.Markmap.create(
+          "svg#mindmap",
+          (getOptions || markmap.deriveOptions)(jsonOptions),
+          root2
+        );
+      })(
+        () => window.markmap,
+        null,
+        {{ model|safe }},
+        // {
+        //   "color": ["blue","yellow", "green", "red"],
+        // },
+        {
+          colorFreezeLevel: 1,
+          initialExpandLevel: 2,
+          maxWidth: 500,
+        }
+      );
+    </script>
+  </body>
+</html>

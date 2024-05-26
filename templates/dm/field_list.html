@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Field List</title>
+    {{ bootstrap_link|safe }}
+</head>
+<body>
+<header>
+    {{ nav_bar|safe }}
+</header>
+    {% if edit %}
+        {% if add %}
+            <h4>Field List add</h4>
+        {% else %}
+            <h4>Field List edit</h4>
+        {% endif %}
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Save</button>
+        </form>
+    {% else %}
+        <h4>Field List view</h4>
+        {{ form }}
+    {% endif %}
+</body>
+</html>

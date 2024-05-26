@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Import from Excel</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        function uploadFile() {
+            // Получаем файл из input
+            var fileInput = document.getElementById('excelFile');
+            var file = fileInput.files[0]; // Берем первый выбранный файл
+
+            if (!file) {
+                alert("Пожалуйста, выберите файл для загрузки.");
+                return;
+            }
+
+            // Создаем FormData объект для передачи файла
+            var formData = new FormData();
+            formData.append('excelFile', file);
+
+            // Используем fetch API для отправки файла на сервер
+            fetch('/storage/upload_file/', { // Укажите здесь URL вашего серверного скрипта для обработки загрузки '/upload-path'
+                method: 'POST',
+                body: formData,
+            })
+            .then(response => response.json()) //.json()) // предполагается, что сервер возвращает JSON
+            .then(html => {
+            document.querySelector('#firstSelect').innerHTML = '';
+            fSelect = document.querySelector('#firstSelect')
+            shtml = html
+            console.log("html", html)
+            for (let key in html) {
+                const newOption = document.createElement('option')
+                newOption.textContent = key
+                newOption.value = key
+                {#newOption.value = html[key]#}
+                fSelect.appendChild(newOption)
+            }
+            })
+        }
+    </script>
+    {% comment %}
+    <script>
+    document.getElementById('load_csv').addEventListener('submit', function() {
+        console.log("Send CSV");
+        // Get the selected value of the first select and assign it to the hidden input
+        var firstSelectValue = document.getElementById('firstSelect').value;
+        document.getElementById('firstSelectValue').value = firstSelectValue;
+
+        // Get the selected value of the second select and assign it to the hidden input
+        var secondSelectValue = document.getElementById('secondSelect').value;
+        document.getElementById('secondSelectValue').value = secondSelectValue;
+    });
+    </script>
+    {% endcomment %}
+
+</head>
+<body id="content">
+
+<h2>Import from Excel to Database</h2>
+
+<form id="uploadForm" enctype="multipart/form-data" method="post">
+    {% csrf_token %}
+    <input type="file" id="excelFile" name="excelFile" accept=".xlsx, .xls" required>
+    <button type="button" onclick="uploadFile()">Upload Excel File</button>
+</form>
+
+<select id="firstSelect"></select>
+
+<button id="confirmBtn">Confirm Sheet</button>
+
+<select id="secondSelect"></select>
+
+
+{#<button id="display-table-data" type="button">Display Table Data</button>#}
+
+<!-- Button to Load Excel Data to Database -->
+<button id="sendButton" type="submit">Import Table to CSV</button>
+
+<script>
+    console.log(1)
+    document.getElementById('confirmBtn').addEventListener('click', function() {
+        // Get the selected value from the first select
+
+        // Clear existing options in the second select
+        const selctedOption = document.querySelector('#firstSelect')
+        console.log("fSelect: ", fSelect);
+        console.log("selctedOption.value", selctedOption.value)
+        console.log("html: ", shtml[selctedOption.value]);
+        var secondSelect = document.getElementById('secondSelect');
+        secondSelect.innerHTML = '';
+        {#const dataToUse = selctedOption.value.split(',')#}
+        {#const dataToUse = shtml[selctedOption.value].split(',')#}
+        const dataToUse = shtml[selctedOption.value]
+        console.log("dataToUse: ", dataToUse);
+        // Fill the second select with new options
+        dataToUse.forEach(function(item) {
+            var opt = document.createElement('option');
+            console.log("opr", opt);
+            {#console.log("html", html);#}
+            opt.value = item;
+            opt.innerHTML = item;
+            secondSelect.appendChild(opt);
+        });
+    });
+    $('#sendButton').click(function() {
+        console.log("firstSelect: ", $('#firstSelect').val());
+        console.log("secondSelect: ", $('#secondSelect').val());
+        {% comment %}
+        // Get the selected value of the first select and assign it to the hidden input
+        var firstSelectValue = $('#firstSelect').val();
+        document.getElementById('firstSelectValue').value = firstSelectValue;
+
+        // Get the selected value of the second select and assign it to the hidden input
+        var secondSelectValue = $('#secondSelect').val();
+        document.getElementById('secondSelectValue').value = secondSelectValue;
+        {% endcomment %}
+        $.ajax({
+            url: '/storage/import_csv/',
+            type: 'POST',
+            data: {
+                'sheet': $('#firstSelect').val(),
+                'table': $('#secondSelect').val(),
+                'csrfmiddlewaretoken':$('input[name="csrfmiddlewaretoken"]').val()
+            }
+        })
+        .then(response => response.json())
+        .then(html => {})
+    })
+</script>
+
+</body>
+</html>

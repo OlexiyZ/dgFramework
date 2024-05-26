@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Query form</title>
+    {{ bootstrap_link|safe }}
+</head>
+<body>
+<header>
+    {{ nav_bar|safe }}
+</header>
+<h5>Query details</h5>
+            <table id="queryTable" class="table table-sm table-striped table-hover">
+                <tbody class="table-group-divider">
+                    <tr>
+                        <th>query_name</th>
+                        <td>{{ query.query_name }}</td>
+                    </tr>
+                    <tr>
+                        <th>diagram</th>
+                        <td><a href="/dm/diagram/query/{{ query.query_name }}/"  target="_blank">diagram</a></td>
+                    </tr>
+                    <tr>
+                        <th>field_list</th>
+                        <td><a href="/dm/fields/{{ query.field_list }}/">{{ query.field_list }}</a></td>
+                    </tr>
+                    <tr>
+                        <th>source_list</th>
+                        <td><a href="/dm/sources/{{ query.source_list }}/union/">{{ query.source_list }}</a></td>
+                    </tr>
+                    <tr>
+                        <th>query_conditions</th>
+                        <td>{{ query.query_conditions }}</td>
+                    </tr>
+                    <tr>
+                        <th>query_alias</th>
+                        <td>{{ query.query_alias }}</td>
+                    </tr>
+                    <tr>
+                        <th>query_description</th>
+                        <td>{{ query.query_description }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+</body>
+</html>

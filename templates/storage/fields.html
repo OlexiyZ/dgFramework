@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Fields</title>
+</head>
+<body>
+    <nav>
+
+    </nav>
+    <main>
+        <div>
+            <table id="nameTable" border="1" cellspacing="0" cellpadding="5">
+                <tr>
+                    <td>{{ fields.0.field_list }}</td>
+                    <td>{{ fields.0.source_list }}</td>
+                </tr>
+            </table>
+        </div>
+        <div>
+            <table id="fieldsTable" border="1" width="100%" cellspacing="0" cellpadding="5">
+                <thead>
+                    <tr>
+{#                        <th>field_list</th>#}
+{#                        <th>source_list</th>#}
+                        <th>field_alias</th>
+                        <th>field_source_type</th>
+                        <th>field_source</th>
+                        <th>field_name</th>
+                        <th>field_value</th>
+                        <th>field_function</th>
+                        <th>function_field_list</th>
+                        <th>field_description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for field in fields %}
+                    <tr>
+{#                        <td>{{ field.field_list }}</td>#}
+{#                        <td>{{ field.source_list }}</td>#}
+                        <td>{{ field.field_alias }}</td>
+                        <td>{{ field.field_source_type }}</td>
+                        <td>{{ field.field_source }}</td>
+                        <td>{{ field.field_name }}</td>
+                        <td>{{ field.field_value }}</td>
+                        <td>{{ field.field_function }}</td>
+                        <td>{{ field.function_field_list }}</td>
+                        <td>{{ field.field_description }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+{#                <a href="">{{ field.field_list }}</a>#}
+        </div>
+    </main>
+
+</body>
+</html>

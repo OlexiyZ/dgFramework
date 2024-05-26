@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Import Excel</title>
+</head>
+<body>
+<h3>Load Excel</h3>
+<form action="" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="file" id="excelFile" name="excelFile" accept=".xlsx, .xls" required>
+    <button>Upload Excel File</button>
+</form>
+{% if file_url %}
+    <p>file_url: {{ file_url }}</p>
+{% endif %}
+{% if sheets %}
+    <form action="" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <select id="firstSelect">
+            {% for sheet in sheets %}
+                <option value={{ sheet }}>{{ sheet }}</option>
+            {% endfor %}
+        </select>
+        <button>Confirm Sheet</button>
+    </form>
+    <select id="secondSelect"></select>
+    <button id="sendButton" type="submit">Import Table to CSV</button>
+    <p>sheets: {{ sheets }}</p>
+{% endif %}
+</body>
+</html>

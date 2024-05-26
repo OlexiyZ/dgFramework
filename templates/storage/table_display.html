@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Loaded Table Display</title>
+</head>
+<body>
+    <h1>Loaded Table</h1>
+    <table border="1">
+        <thead>
+            <tr>
+                <!-- Dynamically create table headers from column names -->
+                {% for column_name in column_names %}
+                <th>{{ column_name }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+{#        <tbody>#}
+{#            <!-- Iterate over each row in data -->#}
+{#            {% for row in data_rows %}#}
+{#            <tr>#}
+{#                <!-- Dynamically create table cells for each item in the row -->#}
+{#                {% for column_name in column_names %}#}
+{#                <td>{{ row[column_name] }}</td>#}
+{#                {% endfor %}#}
+{#            </tr>#}
+{#            {% endfor %}#}
+{#        </tbody>#}
+    </table>
+</body>
+</html>

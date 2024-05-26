@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Source List</title>
+    {{ bootstrap_link|safe }}
+</head>
+<body>
+<header>
+    {{ nav_bar|safe }}
+</header>
+    {% if edit and add != True %}
+        <h4>Source List edit</h4>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Save</button>
+        </form>
+
+    {% elif edit and add %}
+        <h4>Source List add</h4>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Save</button>
+        </form>
+
+    {% else %}
+        <h4>Source List view</h4>
+        {{ form }}
+    {% endif %}
+</body>
+</html>
