@@ -19,7 +19,7 @@
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item dropdown">
                       <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                          {% if current_field_list.field_list_name %}
+                          {% if current_field_list.field_list_id %}
                             {{ current_field_list.field_list_name }}
                           {% else %}
                             Field Lists
@@ -27,7 +27,7 @@
                       </a>
                       <ul class="dropdown-menu">
                           {% for field_list in field_lists %}
-                          <li><a class="dropdown-item" href="/dm/fields/{{ field_list.field_list_name }}/">{{ field_list.field_list_name }}</a></li>
+                          <li><a class="dropdown-item" href="/dm/fields/{{ field_list.id }}/">{{ field_list.field_list_name }}</a></li>
 {#                          <li><a class="dropdown-item" href="/dm/fields/field_list/{{ field_list.field_list_name }}/">{{ field_list.field_list_name }}</a></li>#}
                           {% endfor %}
                       </ul>
@@ -39,7 +39,7 @@
     <hr />
     {% if current_field_list %}
         <p>Field List: {{ current_field_list.field_list_name }}</p>
-        <p>Data Source: <a href="/dm/sources/{{ current_field_list.data_source.source_list_name }}/union/">{{ current_field_list.data_source.source_list_name }}</a></p>
+        <p><a href="/dm/sources/{{ current_field_list.data_source_id }}/union/">Data Source</a></p>
     {% endif %}
     <main>
         <div>
@@ -61,10 +61,9 @@
                     <tr>
                         <td>{{ field.field_alias }}</td>
                         <td>{{ field.field_source_type }}</td>
-{#                        <td>{{ field.field_source }}</td>#}
                         <td>
                             {% if field.field_source != None %}
-                                <a href="/dm/sources/{{ field.field_source }}/item/">{{ field.field_source }}</a>
+                                <a href="/dm/sources/{{ field.field_source_id }}/item/">{{ field.field_source }}</a>
 <!--{#                                <a href="/dm/sources/{{ current_field_list.data_source.source_list_name }}.{{ field.field_source }}/">{{ field.field_source }}</a>#}-->
                             {% else %}
                                 None
@@ -72,7 +71,7 @@
                         </td>
                         <td>
                             {% if field.field_name != '' %}
-                                <a href="/dm/fields/{{ field.field_source }}/{{ field.field_name }}/">{{ field.field_name }}</a>
+                                <a href="/dm/fields/{{ field.field_source_id }}/{{ field.field_name }}/">{{ field.field_name }}</a>
 <!--{#                                <a href="/dm/fields/{{ current_field_list.data_source.source_list_name }}.{{ field.field_source }}/{{ ield.field_name }}">{{ field.field_name }}</a>#}-->
                             {% else %}
                                 ''

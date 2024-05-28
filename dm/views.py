@@ -62,8 +62,8 @@ def fields(request):
     return render(request, 'dm/fields.html', context)
 
 
-def field_list_item(request, fields_list_name):
-    field_list = FieldList.objects.get(field_list_name=fields_list_name)
+def field_list_item(request, fields_list_id):
+    field_list = FieldList.objects.get(id=fields_list_id)
     filtered_fields = Field.objects.filter(field_list=field_list)
     all_field_lists = FieldList.objects.all()
     context = {
@@ -75,9 +75,9 @@ def field_list_item(request, fields_list_name):
     return render(request, 'dm/fields.html', context)
 
 
-def field_item(request, field_source_name, field_name):
-    if field_source_name and field_name:
-        field_source = Source.objects.get(source_alias=field_source_name)
+def field_item(request, field_source_id, field_name):
+    if field_source_id and field_name:
+        field_source = Source.objects.get(id=field_source_id)
         field = get_object_or_404(Field, field_source=field_source, field_name=field_name)
     else:
         field = None
@@ -103,9 +103,9 @@ def field_lists(request):
     return render(request, 'dm/field_lists.html', context)
 
 
-def field_list(request, field_list_name):
-    if field_list_name:
-        fieldlist = get_object_or_404(FieldList, field_list_name=field_list_name)
+def field_list(request, field_list_id):
+    if field_list_id:
+        fieldlist = get_object_or_404(FieldList, id=field_list_id)
     else:
         fieldlist = None
 
@@ -124,14 +124,14 @@ def field_list(request, field_list_name):
     return render(request, 'dm/field_list.html', context)
 
 
-def field_list_edit(request, field_list_name):
+def field_list_edit(request, field_list_id):
     context = {
         'nav_bar': nav_bar,
         'bootstrap_link': bootstrap_link
     }
 
-    if field_list_name != 'new':
-        fieldlist = get_object_or_404(FieldList, field_list_name=field_list_name)
+    if field_list_id != 'new':
+        fieldlist = get_object_or_404(FieldList, id=field_list_id)
         context['edit'] = True
         context['add'] = False
     else:
@@ -160,8 +160,8 @@ def queries(request):
     return render(request, 'dm/queries.html', context)
 
 
-def query(request, query_name):
-    query_item = Query.objects.get(query_name=query_name)
+def query(request, query_id):
+    query_item = Query.objects.get(id=query_id)
     filtered_query = Query.objects.filter(query_name=query_item)
     # all_queries = Query.objects.all()
     context = {
@@ -183,10 +183,10 @@ def source_lists(request):
     return render(request, 'dm/source_lists.html', context)
 
 
-def source_list(request, source_list_):
+def source_list(request, source_list_id):
     if source_list:
         # sourcelist = get_object_or_404(Source, source_alias=source_list_name)
-        sourcelist = get_object_or_404(SourceList, source_list=source_list)
+        sourcelist = get_object_or_404(SourceList, id=source_list_id)
     else:
         sourcelist = None
 
@@ -204,13 +204,13 @@ def source_list(request, source_list_):
     return render(request, 'dm/source_list.html', context)
 
 
-def source_list_edit(request, source_list):
+def source_list_edit(request, source_list_id):
     context = {
         'nav_bar': nav_bar,
         'bootstrap_link': bootstrap_link
     }
     if source_list != 'new':
-        sourcelist = get_object_or_404(SourceList, source_list=source_list)
+        sourcelist = get_object_or_404(SourceList, id=source_list_id)
         context['edit'] = True
         context['add'] = False
     else:
@@ -258,12 +258,12 @@ def sources(request):
 #     return render(request, 'dm/sources.html', context)
 
 
-def source_list_item(request, source_list, type):
-    source_list = SourceList.objects.get(source_list=source_list)
+def source_list_item(request, source_list_id, type):
+    # source_list = SourceList.objects.get(id=source_list_id)
     if type == 'union':
-        filtered_sources = Source.objects.filter(source_union_list=source_list)
+        filtered_sources = Source.objects.filter(source_union_list_id=source_list_id)
     else:
-        filtered_sources = Source.objects.filter(source_alias=source_list)
+        filtered_sources = Source.objects.filter(id=source_list_id)
         # filtered_sources = Source.objects.filter(source_list_name=source_list)
     all_source_lists = SourceList.objects.all()
     context = {

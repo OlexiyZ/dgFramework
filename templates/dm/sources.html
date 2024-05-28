@@ -27,7 +27,7 @@
                       </a>
                       <ul class="dropdown-menu">
                           {% for source_list in source_lists %}
-                          <li><a class="dropdown-item" href="/dm/sources/{{ source_list.source_list }}/union/">{{ source_list.source_list }}</a></li>
+                          <li><a class="dropdown-item" href="/dm/sources/{{ source_list.id }}/union/">{{ source_list.source_list }}</a></li>
 {#                          <li><a class="dropdown-item" href="/dm/fields/field_list/{{ field_list.field_list_name }}/">{{ field_list.field_list_name }}</a></li>    #}
                           {% endfor %}
                       </ul>
@@ -61,19 +61,19 @@
                 <tbody class="table-group-divider">
                 {% for source in sources %}
                     <tr>
-                        <td><a href="/dm/sources/{{ source.source_union_list }}/union/">{{ source.source_union_list }}</a></td>
-                        <td><a href="/dm/sources/{{ source.source_alias }}/item/">{{ source.source_alias }}</a></td>
+                        <td><a href="/dm/sources/{{ source.source_union_list_id }}/union/">{{ source.source_union_list }}</a></td>
+                        <td><a href="/dm/sources/{{ source.id }}/item/">{{ source.source_alias }}</a></td>
                         <td>{{ source.source_type }}</td>
                         <td>
                             {% if source.query_name != None %}
-                            <a href="/dm/query/{{ source.query_name }}/">{{ source.query_name }}</a>
+                            <a href="/dm/query/{{ source.query_name_id }}/">{{ source.query_name }}</a>
                             {% else %}
                                 None
                             {% endif %}
                         </td>
                         <td>
                             {% if source.source_list != None %}
-                                <a href="/dm/sources/{{ source.source_list }}/union/">{{ source.source_list }}</a>
+                                <a href="/dm/sources/{{ source.id }}/union/">{{ source.source_list }}</a>
                             {% else %}
                                 None
                             {% endif %}

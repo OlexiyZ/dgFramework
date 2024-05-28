@@ -12,7 +12,7 @@
 <body>
 
     <main>
-    <a href="/dm/field_list_edit/new/">Add new Source List</a>
+    <a href="/dm/field_list_edit/new/">Add new Field List</a>
         <div>
             <table id="fieldListsTable" class="table table-sm table-striped table-hover">
                 <thead>
@@ -27,11 +27,11 @@
                     <tr>
 {#                        <td><a href="">{{ field_list.data_source }}</a></td>#}
                         <td><a href="/dm/sources/{{ field_list.data_source }}/union/">{{ field_list.data_source }}</td>
-                        <td><a href="/dm/fields/{{ field_list.field_list_name }}/">{{ field_list.field_list_name }}</a></td>
+                        <td><a href="/dm/fields/{{ field_list.id }}/">{{ field_list.field_list_name }}</a></td>
                         <td>{{ field_list.field_list_description }}</td>
                         <td>
-                            <a href="/dm/field_list/{{ field_list.field_list_name }}/">View</a>
-                            <a href="/dm/field_list_edit/{{ field_list.field_list_name }}/">Edit</a>
+                            <a href="/dm/field_list/{{ field_list.id }}/">View</a>
+                            <a href="/dm/field_list_edit/{{ field_list.id }}/">Edit</a>
                         </td>
                     </tr>
                 {% endfor %}
