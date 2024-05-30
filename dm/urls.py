@@ -29,6 +29,7 @@ urlpatterns = [
     path("report/<str:report_name>/", report),
 
     path("diagram/<str:source_type>/<str:source_name>/", diagram),
+    path("field_diagram/<str:source_id>/<str:field_id>/", field_diagram),
 
     # path("test_static/", test_static),
 ]

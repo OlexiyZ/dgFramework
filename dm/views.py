@@ -301,28 +301,6 @@ def report(request, report_name):
 def diagram(request, source_type, source_name):
     linear = {}
     linear = linearization(source_type, source_name, "")
-
-    # scheme = {}
-    # scheme["content"] = f"<a href=\"/dm/report/{source_name}/\" target=\"_blank\">{source_name}</a>"
-    # scheme["children"] = [
-    #     {
-    #         "content": f"<a href=\"/dm/fields/{source_name.field_list}/\" target=\"_blank\">Field List</a>",
-    #         "children": [
-    #             {
-    #                 # "content": "Field List"
-    #                 # "content": f"<a href=\"/dm/fields/{report.field_list}/\">Field List</a>"
-    #             }
-    #         ]},
-    #     {
-    #         "content": f"<a href=\"/dm/fields/{source_name.source_list}/\" target=\"_blank\">Source List</a>",
-    #         "children": [
-    #             {
-    #                 # "content": "Source List"
-    #                 # "content": f"<a href=\"/dm/fields/{report.source_list}/\">Source List</a>"
-    #             }
-    #         ]
-    #     }
-    # ]
     context = {"model": linear}
     return render(request, 'dm/diagram.html', context)
 
@@ -510,3 +488,185 @@ def get_report_source(source):
         fields = None
 
     return sources, source_list, field_list, fields
+
+
+def field_diagram(request, source_id, field_id):
+    source = Source.objects.get(id=source_id)
+    field = Field.objects.get(id=field_id, field_source_id=source_id)
+    linear = field_linearization(source, field)
+    linear_m = {"content": str(field),
+                "children": [linear]}
+    # children = []
+    context = {"model": linear_m}
+    return render(request, 'dm/diagram.html', context)
+
+
+def field_linearization(source, field):
+    brown_rect = "<svg width=\"10\" height=\"10\"> <rect x=\"0\" y=\"0\" width=\"10\" height=\"10\" fill=\"brown\" /></svg> "
+
+    if field is None:
+        return {
+            "content": "None"
+        }
+
+    match field.field_source_type:
+        # case None:
+        #     return {
+        #         "content": "None"
+        #     }
+        case 'function':
+            return {
+                "content": field.field_alias,
+                "children": [
+                    {
+                        "content": brown_rect + field.field_function
+                    }
+                ]
+            }
+        case 'value':
+            return {
+                "content": field.field_alias,
+                "children": [
+                    {
+                        "content": brown_rect + field.field_value
+                    }
+                ]
+            }
+        case 'tbd':
+            return {
+                "content": field.field_alias,
+                "children": [
+                    {
+                        "content": 'TBD'
+                    }
+                ]
+            }
+        # case 'data_source':
+    children = []
+    if source.source_type == 'query':
+        # source = Query.objects.get(query_name=source.query_name)
+        sources, source_list, field_list, fields = get_source(source)
+        # field = Field.objects.get(field_alias=field.field_name, field_source_id=source.id)
+        # children.append(field_linearization(field, source))
+        for source_item in sources:
+            try:
+                field = Field.objects.get(field_alias=field.field_name, field_source_id=source_item.id)
+            except Field.DoesNotExist:
+                field = field
+            children.append(field_linearization(source_item, field))
+    elif source.source_type == 'data_source':
+        # source = Query.objects.get(query_name=source.query_name)
+        sources, source_list, field_list, fields = get_source(source)
+        # children.append(field_linearization(field, source))
+        for source_item in sources:
+            try:
+                field = Field.objects.get(field_alias=field.field_name, field_source_id=source_item.id)
+            except Field.DoesNotExist:
+                field = field
+            children.append(field_linearization(source_item, field))
+    # elif source.source_type == 'data_source':
+    #     children.append(field_linearization(field))
+    elif source.source_type == 'table':
+        return {
+            "content": source.source_type,
+            "children": [
+                {
+                    "content": field.field_alias
+                },
+                {
+                    "content": source.table_name
+                }
+            ]
+        }
+    else:
+        children.append(field_linearization(None, None))
+
+    if source.source_type == 'data_source':
+        data_source_hyperlink = f"<a href=\"/dm/sources/{str(source.id)}/{source.source_type}/ \"target=\"_blank\">{str(source.source_alias)}</a>"
+        content = data_source_hyperlink
+    elif source.source_type == 'query':
+        data_source_hyperlink = f"<a href=\"/dm/sources/{str(source.id)}/{source.source_type}/ \"target=\"_blank\">{str(source.source_alias)}</a>"
+        content = data_source_hyperlink
+    # elif source_type == 'table':
+    #     content = yellow_rect + str(source_name)
+    elif source.source_type == 'report':
+        data_source_hyperlink = f"<a href=\"/dm/sources/{str(source.id)}/union/ \"target=\"_blank\">{str(source.source_name)}</a>"
+        content = data_source_hyperlink
+    else:
+        content = str(source.source_name)
+
+    return {
+        "content": source.source_type,
+        "children": [
+            {
+                "content": field.field_name
+            },
+            {
+                "content": content,
+                "children": children
+            }
+        ]
+    }
+
+
+def get_source(source):
+    if isinstance(source, Query):
+        query = Query.objects.get(query_name=source.query_name)
+        try:
+            source_list = SourceList.objects.get(source_list=query.source_list)
+        except SourceList.DoesNotExist:
+            source_list = None
+        try:
+            sources = Source.objects.filter(source_union_list=source_list)
+        except Source.DoesNotExist:
+            sources = None
+        try:
+            field_list = FieldList.objects.get(field_list_name=query.field_list)
+        except FieldList.DoesNotExist:
+            field_list = None
+        try:
+            fields = Field.objects.filter(field_list=query.field_list)
+        except Field.DoesNotExist:
+            fields = None
+
+        return sources, source_list, field_list, fields
+
+    elif isinstance(source, Source):
+        try:
+            source_list = SourceList.objects.get(source_list=source.source_list)
+        except SourceList.DoesNotExist:
+            source_list = None
+        try:
+            sources = Source.objects.filter(source_union_list=source.source_list)
+        except Source.DoesNotExist:
+            sources = None
+        try:
+            field_list = FieldList.objects.get(data_source=source_list)
+        except FieldList.DoesNotExist:
+            field_list = None
+        try:
+            fields = Field.objects.filter(source_list=source_list, field_list=field_list)
+        except Field.DoesNotExist:
+            fields = None
+
+        return sources, source_list, field_list, fields
+
+    elif isinstance(source, Report):
+        try:
+            source_list = SourceList.objects.get(source_list=source.source_list)
+        except Report.DoesNotExist:
+            source_list = None
+        try:
+            sources = Source.objects.filter(source_union_list=source_list)
+        except Source.DoesNotExist:
+            sources = None
+        try:
+            field_list = FieldList.objects.get(data_source=source_list)
+        except FieldList.DoesNotExist:
+            field_list = None
+        try:
+            fields = Field.objects.filter(source_list=source_list)
+        except Field.DoesNotExist:
+            fields = None
+
+        return sources, source_list, field_list, fields

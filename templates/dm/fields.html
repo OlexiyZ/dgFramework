@@ -47,6 +47,7 @@
                 <thead>
                     <tr>
                         <th>field_alias</th>
+                        <th>field_diagram</th>
                         <th>field_source_type</th>
                         <th>field_source</th>
                         <th>field_name</th>
@@ -60,6 +61,7 @@
                 {% for field in fields %}
                     <tr>
                         <td>{{ field.field_alias }}</td>
+                        <td><a href="/dm/field_diagram/{{ field.field_source_id }}/{{ field.id }}/" target="_blank">diagram</a></td>
                         <td>{{ field.field_source_type }}</td>
                         <td>
                             {% if field.field_source != None %}
