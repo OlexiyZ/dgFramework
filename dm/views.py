@@ -398,7 +398,10 @@ def linearization(source_type, source_name, fields2content):
         content = str(source_name)
 
     # Recursive return value
-    field_list_hyperlink = f"<a href=\"/dm/fields/{str(field_list)}/\" target=\"_blank\">{str(field_list)}</a>"
+    if field_list:
+        field_list_hyperlink = f"<a href=\"/dm/fields/{str(field_list.id)}/\" target=\"_blank\">{str(field_list)}</a>"
+    else:
+        field_list_hyperlink = f"<a href=\"/dm/fields/{str(field_list)}/\" target=\"_blank\">{str(field_list)}</a>"
     field_list_content = yellow_rect + field_list_hyperlink
     if source_type in ('query', 'report'):
         return {
