@@ -75,10 +75,10 @@ def field_list_item(request, fields_list_id):
     return render(request, 'dm/fields.html', context)
 
 
-def field_item(request, field_source_id, field_name):
-    if field_source_id and field_name:
+def field_item(request, field_source_id, field_id):
+    if field_source_id and field_id:
         field_source = Source.objects.get(id=field_source_id)
-        field = get_object_or_404(Field, field_source=field_source, field_name=field_name)
+        field = get_object_or_404(Field, field_source=field_source, id=field_id)
     else:
         field = None
 
@@ -241,23 +241,6 @@ def sources(request):
     return render(request, 'dm/sources.html', context)
 
 
-# def source_list_item(request, source_list_name, type):
-#     source_list = Source.objects.get(source_alias=source_list_name)
-#     if type == 'union':
-#         filtered_sources = Source.objects.filter(source_union_list_name=source_list)
-#     else:
-#         filtered_sources = Source.objects.filter(source_alias=source_list)
-#         # filtered_sources = Source.objects.filter(source_list_name=source_list)
-#     all_source_lists = SourceList.objects.all()
-#     context = {
-#         'sources': filtered_sources,
-#         'source_lists': all_source_lists,
-#         'current_source_list': source_list,
-#         'nav_bar': nav_bar
-#     }
-#     return render(request, 'dm/sources.html', context)
-
-
 def source_list_item(request, source_list_id, type):
     # source_list = SourceList.objects.get(id=source_list_id)
     if type == 'union':
@@ -336,7 +319,8 @@ def linearization(source_type, source_name, fields2content):
 
         for field in fields:
             field_name = {}
-            field_name["content"] = field.field_alias
+            field_name["content"] = f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/\" target=\"_blank\">{field.field_alias}</a>" \
+                                    f"<a href=\"/dm/field_diagram/{field.field_source_id}/{field.id}/\" target=\"_blank\"> [diagram]</a> "
             f_fields.append(field_name)
         for source in sources:
             children.append(linearization(source.source_type, source.query_name, ""))
@@ -349,12 +333,12 @@ def linearization(source_type, source_name, fields2content):
         for field in fields:
             field_name = {}
             if field.field_source_type in ('data_source', 'tbd'):
-                field_name["content"] = field.field_name
+                field_name["content"] = f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/\">{field.field_alias}</a>"
             elif field.field_source_type == 'function':
                 field_name["content"] = field.field_function
             elif field.field_source_type == 'value':
                 field_name["content"] = field.field_value
-            field_name["content"] = field.field_alias
+            field_name["content"] = f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/\">{field.field_alias}</a>"
             f_fields.append(field_name)
         for source in sources:
             if source.source_type == 'data_source':
@@ -513,10 +497,6 @@ def field_linearization(source, field):
         }
 
     match field.field_source_type:
-        # case None:
-        #     return {
-        #         "content": "None"
-        #     }
         case 'function':
             return {
                 "content": field.field_alias,
@@ -547,6 +527,7 @@ def field_linearization(source, field):
         # case 'data_source':
     children = []
     if source.source_type == 'query':
+        # children = []
         # source = Query.objects.get(query_name=source.query_name)
         sources, source_list, field_list, fields = get_source(source)
         # field = Field.objects.get(field_alias=field.field_name, field_source_id=source.id)
@@ -558,6 +539,7 @@ def field_linearization(source, field):
                 field = field
             children.append(field_linearization(source_item, field))
     elif source.source_type == 'data_source':
+        # children = []
         # source = Query.objects.get(query_name=source.query_name)
         sources, source_list, field_list, fields = get_source(source)
         # children.append(field_linearization(field, source))
@@ -570,6 +552,7 @@ def field_linearization(source, field):
     # elif source.source_type == 'data_source':
     #     children.append(field_linearization(field))
     elif source.source_type == 'table':
+        # children = []
         return {
             "content": source.source_type,
             "children": [
@@ -582,6 +565,7 @@ def field_linearization(source, field):
             ]
         }
     else:
+        # children = []
         children.append(field_linearization(None, None))
 
     if source.source_type == 'data_source':
@@ -613,7 +597,7 @@ def field_linearization(source, field):
 
 
 def get_source(source):
-    if isinstance(source, Query):
+    if source.source_type == 'query':  # isinstance(source, Query):
         query = Query.objects.get(query_name=source.query_name)
         try:
             source_list = SourceList.objects.get(source_list=query.source_list)
@@ -634,7 +618,7 @@ def get_source(source):
 
         return sources, source_list, field_list, fields
 
-    elif isinstance(source, Source):
+    elif source.source_type == 'data_source':  # isinstance(source, Source):
         try:
             source_list = SourceList.objects.get(source_list=source.source_list)
         except SourceList.DoesNotExist:
