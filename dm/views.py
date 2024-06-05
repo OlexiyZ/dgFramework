@@ -483,7 +483,6 @@ def field_diagram(request, source_id, field_id):
     linear = field_linearization(source, field)
     linear_m = {"content": str(field),
                 "children": [linear]}
-    # children = []
     context = {"model": linear_m}
     return render(request, 'dm/diagram.html', context)
 
@@ -527,30 +526,31 @@ def field_linearization(source, field):
         # case 'data_source':
     children = []
     if source.source_type == 'query':
-        # children = []
-        # source = Query.objects.get(query_name=source.query_name)
         sources, source_list, field_list, fields = get_source(source)
-        # field = Field.objects.get(field_alias=field.field_name, field_source_id=source.id)
-        # children.append(field_linearization(field, source))
-        for source_item in sources:
-            try:
-                field = Field.objects.get(field_alias=field.field_name, field_source_id=source_item.id)
-            except Field.DoesNotExist:
-                field = field
-            children.append(field_linearization(source_item, field))
+        field_aliases = fields.values_list('field_alias', flat=True)
+        if field.field_name in field_aliases:
+            for source_item in sources:
+                try:
+                    field = Field.objects.get(field_alias=field.field_name, field_source_id=source_item.id)
+                except Field.DoesNotExist:
+                    field = field
+                children.append(field_linearization(source_item, field))
+        else:
+            return {
+                "content": "None"
+            }
     elif source.source_type == 'data_source':
-        # children = []
-        # source = Query.objects.get(query_name=source.query_name)
         sources, source_list, field_list, fields = get_source(source)
-        # children.append(field_linearization(field, source))
         for source_item in sources:
             try:
                 field = Field.objects.get(field_alias=field.field_name, field_source_id=source_item.id)
             except Field.DoesNotExist:
                 field = field
-            children.append(field_linearization(source_item, field))
-    # elif source.source_type == 'data_source':
-    #     children.append(field_linearization(field))
+            fn_response = field_linearization(source_item, field)
+            if fn_response['content'] == 'None':
+                continue
+            else:
+                children.append(field_linearization(source_item, field))
     elif source.source_type == 'table':
         # children = []
         return {
@@ -565,7 +565,6 @@ def field_linearization(source, field):
             ]
         }
     else:
-        # children = []
         children.append(field_linearization(None, None))
 
     if source.source_type == 'data_source':
