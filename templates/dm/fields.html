@@ -42,6 +42,7 @@
         <p><a href="/dm/sources/{{ current_field_list.data_source_id }}/union/">Data Source</a></p>
     {% endif %}
     <main>
+        <a href="/dm/field_edit/new/">Add new Field</a>
         <div>
             <table id="fieldsTable" class="table table-sm table-striped table-hover">
                 <thead>
@@ -60,6 +61,10 @@
                 <tbody class="table-group-divider">
                 {% for field in fields %}
                     <tr>
+                        <td>
+                            <a href="/dm/field/{{ field.id }}/">View</a>
+                            <a href="/dm/field_edit/{{ field.id }}/">Edit</a>
+                        </td>
                         <td>{{ field.field_alias }}</td>
                         <td><a href="/dm/field_diagram/{{ field.field_source_id }}/{{ field.id }}/" target="_blank">diagram</a></td>
                         <td>{{ field.field_source_type }}</td>

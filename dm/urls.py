@@ -8,19 +8,22 @@ urlpatterns = [
     path("fields/", fields),
     path("fields/<str:fields_list_id>/", field_list_item),
     path("fields/<str:field_source_id>/<str:field_id>/", field_item),
+    path("field/<str:field_id>/", field),
+    path("field_edit/<str:field_id>/", field_edit),
+    # path("field/new/", field_edit),
 
     path("field_lists/", field_lists),
     path("field_list/<str:field_list_id>/", field_list),
     path("field_list_edit/<str:field_list_id>/", field_list_edit),
-    path("field_list/new/", field_list_edit),
+    # path("field_list/new/", field_list_edit),
 
     path("sources/", sources),
     path("sources/<str:source_list_id>/<str:type>/", source_list_item),
 
     path("source_lists/", source_lists),
-    path("source_list/<str:source_list_name>/", source_list),
-    path("source_list_edit/<str:source_list_name>/", source_list_edit),
-    path("source_list/new/", source_list_edit),
+    path("source_list/<str:source_list_id>/", source_list),
+    path("source_list_edit/<str:source_list_id>/", source_list_edit),
+    # path("source_list/new/", source_list_edit),
 
     path("queries/", queries),
     path("query/<str:query_id>/", query),

@@ -62,6 +62,32 @@ def fields(request):
     return render(request, 'dm/fields.html', context)
 
 
+# def field_edit(request, field_id: str):
+#     context = {
+#         'nav_bar': nav_bar,
+#         'bootstrap_link': bootstrap_link
+#     }
+#     if field_id != "new":
+#         field = get_object_or_404(Field, id=field_id)
+#         context['edit'] = True
+#         context['add'] = False
+#     else:
+#         field = None
+#         context['edit'] = True
+#         context['add'] = True
+#
+#     if request.method == 'POST':
+#         form = FieldForm(request.POST, instance=field)
+#         if form.is_valid():
+#             form.save()
+#             return redirect('/dm/fields/')  # Redirect to a new URL
+#     else:
+#         form = FieldForm(instance=field)
+#
+#     context['form'] = form
+#     return render(request, 'dm/field.html', context)
+
+
 def field_list_item(request, fields_list_id):
     field_list = FieldList.objects.get(id=fields_list_id)
     filtered_fields = Field.objects.filter(field_list=field_list)
@@ -149,6 +175,56 @@ def field_list_edit(request, field_list_id):
 
     context['form'] = form
     return render(request, 'dm/field_list.html', context)
+
+
+def field(request, field_id):
+    if field_id:
+        field = get_object_or_404(Field, id=field_id)
+    else:
+        field = None
+
+    form = FieldForm(instance=field)
+
+    for form_field in form.fields:
+        form.fields[form_field].disabled = True
+
+    context = {
+        'form': form,
+        'edit': False,
+        # 'add': True,
+        'nav_bar': nav_bar,
+        'bootstrap_link': bootstrap_link,
+        'field_id': field.id,
+        'field_source_id': field.field_source_id
+    }
+    return render(request, 'dm/field.html', context)
+
+
+def field_edit(request, field_id):
+    context = {
+        'nav_bar': nav_bar,
+        'bootstrap_link': bootstrap_link
+    }
+
+    if field_id != 'new':
+        field = get_object_or_404(Field, id=field_id)
+        context['edit'] = True
+        context['add'] = False
+    else:
+        field = None
+        context['edit'] = True
+        context['add'] = True
+
+    if request.method == 'POST':
+        form = FieldForm(request.POST, instance=field)
+        if form.is_valid():
+            form.save()
+            return redirect('/dm/field/')
+    else:
+        form = FieldForm(instance=field)
+
+    context['form'] = form
+    return render(request, 'dm/field.html', context)
 
 
 def queries(request):
@@ -498,7 +574,7 @@ def field_linearization(source, field):
     match field.field_source_type:
         case 'function':
             return {
-                "content": field.field_alias,
+                "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_alias)}</a>",
                 "children": [
                     {
                         "content": brown_rect + field.field_function
@@ -507,7 +583,7 @@ def field_linearization(source, field):
             }
         case 'value':
             return {
-                "content": field.field_alias,
+                "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_alias)}</a>",
                 "children": [
                     {
                         "content": brown_rect + field.field_value
@@ -516,7 +592,7 @@ def field_linearization(source, field):
             }
         case 'tbd':
             return {
-                "content": field.field_alias,
+                "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_alias)}</a>",
                 "children": [
                     {
                         "content": 'TBD'
@@ -557,7 +633,7 @@ def field_linearization(source, field):
             "content": source.source_type,
             "children": [
                 {
-                    "content": field.field_alias
+                    "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_alias)}</a>"
                 },
                 {
                     "content": source.table_name
@@ -585,7 +661,7 @@ def field_linearization(source, field):
         "content": source.source_type,
         "children": [
             {
-                "content": field.field_name
+                "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_alias)}</a>"
             },
             {
                 "content": content,

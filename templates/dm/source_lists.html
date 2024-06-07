@@ -25,11 +25,11 @@
                     <tr>
 {#                        <td><a href="">{{ field_list.data_source }}</a></td>#}
 {#                        <td>{{ field_list.data_source }}</td>#}
-                        <td><a href="/dm/sources/{{ source_list.source_list }}/item/">{{ source_list.source_list }}</a></td>
+                        <td><a href="/dm/sources/{{ source_list.id }}/item/">{{ source_list.source_list }}</a></td>
                         <td>{{ source_list.source_list_description }}</td>
                         <td>
-                            <a href="/dm/source_list/{{ source_list.source_list }}/">View</a>
-                            <a href="/dm/source_list_edit/{{ source_list.source_list }}/">Edit</a>
+                            <a href="/dm/source_list/{{ source_list.id }}/">View</a>
+                            <a href="/dm/source_list_edit/{{ source_list.id }}/">Edit</a>
                         </td>
                     </tr>
                 {% endfor %}

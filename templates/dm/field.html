@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <style>
+        .bold-label {
+            font-weight: bold;
+        }
+    </style>
     <meta charset="UTF-8">
     <title>Field</title>
     {{ bootstrap_link|safe }}
@@ -9,9 +14,25 @@
 <header>
     {{ nav_bar|safe }}
 </header>
-{{ field }}
-{{ field_source }}
-<!--    <h4>Source view/edit!</h4>-->
-<!--    {{ form }}-->
+        {% if edit and add != True %}
+        <h4>Field edit</h4>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Save</button>
+        </form>
+
+    {% elif edit and add %}
+        <h4>SField add</h4>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Save</button>
+        </form>
+
+    {% else %}
+        <h4>Field view</h4>
+        {{ form }}
+    {% endif %}
 </body>
 </html>
