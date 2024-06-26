@@ -25,4 +25,5 @@ urlpatterns = [
     path("dm/", include('dm.urls')),
 ]
 
-if DEBUG:    urlpatterns += static(MEDIA_URL, document_root=MEDIA_ROOT)
+if DEBUG:
+    urlpatterns += static(MEDIA_URL, document_root=MEDIA_ROOT)

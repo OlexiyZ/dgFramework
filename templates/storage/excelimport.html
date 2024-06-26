@@ -30,7 +30,7 @@
             fSelect = document.querySelector('#firstSelect')
             shtml = html
             console.log("html", html)
-            for (let key in html) {
+            for (let key in html['sheets']) {
                 const newOption = document.createElement('option')
                 newOption.textContent = key
                 newOption.value = key
@@ -77,6 +77,8 @@
 
 <!-- Button to Load Excel Data to Database -->
 <button id="sendButton" type="submit">Import Table to CSV</button>
+<button id="importButton" type="submit">Import Table</button>
+<div id="dataContainer"></div>
 
 <script>
     console.log(1)
@@ -87,12 +89,12 @@
         const selctedOption = document.querySelector('#firstSelect')
         console.log("fSelect: ", fSelect);
         console.log("selctedOption.value", selctedOption.value)
-        console.log("html: ", shtml[selctedOption.value]);
+        console.log("html: ", shtml['sheets'][selctedOption.value]);
         var secondSelect = document.getElementById('secondSelect');
         secondSelect.innerHTML = '';
         {#const dataToUse = selctedOption.value.split(',')#}
         {#const dataToUse = shtml[selctedOption.value].split(',')#}
-        const dataToUse = shtml[selctedOption.value]
+        const dataToUse = shtml['sheets'][selctedOption.value]
         console.log("dataToUse: ", dataToUse);
         // Fill the second select with new options
         dataToUse.forEach(function(item) {
@@ -107,27 +109,78 @@
     $('#sendButton').click(function() {
         console.log("firstSelect: ", $('#firstSelect').val());
         console.log("secondSelect: ", $('#secondSelect').val());
-        {% comment %}
-        // Get the selected value of the first select and assign it to the hidden input
-        var firstSelectValue = $('#firstSelect').val();
-        document.getElementById('firstSelectValue').value = firstSelectValue;
-
-        // Get the selected value of the second select and assign it to the hidden input
-        var secondSelectValue = $('#secondSelect').val();
-        document.getElementById('secondSelectValue').value = secondSelectValue;
-        {% endcomment %}
+        console.log("file_path: ", shtml['file_path']);
+        window.sheet = $('#firstSelect').val()
+        window.table = $('#secondSelect').val()
+        window.file_path = shtml['file_path']
         $.ajax({
             url: '/storage/import_csv/',
             type: 'POST',
-            data: {
+            contentType: 'application/json',
+            data: JSON.stringify({
                 'sheet': $('#firstSelect').val(),
                 'table': $('#secondSelect').val(),
+                'file_path': shtml['file_path'],
                 'csrfmiddlewaretoken':$('input[name="csrfmiddlewaretoken"]').val()
+            }),
+            dataType: 'json',
+            success: function(response) {
+                console.log("import_result", response['text']);
+                console.log("import_result", response['csv']);
+                displayData(response['csv']);
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.error('Error during AJAX request:', textStatus, errorThrown);
             }
         })
-        .then(response => response.json())
-        .then(html => {})
-    })
+    });
+
+    $('#importButton').click(function() {
+        console.log("firstSelect: ", $('#firstSelect').val());
+        console.log("secondSelect: ", $('#secondSelect').val());
+        console.log("file_path: ", shtml['file_path']);
+        $.ajax({
+            url: '/storage/import_csv/',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                'sheet': window.sheet,
+                'table': window.table,
+                'file_path': window.file_path,
+                'csrfmiddlewaretoken':$('input[name="csrfmiddlewaretoken"]').val()
+            }),
+            dataType: 'json',
+            success: function(response) {
+                console.log("import_result", response['text']);
+                console.log("import_result", response['csv']);
+                displayData(response['csv']);
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.error('Error during AJAX request:', textStatus, errorThrown);
+            }
+        })
+    });
+
+    function displayData(data) {
+        console.log("displayData begin", data);
+        let table = '<table border="1"><tr>';
+        // Assuming the first object has all the keys needed for table headers
+        for (let key in data[0]) {
+            table += `<th>${key}</th>`;
+        }
+        table += '</tr>';
+        // Populate rows
+        data.forEach(row => {
+            table += '<tr>';
+            for (let key in row) {
+                table += `<td>${row[key]}</td>`;
+            }
+            table += '</tr>';
+        });
+        table += '</table>';
+        $('#dataContainer').html(table);
+    }
+
 </script>
 
 </body>

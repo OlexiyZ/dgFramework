@@ -34,7 +34,11 @@ def upload_file(request):
             return JsonResponse({'error': 'No file to download'}, status=400)
 
         # Здесь вы можете обрабатывать файл, например, сохранять его на сервере
-        context = {'message': 'File uploaded successfully'}
+        fss = FileSystemStorage()
+        filename = fss.save(file.name, file)
+        # file_url = fss.url(filename)
+        file_path = fss.path(filename)
+        context = {'message': 'File uploaded successfully', 'file_path': file_path}
         wb = load_workbook(file)
 
         sheets = dict()
@@ -49,7 +53,8 @@ def upload_file(request):
             sheets[sheet_title] = tables
 
         context['sheets'] = sheets
-        return JsonResponse(sheets)
+        # return JsonResponse(sheets)
+        return JsonResponse(context)
 
     return render(request, 'storage/excelimport.html', context)
 
@@ -169,12 +174,23 @@ def load2db(self, df):
         cursor.close()
         connection.close()
 
-
+@csrf_exempt
 def import_csv(request):
-    print("Request data: ", request.body)
-    context = {'text': 'CSV Loaded'}
+    body_unicode = request.body.decode('utf-8')
+    body_data = json.loads(body_unicode)
+
+    sheet = body_data.get('sheet')
+    table = body_data.get('table')
+    file_path = body_data.get('file_path')
+
+    # print("Request data: ", request.body)
+    # print("Request file_url: ", request.body['file_url'])
+    df = import_table_from_excel(file_path, sheet, table)
+    df_dict = df.to_dict(orient='records')
+    context = {'text': 'CSV Loaded', 'csv': df_dict}
     return JsonResponse(context)
-    # render(request, 'storage/import_csv.html', context)
+    # return render(request, 'storage/import_csv.html', context)
+    # return redirect('import_csv.html', context)
 
 
 def import_excel(request):
@@ -207,20 +223,26 @@ def import_excel(request):
     return render(request, 'storage/import_excel.html')
 
 
-# def first_select(request):
+# def import_table_from_excel(self, workbook_filename, sheet_name: str = '', table_name: str = ''):
+def import_table_from_excel(workbook_filename, sheet_name: str = '', table_name: str = ''):
+    wb = load_workbook(filename=workbook_filename)
+    print(wb.sheetnames)
+    sheet = wb[sheet_name]
+    print(sheet.tables.keys(), '\n')
+    lookup_table = sheet.tables[table_name]
+    print(lookup_table.ref)
 
+    data = sheet[lookup_table.ref]
+    rows_list = []
 
-# def fields(request):
-#     all_fields = Field.objects.all()
-#     context = {
-#         'fields': all_fields,
-#     }
-#     return render(request, 'storage/fields.html', context)
-#
-#
-# def field_lists(request):
-#     all_field_lists = FieldList.objects.all()
-#     context = {
-#         'field_lists': all_field_lists
-#     }
-#     return render(request, 'storage/field_lists.html', context)
+    for row in data:
+        cols = []
+        for col in row:
+            cols.append(col.value)
+        rows_list.append(cols)
+
+    df = pd.DataFrame(data=rows_list[1:], index=None, columns=rows_list[0])
+    df.to_csv(f'{table_name}.csv', index=False)
+
+    # self.display_df(df)
+    return df
