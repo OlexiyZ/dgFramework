@@ -47,6 +47,7 @@
             <table id="fieldsTable" class="table table-sm table-striped table-hover">
                 <thead>
                     <tr>
+                        <th>View/Edit</th>
                         <th>field_alias</th>
                         <th>field_diagram</th>
                         <th>field_source_type</th>
@@ -77,11 +78,11 @@
                             {% endif %}
                         </td>
                         <td>
-                            {% if field.field_name != '' %}
+                            {% if field.field_name != None %}
                                 <a href="/dm/fields/{{ field.field_source_id }}/{{ field.id }}/">{{ field.field_name }}</a>
 <!--{#                                <a href="/dm/fields/{{ current_field_list.data_source.source_list_name }}.{{ field.field_source }}/{{ ield.field_name }}">{{ field.field_name }}</a>#}-->
                             {% else %}
-                                ''
+                                None
                             {% endif %}
                         </td>
                         <td>{{ field.field_value }}</td>

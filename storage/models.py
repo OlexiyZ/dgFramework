@@ -86,10 +86,10 @@ class Field(models.Model):
     field_alias = models.CharField(max_length=30)
     field_source_type = models.CharField(max_length=30, choices=FIELD_SOURCE_TYPES, default='tbd')
     field_source = models.ForeignKey(Source, on_delete=models.CASCADE, blank=True, null=True)
-    field_name = models.CharField(max_length=30, blank=True)
-    field_value = models.CharField(max_length=30, blank=True)
-    field_function = models.TextField(max_length=255, blank=True)
-    function_field_list = models.CharField(max_length=255, blank=True)
+    field_name = models.CharField(max_length=30, blank=True, null=True)
+    field_value = models.CharField(max_length=30, blank=True, null=True)
+    field_function = models.TextField(max_length=255, blank=True, null=True)
+    function_field_list = models.CharField(max_length=255, blank=True, null=True)
     field_description = models.TextField(blank=True, null=True)
 
     class Meta:

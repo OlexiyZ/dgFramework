@@ -114,7 +114,7 @@
         window.table = $('#secondSelect').val()
         window.file_path = shtml['file_path']
         $.ajax({
-            url: '/storage/import_csv/',
+            url: '/storage/import_excel/',
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify({
@@ -125,8 +125,8 @@
             }),
             dataType: 'json',
             success: function(response) {
-                console.log("import_result", response['text']);
-                console.log("import_result", response['csv']);
+                console.log("ecxel_load_result", response['text']);
+                console.log("ecxel_load_data", response['csv']);
                 displayData(response['csv']);
             },
             error: function(jqXHR, textStatus, errorThrown) {
@@ -136,9 +136,9 @@
     });
 
     $('#importButton').click(function() {
-        console.log("firstSelect: ", $('#firstSelect').val());
-        console.log("secondSelect: ", $('#secondSelect').val());
-        console.log("file_path: ", shtml['file_path']);
+        console.log("firstSelect: ", window.sheet);
+        console.log("secondSelect: ", window.table);
+        console.log("file_path: ", window.file_path);
         $.ajax({
             url: '/storage/import_csv/',
             type: 'POST',
@@ -151,9 +151,7 @@
             }),
             dataType: 'json',
             success: function(response) {
-                console.log("import_result", response['text']);
-                console.log("import_result", response['csv']);
-                displayData(response['csv']);
+                console.log("import_result", response['import_result']);
             },
             error: function(jqXHR, textStatus, errorThrown) {
                 console.error('Error during AJAX request:', textStatus, errorThrown);

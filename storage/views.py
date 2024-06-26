@@ -88,6 +88,27 @@ def select_table(request):
         return HttpResponse("Method not allowed", status=405)
 
 
+def sanitize_for_import(value):
+    if isinstance(value, str):
+        escaped_value = value.replace("'", "''")
+        return escaped_value
+    elif isinstance(value, list):
+        value_list = json.dumps(value)
+        return value_list
+    elif isinstance(value, dict):
+        str_value = str(value)
+        escaped_value = str_value.replace("'", '"')
+        return escaped_value
+    elif isinstance(value, set):
+        str_value = str(value)
+        escaped_value = str_value.replace("'", "''")
+        return escaped_value
+    elif not value:
+        escaped_value = None
+        return escaped_value
+    else:
+        return value
+
 def load2db(self, df):
 
     def __sanitize_for_sql(value):
@@ -174,8 +195,9 @@ def load2db(self, df):
         cursor.close()
         connection.close()
 
+
 @csrf_exempt
-def import_csv(request):
+def import_excel(request):
     body_unicode = request.body.decode('utf-8')
     body_data = json.loads(body_unicode)
 
@@ -193,34 +215,62 @@ def import_csv(request):
     # return redirect('import_csv.html', context)
 
 
-def import_excel(request):
-    if request.method == 'POST' and request.FILES['excelFile']:
-        upload = request.FILES['excelFile']
-        fss = FileSystemStorage()
-        file = fss.save(upload.name, upload)
-        file_url = fss.url(file)
-        context = {'message': 'File uploaded successfully'}
-        file_path = os.path.join('media/', file)
-        wb = load_workbook(file_path)
+@csrf_exempt
+def import_csv(request):
+    body_unicode = request.body.decode('utf-8')
+    body_data = json.loads(body_unicode)
 
-        sheets = dict()
-        # Adding items to Listbox
-        for sheet_item in wb.worksheets:
-            tables = []
-            sheet_title = sheet_item.title
-            # sheets.append(sheet_title)
-            selected_sheet = wb[sheet_title]
-            for table_item in selected_sheet.tables:
-                tables.append(table_item)
-            sheets[sheet_title] = tables
+    sheet = body_data.get('sheet')
+    table = body_data.get('table')
+    file_path = body_data.get('file_path')
 
-        context['file_url'] = file_url
-        context['sheets'] = sheets.keys()
-        return render(request, 'storage/import_excel.html', context)
-    elif request.method == 'POST' and request.body('firstSelect'):
-        context = {'message': 'secondSelect'}
-        return render(request, 'storage/import_excel.html', context)
-    return render(request, 'storage/import_excel.html')
+    df = import_table_from_excel(file_path, sheet, table)
+
+    import_result = []
+    for index, row in df.iterrows():
+        try:
+            source_list = SourceList.objects.get(source_list=row['source_list'])
+            field_list = FieldList.objects.get(field_list_name=row['field_list'], data_source=source_list)
+            if row['field_source']:
+                field_source = Source.objects.get(source_union_list=source_list, source_alias=row['field_source'])
+            else:
+                field_source = None
+            sanitized_field_name = sanitize_for_import(row['field_name'])
+            sanitized_field_value = sanitize_for_import(row['field_value'])
+            sanitized_field_function = sanitize_for_import(row['field_function'])
+            sanitized_function_field_list = sanitize_for_import(row['function_field_list'])
+            sanitized_field_description = sanitize_for_import(row['field_description'])
+
+            field, created = Field.objects.update_or_create(
+                field_list=field_list,
+                source_list=source_list,
+                field_alias=row['field_alias'],
+                # field_source=field_source,
+                defaults={
+                    'field_list': field_list,
+                    'source_list': source_list,
+                    'field_alias': row['field_alias'],
+                    'field_source_type': row['field_source_type'],
+                    'field_source': field_source,
+                    'field_name': row['field_name'],
+                    'field_value': row['field_value'],
+                    'field_function': row['field_function'],
+                    'function_field_list': row['function_field_list'],
+                    'field_description': row['field_description']
+                }
+            )
+            if created:
+                import_result.append((row['field_alias'], 'created'))
+                print(f"Field {field.field_alias} created")
+            else:
+                import_result.append((row['field_alias'], 'updated'))
+                print(f"Field {field.field_alias} updated")
+        except Exception as e:
+            import_result.append(f"{row['field_alias']}: {e}")
+            print(f"Error inserting data: {e}")
+
+    context = {'import_result': import_result}
+    return JsonResponse(context)
 
 
 # def import_table_from_excel(self, workbook_filename, sheet_name: str = '', table_name: str = ''):
