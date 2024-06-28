@@ -438,20 +438,23 @@ def linearization(source_type, source_name, fields2content):
             children.append(linearization(source.source_type, f_source, f_fields))
     elif source_type == 'table':
         children.append(linearization('table', source_name, None))
-    else:
-        children.append(linearization(None, None, None))
+    # else:
+    #     children.append(linearization(None, None, None))
 
     # End recursive body
     # data_source_hyperlink = f"<a href=\"/dm/sources/{str(source_name)}/{source_type}/ \"target=\"_blank\">{str(source_name)}</a>"
     if source_type == 'data_source':
+        # data_source_hyperlink = f"<a href=\"/dm/sources/{str(source.id)}/{source_type}/ \"target=\"_blank\">{str(source.source_alias)}</a>"
         data_source_hyperlink = f"<a href=\"/dm/sources/{str(source_name)}/{source_type}/ \"target=\"_blank\">{str(source_name)}</a>"
         content = blue_rect + data_source_hyperlink
     elif source_type == 'query':
+        # data_source_hyperlink = f"<a href=\"/dm/sources/{str(source.id)}/{source_type}/ \"target=\"_blank\">{str(source.source_alias)}</a>"
         data_source_hyperlink = f"<a href=\"/dm/sources/{str(source_name)}/{source_type}/ \"target=\"_blank\">{str(source_name)}</a>"
         content = green_rect + data_source_hyperlink
     # elif source_type == 'table':
     #     content = yellow_rect + str(source_name)
     elif source_type == 'report':
+        # data_source_hyperlink = f"<a href=\"/dm/sources/{str(source.id)}/union/ \"target=\"_blank\">{str(source.source_name)}</a>"
         data_source_hyperlink = f"<a href=\"/dm/sources/{str(source_name)}/union/ \"target=\"_blank\">{str(source_name)}</a>"
         content = purple_rect + data_source_hyperlink
     else:
@@ -564,12 +567,16 @@ def field_diagram(request, source_id, field_id):
 
 
 def field_linearization(source, field):
+    blue_rect = "<svg width=\"10\" height=\"10\"> <rect x=\"0\" y=\"0\" width=\"10\" height=\"10\" fill=\"blue\" /></svg> "
+    green_rect = "<svg width=\"10\" height=\"10\"> <rect x=\"0\" y=\"0\" width=\"10\" height=\"10\" fill=\"green\" /></svg> "
     brown_rect = "<svg width=\"10\" height=\"10\"> <rect x=\"0\" y=\"0\" width=\"10\" height=\"10\" fill=\"brown\" /></svg> "
+    purple_rect = "<svg width=\"10\" height=\"10\"> <rect x=\"0\" y=\"0\" width=\"10\" height=\"10\" fill=\"purple\" /></svg> "
+    yellow_rect = "<svg width=\"10\" height=\"10\"> <rect x=\"0\" y=\"0\" width=\"10\" height=\"10\" fill=\"yellow\" /></svg> "
 
-    if field is None:
-        return {
-            "content": "None"
-        }
+    # if field is None:
+    #     return {
+    #         "content": "None"
+    #     }
 
     match field.field_source_type:
         case 'function':
@@ -577,7 +584,7 @@ def field_linearization(source, field):
                 "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>",
                 "children": [
                     {
-                        "content": brown_rect + field.field_function
+                        "content": purple_rect + field.field_function
                     }
                 ]
             }
@@ -610,12 +617,15 @@ def field_linearization(source, field):
                     field = Field.objects.get(field_alias=field.field_name, field_source_id=source_item.id)
                 except Field.DoesNotExist:
                     field = field
-                children.append(field_linearization(source_item, field))
+                fn_response = field_linearization(source_item, field)
+                if fn_response['content'] != 'None':
+                    children.append(fn_response)
         else:
             return {
                 "content": "None"
             }
     elif source.source_type == 'data_source':
+    # elif source.source_type == 'data_source' and source.source_alias == field.field_source.source_alias:
         sources, source_list, field_list, fields = get_source(source)
         for source_item in sources:
             try:
@@ -623,12 +633,12 @@ def field_linearization(source, field):
             except Field.DoesNotExist:
                 field = field
             fn_response = field_linearization(source_item, field)
-            if fn_response['content'] == 'None':
-                continue
-            else:
-                children.append(field_linearization(source_item, field))
-    elif source.source_type == 'table':
+            if fn_response['content'] != 'None':
+                children.append(fn_response)
+
+    elif source.source_type == 'table' and source.source_alias == field.field_source.source_alias:
         # children = []
+        # if source.source_type == field.field_source_type:
         return {
             "content": source.source_type,
             "children": [
@@ -641,7 +651,10 @@ def field_linearization(source, field):
             ]
         }
     else:
-        children.append(field_linearization(None, None))
+        return {
+            "content": "None"
+        }
+        # children.append(field_linearization(None, None))
 
     if source.source_type == 'data_source':
         data_source_hyperlink = f"<a href=\"/dm/sources/{str(source.id)}/{source.source_type}/ \"target=\"_blank\">{str(source.source_alias)}</a>"
