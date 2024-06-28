@@ -45,6 +45,7 @@
             <table id="fieldsTable" class="table table-sm table-striped table-hover">
                 <thead>
                     <tr>
+                        <th>id</th>
                         <th>source_union_list</th>
                         <th>source_alias</th>
                         <th>source_type</th>
@@ -61,6 +62,7 @@
                 <tbody class="table-group-divider">
                 {% for source in sources %}
                     <tr>
+                        <td>{{ source.id }}</td>
                         <td><a href="/dm/sources/{{ source.source_union_list_id }}/union/">{{ source.source_union_list }}</a></td>
                         <td><a href="/dm/sources/{{ source.id }}/item/">{{ source.source_alias }}</a></td>
                         <td>{{ source.source_type }}</td>

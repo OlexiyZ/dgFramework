@@ -445,17 +445,16 @@ def linearization(source_type, source_name, fields2content):
     # data_source_hyperlink = f"<a href=\"/dm/sources/{str(source_name)}/{source_type}/ \"target=\"_blank\">{str(source_name)}</a>"
     if source_type == 'data_source':
         # data_source_hyperlink = f"<a href=\"/dm/sources/{str(source.id)}/{source_type}/ \"target=\"_blank\">{str(source.source_alias)}</a>"
-        data_source_hyperlink = f"<a href=\"/dm/sources/{str(source_name)}/{source_type}/ \"target=\"_blank\">{str(source_name)}</a>"
+        data_source_hyperlink = f"<a href=\"/dm/sources/{str(source.source_union_list_id)}/union/ \"target=\"_blank\">{str(source_name)}</a>"
         content = blue_rect + data_source_hyperlink
     elif source_type == 'query':
-        # data_source_hyperlink = f"<a href=\"/dm/sources/{str(source.id)}/{source_type}/ \"target=\"_blank\">{str(source.source_alias)}</a>"
-        data_source_hyperlink = f"<a href=\"/dm/sources/{str(source_name)}/{source_type}/ \"target=\"_blank\">{str(source_name)}</a>"
+        data_source_hyperlink = f"<a href=\"/dm/query/{str(source.id)}/ \"target=\"_blank\">{str(source_name)}</a>"
         content = green_rect + data_source_hyperlink
     # elif source_type == 'table':
     #     content = yellow_rect + str(source_name)
     elif source_type == 'report':
-        # data_source_hyperlink = f"<a href=\"/dm/sources/{str(source.id)}/union/ \"target=\"_blank\">{str(source.source_name)}</a>"
-        data_source_hyperlink = f"<a href=\"/dm/sources/{str(source_name)}/union/ \"target=\"_blank\">{str(source_name)}</a>"
+        # data_source_hyperlink = f"<a href=\"/dm/sources/{str(source.id)}/union/ \"target=\"_blank\">{str(source.source_alias)}</a>"
+        data_source_hyperlink = f"<a href=\"/dm/sources/{str(source.source_union_list_id)}/union/ \"target=\"_blank\">{str(source_name)}</a>"
         content = purple_rect + data_source_hyperlink
     else:
         content = str(source_name)
