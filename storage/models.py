@@ -16,14 +16,14 @@ class UnionType(models.Model):
 
 
 class SourceSystem(models.Model):
-    source_system_name = models.CharField(max_length=30)
+    source_system_name = models.CharField(max_length=30, unique=True)
 
     def __str__(self):
         return self.source_system_name
 
 
 class SourceScheme(models.Model):
-    source_scheme_name = models.CharField(max_length=30)
+    source_scheme_name = models.CharField(max_length=30, unique=True)
     source_system = models.ForeignKey(SourceSystem, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -31,7 +31,7 @@ class SourceScheme(models.Model):
 
 
 class SourceList(models.Model):
-    source_list = models.CharField(max_length=30)
+    source_list = models.CharField(max_length=30, unique=True)
     source_list_description = models.TextField(blank=True, null=True)
 
     def __str__(self):
@@ -61,7 +61,7 @@ class Source(models.Model):
     source_description = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return self.source_alias
+        return str(self.source_union_list) + "." + str(self.source_alias)
 
 
 class FieldList(models.Model):
@@ -98,11 +98,11 @@ class Field(models.Model):
         ]
 
     def __str__(self):
-        return self.field_alias
+        return str(self.field_list) + "." + str(self.field_alias)
 
 
 class Query(models.Model):
-    query_name = models.CharField(max_length=10)
+    query_name = models.CharField(max_length=30)
     field_list = models.ForeignKey(FieldList, on_delete=models.CASCADE, blank=True, null=True)
     source_list = models.ForeignKey(SourceList, on_delete=models.CASCADE, blank=True, null=True)
     query_conditions = models.TextField(blank=True, null=True)

@@ -389,21 +389,25 @@ def linearization(source_type, source_name, fields2content):
     # Begin recursive body
     children = []
     f_fields = []
-    if source_type == 'report':
-        source = Report.objects.get(report_name=source_name)
-        sources, source_list, field_list, fields = get_data_source(source)
+    # if source_type == 'report':
+    #     source = Report.objects.get(report_name=source_name)
+    #     sources, source_list, field_list, fields = get_data_source(source)
+    #
+    #     for field in fields:
+    #         field_name = {}
+    #         field_name["content"] = f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/\" target=\"_blank\">{field.field_alias}</a>" \
+    #                                 f"<a href=\"/dm/field_diagram/{field.field_source_id}/{field.id}/\" target=\"_blank\"> [diagram]</a> "
+    #         f_fields.append(field_name)
+    #     for source in sources:
+    #         children.append(linearization(source.source_type, source.query_name, ""))
 
-        for field in fields:
-            field_name = {}
-            field_name["content"] = f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/\" target=\"_blank\">{field.field_alias}</a>" \
-                                    f"<a href=\"/dm/field_diagram/{field.field_source_id}/{field.id}/\" target=\"_blank\"> [diagram]</a> "
-            f_fields.append(field_name)
-        for source in sources:
-            children.append(linearization(source.source_type, source.query_name, ""))
-
-    elif source_type == 'query':
-        source = Query.objects.get(query_name=source_name)
-        sources, source_list, field_list, fields = get_query_source(source)
+    if source_type == 'query' or source_type == 'report':
+        if source_type == 'report':
+            source = Report.objects.get(report_name=source_name)
+            sources, source_list, field_list, fields = get_data_source(source)
+        elif source_type == 'query':
+            source = Query.objects.get(query_name=source_name)
+            sources, source_list, field_list, fields = get_query_source(source)
 
         # f_fields = []
         for field in fields:
@@ -558,7 +562,7 @@ def get_report_source(source):
 def field_diagram(request, source_id, field_id):
     source = Source.objects.get(id=source_id)
     field = Field.objects.get(id=field_id, field_source_id=source_id)
-    linear = field_linearization(source, field)
+    linear, field_source = field_linearization(source, field)
     linear_m = {"content": str(field),
                 "children": [linear]}
     context = {"model": linear_m}
@@ -572,6 +576,7 @@ def field_linearization(source, field):
     purple_rect = "<svg width=\"10\" height=\"10\"> <rect x=\"0\" y=\"0\" width=\"10\" height=\"10\" fill=\"purple\" /></svg> "
     yellow_rect = "<svg width=\"10\" height=\"10\"> <rect x=\"0\" y=\"0\" width=\"10\" height=\"10\" fill=\"yellow\" /></svg> "
 
+# Recurrent end points
     # if field is None:
     #     return {
     #         "content": "None"
@@ -579,6 +584,7 @@ def field_linearization(source, field):
 
     match field.field_source_type:
         case 'function':
+            field_source = {"function": field.field_function}
             return {
                 "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>",
                 "children": [
@@ -588,6 +594,7 @@ def field_linearization(source, field):
                 ]
             }
         case 'value':
+            field_source = {"value": field.field_value}
             return {
                 "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>",
                 "children": [
@@ -605,7 +612,7 @@ def field_linearization(source, field):
                     }
                 ]
             }
-        # case 'data_source':
+# Main recurrent function
     children = []
     if source.source_type == 'query':
         sources, source_list, field_list, fields = get_source(source)
@@ -624,7 +631,6 @@ def field_linearization(source, field):
                 "content": "None"
             }
     elif source.source_type == 'data_source':
-    # elif source.source_type == 'data_source' and source.source_alias == field.field_source.source_alias:
         sources, source_list, field_list, fields = get_source(source)
         for source_item in sources:
             try:
@@ -636,8 +642,7 @@ def field_linearization(source, field):
                 children.append(fn_response)
 
     elif source.source_type == 'table' and source.source_alias == field.field_source.source_alias:
-        # children = []
-        # if source.source_type == field.field_source_type:
+        field_source = {"field": field.field_name, "source": source.table_name}
         return {
             "content": source.source_type,
             "children": [
@@ -648,13 +653,13 @@ def field_linearization(source, field):
                     "content": source.table_name
                 }
             ]
-        }
+        }, field_source
     else:
         return {
             "content": "None"
         }
-        # children.append(field_linearization(None, None))
 
+# Recurrent and function
     if source.source_type == 'data_source':
         data_source_hyperlink = f"<a href=\"/dm/sources/{str(source.id)}/{source.source_type}/ \"target=\"_blank\">{str(source.source_alias)}</a>"
         content = data_source_hyperlink
