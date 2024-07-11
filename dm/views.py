@@ -592,18 +592,18 @@ def field_linearization(source, field):
     yellow_rect = "<svg width=\"10\" height=\"10\"> <rect x=\"0\" y=\"0\" width=\"10\" height=\"10\" fill=\"yellow\" /></svg> "
 
 # Recurrent end points
-    # if field is None:
-    #     return {
-    #         "content": "None"
-    #     }
+#     if field is None:
+#         return {
+#             "content": "None"
+#         }
 
     match field.field_source_type:
         case 'function':
             fn_source = {"id": field.id, "field": field.field_name, "field_list": str(field.field_list),
-                         "source_type": source.source_type, "function": field.field_function}
+                         "source_type": field.source_type, "function": field.field_function}
             logging.debug(f"rw = 602: {fn_source}")
             return {
-                "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>",
+                "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>",  #TODO: remove field.field_source_id
                 "children": [
                     {
                         "content": purple_rect + field.field_function
@@ -611,19 +611,32 @@ def field_linearization(source, field):
                 ]
             }, "function"
         case 'value':
-            fn_source = {"id": field.id, "field": field.field_name, "field_list": str(field.field_list), "source_type": source.source_type, "value": field.field_value}
+            fn_source = {"id": field.id, "field": field.field_name, "field_list": str(field.field_list), "source_type": field.source_type, "value": field.field_value}
             logging.debug(f"rw = 614: {fn_source}")
             return {
-                "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>",
+                "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>", #TODO: remove field.field_source_id
                 "children": [
                     {
                         "content": brown_rect + field.field_value
                     }
                 ]
             }, "value"
+        case 'table':
+            fn_source = {"id": field.id, "field": field.field_name, "field_list": str(field.field_list),
+                         "source_type": field.source_type, "value": field.field_value}
+            logging.debug(f"rw = 614: {fn_source}")
+            return {
+                       "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>",
+                       # TODO: remove field.field_source_id
+                       "children": [
+                           {
+                               "content": brown_rect + field.field_value
+                           }
+                       ]
+                   }, "value"
         case 'tbd':
             return {
-                "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>",
+                "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>", #TODO: remove field.field_source_id
                 "children": [
                     {
                         "content": 'TBD'
@@ -633,8 +646,8 @@ def field_linearization(source, field):
 # Main recurrent function
     children = []
     field_chains = []
-    if source.source_type == 'query':
-        sources, source_list, field_list, fields = get_source(source)
+    if field.field_source_type == 'query':
+        sources, source_list, field_list, fields = get_source(field)
         field_aliases = fields.values_list('field_alias', flat=True)
         if field.field_name in field_aliases:
             for source_item in sources:
@@ -653,8 +666,8 @@ def field_linearization(source, field):
             return {
                 "content": "None"
             }, "None"
-    elif source.source_type == 'data_source':
-        sources, source_list, field_list, fields = get_source(source)
+    elif field.field_source_type == 'data_source':
+        sources, source_list, field_list, fields = get_source(field)
         for source_item in sources:
             try:
                 field = Field.objects.get(field_alias=field.field_name, field_source_id=source_item.id)
@@ -668,8 +681,8 @@ def field_linearization(source, field):
                 children.append(fn_response)
                 field_chains.append(fn_source)
 
-    elif source.source_type == 'table' and source.source_alias == field.field_source.source_alias:
-        fn_source = {"field_id": field.id, "field": field.field_name, "field_list": str(field.field_list), "source_type": source.source_type, "table": source.table_name}
+    elif field.field_source_type == 'table':  # and source.source_alias == field.field_source.source_alias:
+        fn_source = {"field_id": field.id, "field": field.field_name, "field_list": str(field.field_list), "source_type": field.field_source_type, "table": field.field_source}
         logging.debug(f"rw = 672: {fn_source}")
         return {
             "content": source.source_type,
@@ -688,15 +701,15 @@ def field_linearization(source, field):
             "content": "None"
         }, "None"
 
-# Recurrent and function
+# Recurrent end function
     if source.source_type == 'data_source':
         data_source_hyperlink = f"<a href=\"/dm/sources/{str(source.id)}/{source.source_type}/ \"target=\"_blank\">{str(source.source_alias)}</a>"
         content = data_source_hyperlink
     elif source.source_type == 'query':
         data_source_hyperlink = f"<a href=\"/dm/sources/{str(source.id)}/{source.source_type}/ \"target=\"_blank\">{str(source.source_alias)}</a>"
         content = data_source_hyperlink
-    # elif source_type == 'table':
-    #     content = yellow_rect + str(source_name)
+    elif source.source_type == 'table':
+        content = yellow_rect + str(source.table_name)
     elif source.source_type == 'report':
         data_source_hyperlink = f"<a href=\"/dm/sources/{str(source.id)}/union/ \"target=\"_blank\">{str(source.source_name)}</a>"
         content = data_source_hyperlink
@@ -719,12 +732,13 @@ def field_linearization(source, field):
     }, "finish"
 
 
-def get_source(source):
+def get_source(field):
+    source = Source.objects.get(id=field.field_source_id)
     if source.source_type == 'query':  # isinstance(source, Query):
         query = Query.objects.get(query_name=source.query_name)
         try:
             source_list = SourceList.objects.get(source_list=query.source_list)
-        except SourceList.DoesNotExist:
+        except SourceList.DoesNotExist:   # 'SourceList matching query does not exist.'
             source_list = None
         try:
             sources = Source.objects.filter(source_union_list=source_list)
@@ -780,3 +794,26 @@ def get_source(source):
             fields = None
 
         return sources, source_list, field_list, fields
+
+    elif source.source_type == 'table':
+        try:
+            source_list = SourceList.objects.get(source_list=source.source_list)
+        except SourceList.DoesNotExist:
+            source_list = None
+        try:
+            sources = Source.objects.filter(source_union_list=source_list)
+        except Source.DoesNotExist:
+            sources = None
+        try:
+            field_list = FieldList.objects.get(data_source=source_list)
+        except FieldList.DoesNotExist:
+            field_list = None
+        try:
+            fields = Field.objects.filter(source_list=source_list)
+        except Field.DoesNotExist:
+            fields = None
+
+        return sources, source_list, field_list, fields
+
+    else:
+        return None, None, None, None
