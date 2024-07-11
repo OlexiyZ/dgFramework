@@ -6,7 +6,18 @@ from django.core.exceptions import ObjectDoesNotExist
 # from storage.models import *
 from .forms import *
 import json
+import logging
+import os
 
+log_file_path = os.path.join(os.path.dirname(__file__), r"dgf.log")
+logging.basicConfig(
+    filename=log_file_path,  # Specify the log file name
+    level=logging.DEBUG,  # Set the logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+    format='%(asctime)s [%(levelname)s] - %(message)s',  # Define the log message format
+    datefmt='%Y-%m-%d %H:%M:%S'  # Define the date and time format
+)
+
+# logging.debug(f"Start")
 # FormSourceList
 
 nav_bar = '''
@@ -373,10 +384,12 @@ def linearization(source_type, source_name, fields2content):
 
     # End of recursive
     if source_name == None:
+        # logging.debug(f"source_name == None, content: end")
         return {
             "content": "end"
         }
     elif source_type == 'table':
+        # logging.debug(f"source_type == 'table', content: {source_type}, children: {source_name}")
         return {
             "content": source_type,
             "children": [
@@ -562,10 +575,12 @@ def get_report_source(source):
 def field_diagram(request, source_id, field_id):
     source = Source.objects.get(id=source_id)
     field = Field.objects.get(id=field_id, field_source_id=source_id)
-    linear, field_source = field_linearization(source, field)
+    logging.debug(f"Start {field.field_alias}/{field.field_name}")
+    linear, fn_source = field_linearization(source, field)
     linear_m = {"content": str(field),
                 "children": [linear]}
     context = {"model": linear_m}
+    logging.debug(f"End: {fn_source}")
     return render(request, 'dm/diagram.html', context)
 
 
@@ -584,7 +599,9 @@ def field_linearization(source, field):
 
     match field.field_source_type:
         case 'function':
-            field_source = {"function": field.field_function}
+            fn_source = {"id": field.id, "field": field.field_name, "field_list": str(field.field_list),
+                         "source_type": source.source_type, "function": field.field_function}
+            logging.debug(f"rw = 602: {fn_source}")
             return {
                 "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>",
                 "children": [
@@ -592,9 +609,10 @@ def field_linearization(source, field):
                         "content": purple_rect + field.field_function
                     }
                 ]
-            }
+            }, "function"
         case 'value':
-            field_source = {"value": field.field_value}
+            fn_source = {"id": field.id, "field": field.field_name, "field_list": str(field.field_list), "source_type": source.source_type, "value": field.field_value}
+            logging.debug(f"rw = 614: {fn_source}")
             return {
                 "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>",
                 "children": [
@@ -602,7 +620,7 @@ def field_linearization(source, field):
                         "content": brown_rect + field.field_value
                     }
                 ]
-            }
+            }, "value"
         case 'tbd':
             return {
                 "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>",
@@ -611,9 +629,10 @@ def field_linearization(source, field):
                         "content": 'TBD'
                     }
                 ]
-            }
+            }, "tbd"
 # Main recurrent function
     children = []
+    field_chains = []
     if source.source_type == 'query':
         sources, source_list, field_list, fields = get_source(source)
         field_aliases = fields.values_list('field_alias', flat=True)
@@ -623,13 +642,17 @@ def field_linearization(source, field):
                     field = Field.objects.get(field_alias=field.field_name, field_source_id=source_item.id)
                 except Field.DoesNotExist:
                     field = field
-                fn_response = field_linearization(source_item, field)
+                # logging.debug(f"rw = 647, source_item = {source_item}, field: {field}")
+                fn_response, fn_source = field_linearization(source_item, field)
+                # logging.debug(f"rw = 649, fn_response = {fn_response}, fn_source: {fn_source}")
                 if fn_response['content'] != 'None':
                     children.append(fn_response)
+                    field_chains.append(fn_source)
         else:
+            # logging.debug(f"rw = 654, content = None, None")
             return {
                 "content": "None"
-            }
+            }, "None"
     elif source.source_type == 'data_source':
         sources, source_list, field_list, fields = get_source(source)
         for source_item in sources:
@@ -637,12 +660,17 @@ def field_linearization(source, field):
                 field = Field.objects.get(field_alias=field.field_name, field_source_id=source_item.id)
             except Field.DoesNotExist:
                 field = field
-            fn_response = field_linearization(source_item, field)
+            # logging.debug(f"rw = 665, source_item = {source_item}, field: {field}")
+            fn_response, fn_source = field_linearization(source_item, field)
+            # logging.debug(f"rw = 667, fn_response = {fn_response}, fn_source: {fn_source}")
             if fn_response['content'] != 'None':
+                # logging.debug(f"rw = 669, children = {children}, field_chains: {field_chains}")
                 children.append(fn_response)
+                field_chains.append(fn_source)
 
     elif source.source_type == 'table' and source.source_alias == field.field_source.source_alias:
-        field_source = {"field": field.field_name, "source": source.table_name}
+        fn_source = {"field_id": field.id, "field": field.field_name, "field_list": str(field.field_list), "source_type": source.source_type, "table": source.table_name}
+        logging.debug(f"rw = 672: {fn_source}")
         return {
             "content": source.source_type,
             "children": [
@@ -653,11 +681,12 @@ def field_linearization(source, field):
                     "content": source.table_name
                 }
             ]
-        }, field_source
+        }, field_chains
     else:
+        # logging.debug(f"rw = 688, content = None, None")
         return {
             "content": "None"
-        }
+        }, "None"
 
 # Recurrent and function
     if source.source_type == 'data_source':
@@ -674,6 +703,8 @@ def field_linearization(source, field):
     else:
         content = str(source.source_name)
 
+    # logging.debug(
+    #     f"rw = 707, Branch finish. content: {source.source_type}, children = {str(field.field_name)}, content: {source.table_name}, fn_source: finish")
     return {
         "content": source.source_type,
         "children": [
@@ -685,7 +716,7 @@ def field_linearization(source, field):
                 "children": children
             }
         ]
-    }
+    }, "finish"
 
 
 def get_source(source):
