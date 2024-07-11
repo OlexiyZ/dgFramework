@@ -573,8 +573,12 @@ def get_report_source(source):
 
 
 def field_diagram(request, source_id, field_id):
-    source = Source.objects.get(id=source_id)
-    field = Field.objects.get(id=field_id, field_source_id=source_id)
+    if source_id != 'None':
+        source = Source.objects.get(id=source_id)
+    else:
+        source = 'None'
+    # field = Field.objects.get(id=field_id, field_source_id=source_id)
+    field = Field.objects.get(id=field_id)
     logging.debug(f"Start {field.field_alias}/{field.field_name}")
     linear, fn_source = field_linearization(source, field)
     linear_m = {"content": str(field),
@@ -600,24 +604,26 @@ def field_linearization(source, field):
     match field.field_source_type:
         case 'function':
             fn_source = {"id": field.id, "field": field.field_name, "field_list": str(field.field_list),
-                         "source_type": field.source_type, "function": field.field_function}
+                         "source_type": field.field_source_type, "function": field.field_function}
             logging.debug(f"rw = 602: {fn_source}")
             return {
-                "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>",  #TODO: remove field.field_source_id
-                "children": [
+                # "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>",  #TODO: remove field.field_source_id
+                "content": "function",
+                    "children": [
                     {
                         "content": purple_rect + field.field_function
                     }
                 ]
             }, "function"
         case 'value':
-            fn_source = {"id": field.id, "field": field.field_name, "field_list": str(field.field_list), "source_type": field.source_type, "value": field.field_value}
+            fn_source = {"id": field.id, "field": field.field_name, "field_list": str(field.field_list), "source_type": field.field_source_type, "value": field.field_value}
             logging.debug(f"rw = 614: {fn_source}")
             return {
-                "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>", #TODO: remove field.field_source_id
+                # "content": f"<a href=\"/dm/fields/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>", #TODO: remove field.field_source_id
+                "content": "value",
                 "children": [
                     {
-                        "content": brown_rect + field.field_value
+                        "content": green_rect + field.field_value
                     }
                 ]
             }, "value"
@@ -647,7 +653,7 @@ def field_linearization(source, field):
     children = []
     field_chains = []
     if field.field_source_type == 'query':
-        sources, source_list, field_list, fields = get_source(field)
+        sources, source_list, field_list, fields = get_source(source)
         field_aliases = fields.values_list('field_alias', flat=True)
         if field.field_name in field_aliases:
             for source_item in sources:
@@ -667,7 +673,7 @@ def field_linearization(source, field):
                 "content": "None"
             }, "None"
     elif field.field_source_type == 'data_source':
-        sources, source_list, field_list, fields = get_source(field)
+        sources, source_list, field_list, fields = get_source(source)
         for source_item in sources:
             try:
                 field = Field.objects.get(field_alias=field.field_name, field_source_id=source_item.id)
@@ -718,6 +724,13 @@ def field_linearization(source, field):
 
     # logging.debug(
     #     f"rw = 707, Branch finish. content: {source.source_type}, children = {str(field.field_name)}, content: {source.table_name}, fn_source: finish")
+    # match field.field_source_type:
+    #     case 'function':
+    #         diagram_source_type = 'function'
+    #     case 'value':
+    #         diagram_source_type = 'value'
+    #     case _:
+    #         diagram_source_type = source.source_type
     return {
         "content": source.source_type,
         "children": [
@@ -732,8 +745,7 @@ def field_linearization(source, field):
     }, "finish"
 
 
-def get_source(field):
-    source = Source.objects.get(id=field.field_source_id)
+def get_source(source):
     if source.source_type == 'query':  # isinstance(source, Query):
         query = Query.objects.get(query_name=source.query_name)
         try:
