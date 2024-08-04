@@ -66,7 +66,7 @@ class Source(models.Model):
 
 class FieldList(models.Model):
     data_source = models.ForeignKey(SourceList, on_delete=models.CASCADE)
-    field_list_name = models.CharField(max_length=255)
+    field_list_name = models.CharField(max_length=255, unique=True)
     field_list_description = models.TextField(blank=True, null=True)
 
     def __str__(self):
@@ -102,7 +102,7 @@ class Field(models.Model):
 
 
 class Query(models.Model):
-    query_name = models.CharField(max_length=30)
+    query_name = models.CharField(max_length=30, unique=True)
     field_list = models.ForeignKey(FieldList, on_delete=models.CASCADE, blank=True, null=True)
     source_list = models.ForeignKey(SourceList, on_delete=models.CASCADE, blank=True, null=True)
     query_conditions = models.TextField(blank=True, null=True)

@@ -79,6 +79,7 @@
 <button id="sendButton" type="submit">Import Table to CSV</button>
 <button id="importButton" type="submit">Import Table</button>
 <div id="dataContainer"></div>
+<div id="importResultContainer"></div>
 
 <script>
     console.log(1)
@@ -152,6 +153,8 @@
             dataType: 'json',
             success: function(response) {
                 console.log("import_result", response['import_result']);
+                displayResult(response['import_result'])
+                // displayResult(`<h3 style="color: green;">${response['import_result']}</h3>`)
             },
             error: function(jqXHR, textStatus, errorThrown) {
                 console.error('Error during AJAX request:', textStatus, errorThrown);
@@ -177,6 +180,29 @@
         });
         table += '</table>';
         $('#dataContainer').html(table);
+    }
+
+
+    function displayResult(responce_message) {
+        console.log("responce message:", responce_message);
+        message = responce_message;
+
+        let table = '<table border="1"><tr>';
+        // Assuming the first object has all the keys needed for table headers
+        // for (let key in data[0]) {
+        //     table += `<th>${key}</th>`;
+        // }
+        // table += '</tr>';
+        // Populate rows
+        responce_message.forEach(row => {
+            table += '<tr>';
+            for (let key in row) {
+                table += `<td>${row[key]}</td>`;
+            }
+            table += '</tr>';
+        });
+        table += '</table>';
+        $('#importResultContainer').html(table);
     }
 
 </script>

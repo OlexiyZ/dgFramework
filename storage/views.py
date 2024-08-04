@@ -227,47 +227,180 @@ def import_csv(request):
     df = import_table_from_excel(file_path, sheet, table)
 
     import_result = []
-    for index, row in df.iterrows():
-        try:
-            source_list = SourceList.objects.get(source_list=row['source_list'])
-            field_list = FieldList.objects.get(field_list_name=row['field_list'], data_source=source_list)
-            if row['field_source']:
-                field_source = Source.objects.get(source_union_list=source_list, source_alias=row['field_source'])
-            else:
-                field_source = None
-            sanitized_field_name = sanitize_for_import(row['field_name'])
-            sanitized_field_value = sanitize_for_import(row['field_value'])
-            sanitized_field_function = sanitize_for_import(row['field_function'])
-            sanitized_function_field_list = sanitize_for_import(row['function_field_list'])
-            sanitized_field_description = sanitize_for_import(row['field_description'])
+    if table[:3] == 'FL_':
+        for index, row in df.iterrows():
+            try:
+                source_list, created = SourceList.objects.get_or_create(source_list=row['source_list'])
+                if created:
+                    import_result.append((row['source_list'], 'SourceList created'))
+                    print(f"Field {source_list.source_list} SourceList created")
 
-            field, created = Field.objects.update_or_create(
-                field_list=field_list,
-                source_list=source_list,
-                field_alias=row['field_alias'],
-                # field_source=field_source,
-                defaults={
-                    'field_list': field_list,
-                    'source_list': source_list,
-                    'field_alias': row['field_alias'],
-                    'field_source_type': row['field_source_type'],
-                    'field_source': field_source,
-                    'field_name': row['field_name'],
-                    'field_value': row['field_value'],
-                    'field_function': row['field_function'],
-                    'function_field_list': row['function_field_list'],
-                    'field_description': row['field_description']
-                }
-            )
-            if created:
-                import_result.append((row['field_alias'], 'created'))
-                print(f"Field {field.field_alias} created")
-            else:
-                import_result.append((row['field_alias'], 'updated'))
-                print(f"Field {field.field_alias} updated")
-        except Exception as e:
-            import_result.append(f"{row['field_alias']}: {e}")
-            print(f"Error inserting data: {e}")
+                field_list, created = FieldList.objects.get_or_create(field_list_name=row['field_list'], data_source=source_list)
+                if created:
+                    import_result.append((row['field_list'], 'FieldList created'))
+                    print(f"Field {field_list.field_list_name} FieldList created")
+
+                if row['field_source']:
+                    field_source = Source.objects.get(source_union_list=source_list, source_alias=row['field_source'])
+                else:
+                    field_source = None
+                # sanitized_field_name = sanitize_for_import(row['field_name'])
+                # sanitized_field_value = sanitize_for_import(row['field_value'])
+                # sanitized_field_function = sanitize_for_import(row['field_function'])
+                # sanitized_function_field_list = sanitize_for_import(row['function_field_list'])
+                # sanitized_field_description = sanitize_for_import(row['field_description'])
+
+                field, created = Field.objects.update_or_create(
+                    field_list=field_list,
+                    source_list=source_list,
+                    field_alias=row['field_alias'],
+                    # field_source=field_source,
+                    defaults={
+                        'field_list': field_list,
+                        'source_list': source_list,
+                        'field_alias': row['field_alias'],
+                        'field_source_type': row['field_source_type'],
+                        'field_source': field_source,
+                        'field_name': row['field_name'],
+                        'field_value': row['field_value'],
+                        'field_function': row['field_function'],
+                        'function_field_list': row['function_field_list'],
+                        'field_description': row['field_description']
+                    }
+                )
+                if created:
+                    import_result.append((row['field_alias'], 'created'))
+                    print(f"Field {field.field_alias} created")
+                else:
+                    import_result.append((row['field_alias'], 'updated'))
+                    print(f"Field {field.field_alias} updated")
+            except Exception as e:
+                import_result.append(f"{row['field_alias']}: {e}")
+                print(f"Error inserting data: {e}")
+
+
+    elif table[:3] == 'DS_':
+        for index, row in df.iterrows():
+            try:
+                source_union_list, created = SourceList.objects.get_or_create(
+                    source_list=row['source_union_list_name']
+                )
+                if created:
+                    import_result.append((row['source_union_list_name'], 'SourceList created'))
+                    print(f"SourceList {source_union_list.source_list} created")
+
+                if row['source_type'] == 'query':
+                    table_name = None
+                    source_list = None
+                    source_system = None
+                    source_scheme = None
+                    union_type = UnionType.objects.get(union_type=row['union_type'])
+                    query_name, created = Query.objects.get_or_create(
+                        query_name=row['source_name']
+                    )
+                    if created:
+                        import_result.append((row['source_name'], 'Query created'))
+                        print(f"Query {query_name.query_name} created")
+                    else:
+                        import_result.append((row['source_name'], 'Query already exist'))
+                        print(f"Query {query_name.query_name} already exist")
+
+                elif row['source_type'] == 'data_source':
+                    source_list = SourceList.objects.get(source_list=row['source_name'])
+                    query_name = None
+                    table_name = None
+                    source_system = None
+                    source_scheme = None
+                    union_type = UnionType.objects.get(union_type=row['union_type'])
+
+                elif row['source_type'] == 'table':
+                    table_name = row['source_name']
+                    source_system = SourceSystem.objects.get(source_system_name=row['source_system'])
+                    try:
+                        source_scheme = SourceScheme.objects.get(source_scheme_name=row['source_scheme'])
+                    except SourceScheme.DoesNotExist:
+                        source_scheme = None
+                    try:
+                        union_type = UnionType.objects.get(union_type=row['union_type'])
+                    except UnionType.DoesNotExist:
+                        union_type = None
+                    query_name = None
+                    source_list = None
+
+                source, created = Source.objects.update_or_create(
+                    source_union_list=source_union_list,
+                    source_alias=row['source_alias'],
+                    source_type=row['source_type'],
+                    # query_name=query_name,
+                    # source_list=source_list,
+                    # table_name=table_name,
+                    # source_system=row['source_system'],
+                    # source_scheme=row['source_scheme'],
+                    # union_type=row['union_type'],
+                    # union_condition=row['union_condition'],
+                    # source_description=row['source_description'],
+
+                    defaults={
+                        # 'source_union_list': source_union_list,
+                        # 'source_alias': row['source_alias'],
+                        # 'source_type': row['source_type'],
+                        'query_name': query_name,
+                        'source_list': source_list,
+                        'table_name': table_name,
+                        'source_system': source_system,
+                        'source_scheme': source_scheme,
+                        'union_type': union_type,
+                        'union_condition': row['union_condition'],
+                        'source_description': row['source_description']
+                    }
+                )
+                if created:
+                    import_result.append((row['source_alias'], 'DataSource created'))
+                    print(f"DataSource {source.source_alias} created")
+                else:
+                    import_result.append((row['source_alias'], 'DataSource updated'))
+                    print(f"DataSource {source.source_alias} updated")
+
+            except Exception as e:
+                import_result.append(f"{row['source_alias']}: {e}")
+                print(f"Error inserting data: {e}")
+
+    elif table[:2] == 'Q_':
+        for index, row in df.iterrows():
+            query_alias = row.get('query_alias', None)
+            try:
+                field_list = FieldList.objects.get(field_list_name=row['query_fields'])
+            except FieldList.DoesNotExist:
+                field_list = None
+            try:
+                source_list = SourceList.objects.get(source_list=row['query_source'])
+            except SourceList.DoesNotExist:
+                source_list = None
+
+            try:
+                query_name, created = Query.objects.update_or_create(
+                    query_name=row['query_name'],
+                    defaults={
+                        'field_list': field_list,
+                        'source_list': source_list,
+                        'query_conditions': row['query_conditions'],
+                        'query_alias': query_alias,
+                        'query_description': row['query_description']
+                    }
+                )
+                if created:
+                    import_result.append((row['query_name'], 'created'))
+                    print(f"Query {query_name.query_name} created")
+                else:
+                    import_result.append((row['query_name'], 'updated'))
+                    print(f"Query {query_name.query_name} updated")
+            except Exception as e:
+                import_result.append(f"{row['query_name']}: {e}")
+                print(f"Error inserting data: {e}")
+
+    else:
+        print(f"This type of object do not support for import, {table}")
+        import_result = f"This type of object do not support for import, {table}"
 
     context = {'import_result': import_result}
     return JsonResponse(context)
