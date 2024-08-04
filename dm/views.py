@@ -370,6 +370,8 @@ def report(request, report_name):
 
 def diagram(request, source_type, source_name):
     linear = {}
+    # if source_type == 'query':
+    #     source = Query.objects.get()
     linear = linearization(source_type, source_name, "")
     context = {"model": linear}
     return render(request, 'dm/diagram.html', context)
@@ -402,25 +404,15 @@ def linearization(source_type, source_name, fields2content):
     # Begin recursive body
     children = []
     f_fields = []
-    # if source_type == 'report':
-    #     source = Report.objects.get(report_name=source_name)
-    #     sources, source_list, field_list, fields = get_data_source(source)
-    #
-    #     for field in fields:
-    #         field_name = {}
-    #         field_name["content"] = f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/\" target=\"_blank\">{field.field_alias}</a>" \
-    #                                 f"<a href=\"/dm/field_diagram/{field.field_source_id}/{field.id}/\" target=\"_blank\"> [diagram]</a> "
-    #         f_fields.append(field_name)
-    #     for source in sources:
-    #         children.append(linearization(source.source_type, source.query_name, ""))
 
     if source_type == 'query' or source_type == 'report':
         if source_type == 'report':
-            source = Report.objects.get(report_name=source_name)
+            source = Report.objects.get(id=source_name)
             sources, source_list, field_list, fields = get_data_source(source)
         elif source_type == 'query':
-            source = Query.objects.get(query_name=source_name)
-            sources, source_list, field_list, fields = get_query_source(source)
+            # source = Query.objects.get(id=source_name)
+            sources, source_list, field_list, fields = get_query_source(source_name)
+            # sources = Source.objectsget(id=source_list)
 
         # f_fields = []
         for field in fields:
@@ -435,24 +427,35 @@ def linearization(source_type, source_name, fields2content):
             f_fields.append(field_name)
         for source in sources:
             if source.source_type == 'data_source':
-                f_source = source.source_list
+                # f_source = source.id
+                f_source = source.source_list_id
             elif source.source_type == 'query':
-                f_source = source.query_name
+                f_source = source.query_name_id
+            elif source.source_type == 'table':
+                f_source = source.table_name
+        # source_type = 'data_source'
+        # f_source = source_list.id
+        # children.append(linearization(source_type, f_source, f_fields))
+            children.append(linearization(source.source_type, f_source, f_fields))
+
+    elif source_type == 'data_source':
+        source = Source.objects.get(id=source_name)
+        # source = Source.objects.get(source_union_list_id=source_name)
+        sources, source_list, field_list, fields = get_data_source(source)
+        # sources, source_list, field_list, fields = get_data_source(source)
+        for source in sources:
+            if source.source_type == 'data_source':
+                f_source = source.id
+                # f_source = source.source_list
+            elif source.source_type == 'query':
+                f_source = source.query_name_id
+                # f_source = source.id
             elif source.source_type == 'table':
                 f_source = source.table_name
             children.append(linearization(source.source_type, f_source, f_fields))
 
-    elif source_type == 'data_source':
-        source = Source.objects.get(source_list=source_name)
-        sources, source_list, field_list, fields = get_data_source(source)
-        for source in sources:
-            if source.source_type == 'data_source':
-                f_source = source.source_list
-            elif source.source_type == 'query':
-                f_source = source.query_name
-            elif source.source_type == 'table':
-                f_source = source.table_name
-            children.append(linearization(source.source_type, f_source, f_fields))
+    # elif source_type == 'report':
+
     elif source_type == 'table':
         children.append(linearization('table', source_name, None))
     # else:
@@ -462,16 +465,17 @@ def linearization(source_type, source_name, fields2content):
     # data_source_hyperlink = f"<a href=\"/dm/sources/{str(source_name)}/{source_type}/ \"target=\"_blank\">{str(source_name)}</a>"
     if source_type == 'data_source':
         # data_source_hyperlink = f"<a href=\"/dm/sources/{str(source.id)}/{source_type}/ \"target=\"_blank\">{str(source.source_alias)}</a>"
-        data_source_hyperlink = f"<a href=\"/dm/sources/{str(source.source_union_list_id)}/union/ \"target=\"_blank\">{str(source_name)}</a>"
+        data_source_hyperlink = f"<a href=\"/dm/sources/{str(source.source_union_list_id)}/union/ \"target=\"_blank\">{str(source.source_alias)}</a>"
         content = blue_rect + data_source_hyperlink
     elif source_type == 'query':
-        data_source_hyperlink = f"<a href=\"/dm/query/{str(source.id)}/ \"target=\"_blank\">{str(source_name)}</a>"
+        query = Query.objects.get(id=source_name)
+        data_source_hyperlink = f"<a href=\"/dm/query/{source_name}/ \"target=\"_blank\">{str(query.query_name)}</a>"
         content = green_rect + data_source_hyperlink
     # elif source_type == 'table':
     #     content = yellow_rect + str(source_name)
     elif source_type == 'report':
         # data_source_hyperlink = f"<a href=\"/dm/sources/{str(source.id)}/union/ \"target=\"_blank\">{str(source.source_alias)}</a>"
-        data_source_hyperlink = f"<a href=\"/dm/sources/{str(source.source_union_list_id)}/union/ \"target=\"_blank\">{str(source_name)}</a>"
+        data_source_hyperlink = f"<a href=\"/dm/sources/{str(source.source_union_list_id)}/union/ \"target=\"_blank\">{str(source.source_alias)}</a>"
         content = purple_rect + data_source_hyperlink
     else:
         content = str(source_name)
@@ -509,8 +513,9 @@ def linearization(source_type, source_name, fields2content):
 
 
 def get_query_source(source):
-    query = Query.objects.get(query_name=source.query_name)
+    query = Query.objects.get(id=source)
     try:
+        # source_list = SourceList.objects.filter(source_list=query.source_list)
         source_list = SourceList.objects.get(source_list=query.source_list)
     except SourceList.DoesNotExist:
         source_list = None

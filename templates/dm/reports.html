@@ -31,7 +31,7 @@
                 {% for report in reports %}
                     <tr>
                         <td><a href="/dm/report/{{ report.report_name }}/">{{ report.report_name }}</a></td>
-                        <td><a href="/dm/diagram/report/{{ report.report_name }}/" target="_blank">diagram</a></td>
+                        <td><a href="/dm/diagram/report/{{ report.id }}/" target="_blank">diagram</a></td>
                         <td><a href="/dm/fields/{{ report.field_list_id }}/">{{ report.field_list }}</a></td>
                         <td><a href="/dm/sources/{{ report.source_list }}/union/">{{ report.source_list }}</a></td>
                         <td>{{ report.report_description }}</td>

@@ -28,9 +28,9 @@
                 {% for query in queries %}
                     <tr>
                         <td><a href="/dm/query/{{ query.id }}/">{{ query.query_name }}</a></td>
-                        <td><a href="/dm/diagram/query/{{ query.query_name }}/"  target="_blank">diagram</a></td>
+                        <td><a href="/dm/diagram/query/{{ query.id }}/"  target="_blank">diagram</a></td>
                         <td><a href="/dm/fields/{{ query.field_list_id }}/">{{ query.field_list }}</a></td>
-                        <td><a href="/dm/sources/{{ query.source_list }}/union/">{{ query.source_list }}</a></td>
+                        <td><a href="/dm/sources/{{ query.source_list_id }}/union/">{{ query.source_list }}</a></td>
                         <td>{{ query.query_conditions }}</td>
                         <td>{{ query.query_alias }}</td>
                         <td>{{ query.query_description }}</td>
