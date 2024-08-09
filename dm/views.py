@@ -427,29 +427,21 @@ def linearization(source_type, source_name, fields2content):
             f_fields.append(field_name)
         for source in sources:
             if source.source_type == 'data_source':
-                # f_source = source.id
-                f_source = source.source_list_id
+                f_source = source.id
             elif source.source_type == 'query':
                 f_source = source.query_name_id
             elif source.source_type == 'table':
                 f_source = source.table_name
-        # source_type = 'data_source'
-        # f_source = source_list.id
-        # children.append(linearization(source_type, f_source, f_fields))
             children.append(linearization(source.source_type, f_source, f_fields))
 
     elif source_type == 'data_source':
         source = Source.objects.get(id=source_name)
-        # source = Source.objects.get(source_union_list_id=source_name)
         sources, source_list, field_list, fields = get_data_source(source)
-        # sources, source_list, field_list, fields = get_data_source(source)
         for source in sources:
             if source.source_type == 'data_source':
                 f_source = source.id
-                # f_source = source.source_list
             elif source.source_type == 'query':
                 f_source = source.query_name_id
-                # f_source = source.id
             elif source.source_type == 'table':
                 f_source = source.table_name
             children.append(linearization(source.source_type, f_source, f_fields))
@@ -458,24 +450,17 @@ def linearization(source_type, source_name, fields2content):
 
     elif source_type == 'table':
         children.append(linearization('table', source_name, None))
-    # else:
-    #     children.append(linearization(None, None, None))
 
     # End recursive body
-    # data_source_hyperlink = f"<a href=\"/dm/sources/{str(source_name)}/{source_type}/ \"target=\"_blank\">{str(source_name)}</a>"
     if source_type == 'data_source':
-        # data_source_hyperlink = f"<a href=\"/dm/sources/{str(source.id)}/{source_type}/ \"target=\"_blank\">{str(source.source_alias)}</a>"
-        data_source_hyperlink = f"<a href=\"/dm/sources/{str(source.source_union_list_id)}/union/ \"target=\"_blank\">{str(source.source_alias)}</a>"
+        data_source_hyperlink = f"<a href=\"/dm/sources/{str(source.source_union_list_id)}/union/ \"target=\"_blank\">{source.source_union_list.source_list}</a>"
         content = blue_rect + data_source_hyperlink
     elif source_type == 'query':
         query = Query.objects.get(id=source_name)
         data_source_hyperlink = f"<a href=\"/dm/query/{source_name}/ \"target=\"_blank\">{str(query.query_name)}</a>"
         content = green_rect + data_source_hyperlink
-    # elif source_type == 'table':
-    #     content = yellow_rect + str(source_name)
     elif source_type == 'report':
-        # data_source_hyperlink = f"<a href=\"/dm/sources/{str(source.id)}/union/ \"target=\"_blank\">{str(source.source_alias)}</a>"
-        data_source_hyperlink = f"<a href=\"/dm/sources/{str(source.source_union_list_id)}/union/ \"target=\"_blank\">{str(source.source_alias)}</a>"
+        data_source_hyperlink = f"<a href=\"/dm/sources/{str(source.source_union_list_id)}/union/ \"target=\"_blank\">{source.source_union_list.source_list}</a>"
         content = purple_rect + data_source_hyperlink
     else:
         content = str(source_name)
