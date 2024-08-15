@@ -588,10 +588,10 @@ def field_linearization(source, field):
     yellow_rect = "<svg width=\"10\" height=\"10\"> <rect x=\"0\" y=\"0\" width=\"10\" height=\"10\" fill=\"yellow\" /></svg> "
 
 # Recurrent end points
-#     if field is None:
-#         return {
-#             "content": "None"
-#         }
+    if field is None:
+        return {
+            "content": "None"
+        }
 
     match field.field_source_type:
         case 'function':
@@ -703,11 +703,61 @@ def field_linearization(source, field):
     if source.source_type == 'data_source':
         data_source_hyperlink = f"<a href=\"/dm/sources/{str(source.id)}/{source.source_type}/ \"target=\"_blank\">{str(source.source_alias)}</a>"
         content = data_source_hyperlink
+        return {
+                   "content": source.source_type,
+                   "children": [
+                       # {
+                       #     "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>"
+                       # },
+                       {
+                           "content": content,
+                           "children": children
+                       }
+                   ]
+               }, "finish"
     elif source.source_type == 'query':
-        data_source_hyperlink = f"<a href=\"/dm/sources/{str(source.id)}/{source.source_type}/ \"target=\"_blank\">{str(source.source_alias)}</a>"
-        content = data_source_hyperlink
+        fields_names = []
+        for item in fields:
+            if field.field_name != '':
+                fields_names.append(item.field_name)
+        if field.field_name in fields_names:
+            data_source_hyperlink = f"<a href=\"/dm/sources/{str(source.id)}/{source.source_type}/ \"target=\"_blank\">{str(source.source_alias)}</a>"
+            content = data_source_hyperlink
+            return {
+                       "content": source.source_type,
+                       "children": [
+                           {
+                               "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>"
+                           },
+                           {
+                               "content": content,
+                               "children": children
+                           }
+                       ]
+                   }, "finish"
+        else:
+            return {
+                       "content": "None"
+                   }, "None"
     elif source.source_type == 'table':
-        content = yellow_rect + str(source.table_name)
+        if field.field_source.source_alias == source.source_alias:
+            content = yellow_rect + str(source.table_name)
+            return {
+                       "content": source.source_type,
+                       "children": [
+                           {
+                               "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>"
+                           },
+                           {
+                               "content": content,
+                               "children": children
+                           }
+                       ]
+                   }, "finish"
+        else:
+            return {
+                       "content": "None"
+                   }, "None"
     elif source.source_type == 'report':
         data_source_hyperlink = f"<a href=\"/dm/sources/{str(source.id)}/union/ \"target=\"_blank\">{str(source.source_name)}</a>"
         content = data_source_hyperlink
