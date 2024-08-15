@@ -458,8 +458,11 @@ def linearization(source_type, source_name, fields2content):
     elif source_type == 'query':
         query = Query.objects.get(id=source_name)
         data_source_hyperlink = f"<a href=\"/dm/query/{source_name}/ \"target=\"_blank\">{str(query.query_name)}</a>"
-        description = f"<p>{query.query_description}</p>"
-        content = green_rect + data_source_hyperlink + description
+        if query.query_description:
+            description = f"<p>Metadata: {query.query_description}</p>"
+            content = green_rect + data_source_hyperlink + description
+        else:
+            content = green_rect + data_source_hyperlink
     elif source_type == 'report':
         data_source_hyperlink = f"<a href=\"/dm/sources/{str(source.source_union_list_id)}/union/ \"target=\"_blank\">{source.source_union_list.source_list}</a>"
         description = f"<p>{source.source_description}</p>"
