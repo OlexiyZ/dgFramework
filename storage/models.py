@@ -3,11 +3,45 @@ from django.db import models
 # from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import UniqueConstraint
-
-
 # from django.core.exceptions import ValidationError
+from django.contrib import admin
 
-# Create your models here.
+
+class Rule(models.Model):
+    name = models.CharField(max_length=30)
+    description = models.TextField(blank=True, null=True)
+    value = models.CharField(max_length=30)
+    # is_multy_value = models.BooleanField(default=False)
+    metadata = models.ForeignKey("Metadata", on_delete=models.CASCADE)
+    # role = models.ManyToManyField(Role, related_name="rules")
+
+    def __str__(self):
+        return self.name
+
+    # def rule_choice_name(self):
+    #     return self.name + "-" + self.description
+
+
+class Metadata(models.Model):
+    name = models.CharField(max_length=30)
+    description = models.TextField(blank=True, null=True)
+    default_rule = models.ForeignKey(Rule, on_delete=models.SET_NULL, default=None, related_name="default_metadata",
+                                     blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+
+class Role(models.Model):
+    name = models.CharField(max_length=30)
+    description = models.TextField(blank=True, null=True)
+    rule = models.ManyToManyField(Rule, related_name="roles")
+    # metadata = models.ManyToManyField(Metadata, related_name="metadatas")
+
+    def __str__(self):
+        return self.name
+
+
 class UnionType(models.Model):
     union_type = models.CharField(max_length=15, unique=True)
 
@@ -91,6 +125,7 @@ class Field(models.Model):
     field_function = models.TextField(max_length=255, blank=True, null=True)
     function_field_list = models.CharField(max_length=255, blank=True, null=True)
     field_description = models.TextField(blank=True, null=True)
+    metadata = models.ForeignKey(Metadata, on_delete=models.SET_NULL, blank=True, null=True)
 
     class Meta:
         constraints = [
@@ -127,11 +162,3 @@ class Report(models.Model):
     def __str__(self):
         return self.report_name
 
-
-class Test(models.Model):
-    report_name = models.CharField(max_length=30)
-    field_list = models.ForeignKey(FieldList, on_delete=models.CASCADE, blank=True, null=True)
-    source_list = models.ForeignKey(SourceList, on_delete=models.CASCADE, blank=True, null=True)
-
-    def __str__(self):
-        return self.report_name
