@@ -18,11 +18,13 @@ from django.contrib import admin
 from django.urls import path, include
 from .settings import DEBUG, MEDIA_ROOT, MEDIA_URL
 from django.conf.urls.static import static
+from storage.admin import dgf_admin
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("storage/", include('storage.urls')),
     path("dm/", include('dm.urls')),
+    path("", dgf_admin.urls)
 ]
 
 if DEBUG:

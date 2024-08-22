@@ -11,15 +11,11 @@ class Rule(models.Model):
     name = models.CharField(max_length=30)
     description = models.TextField(blank=True, null=True)
     value = models.CharField(max_length=30)
-    # is_multy_value = models.BooleanField(default=False)
     metadata = models.ForeignKey("Metadata", on_delete=models.CASCADE)
-    # role = models.ManyToManyField(Role, related_name="rules")
+
 
     def __str__(self):
         return self.name
-
-    # def rule_choice_name(self):
-    #     return self.name + "-" + self.description
 
 
 class Metadata(models.Model):
@@ -35,7 +31,7 @@ class Metadata(models.Model):
 class Role(models.Model):
     name = models.CharField(max_length=30)
     description = models.TextField(blank=True, null=True)
-    rule = models.ManyToManyField(Rule, related_name="roles")
+    rule = models.ManyToManyField(Rule, related_name="roles", blank=True)
     # metadata = models.ManyToManyField(Metadata, related_name="metadatas")
 
     def __str__(self):
@@ -95,7 +91,8 @@ class Source(models.Model):
     source_description = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return str(self.source_union_list) + "." + str(self.source_alias)
+        # return str(self.source_union_list) + "." + str(self.source_alias)
+        return str(self.source_alias)
 
 
 class FieldList(models.Model):
@@ -133,8 +130,8 @@ class Field(models.Model):
         ]
 
     def __str__(self):
-        return str(self.field_list) + "." + str(self.field_alias)
-
+        # return str(self.field_list) + "." + str(self.field_alias)
+        return str(self.field_alias)
 
 class Query(models.Model):
     query_name = models.CharField(max_length=30, unique=True)
