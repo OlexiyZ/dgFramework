@@ -3,8 +3,10 @@ from .models import *
 from django.utils.html import format_html
 
 from django.contrib.admin import AdminSite
+from django.contrib import messages
 from django.utils.translation import gettext_lazy as _
 from django.forms import Textarea
+from django.db.models import QuerySet
 
 
 class DGFAdminSite(AdminSite):
@@ -19,14 +21,21 @@ dgf_admin = DGFAdminSite(name='dgf_admin')
 
 # Register your models here.
 
-# class RuleInline(admin.TabularInline):
-#     model = Rule
-#     extra = 1
+class RulesInline(admin.TabularInline):
+    model = Rule
+    extra = 1
+    list_display = ('name', 'rule_link', 'value', 'description', 'metadata')
+    readonly_fields = ('name', 'rule_link', 'value', 'description', 'metadata')
+
+    def rule_link(self, rule: Rule):
+        return format_html(
+            f"<a href=\"/admin/storage/rule/{str(rule.id)}/ \"target=\"_blank\">{rule.name}</a>")
 
 class MetadataAdmin(admin.ModelAdmin):
     list_display = ('name', 'description', 'metadata_rules', 'default_rule_link')
     search_fields = ('name',)
     ordering = ['name']
+    inlines = (RulesInline,)
 
     def metadata_rules(self, metadata: Metadata):
         rules = ', '.join([rule.name for rule in metadata.rule_set.all()])
@@ -40,6 +49,7 @@ class MetadataAdmin(admin.ModelAdmin):
     default_rule_link.short_description = "DEFAULT RULE"
 
 
+# @admin.register(Role)
 class RoleAdmin(admin.ModelAdmin):
     list_display = ('name', 'rule_list', 'description')
     # list_filter = ('name',)
@@ -47,6 +57,7 @@ class RoleAdmin(admin.ModelAdmin):
     filter_horizontal = ('rule',)
     ordering = ['name']
     # inlines = (RuleInline,)
+    actions = ['send_role']
 
     formfield_overrides = {
         models.TextField: {'widget': Textarea(attrs={'rows': 3})},
@@ -54,6 +65,30 @@ class RoleAdmin(admin.ModelAdmin):
 
     def rule_list(self, obj):
         return ', '.join([rule.name for rule in obj.rule.all()])
+
+    @admin.action(description='Send Role`s rules to the Proxy')
+    def send_role(self, request, roles: QuerySet):
+        for role in roles:
+            rules = role.rule.all()
+            rules_string = ''
+            var_counter = 1
+            for rule in rules:
+                rules_string = rules_string + f"&var{var_counter}=dashboard.variables['{rule.metadata}']&val{var_counter}='{rule.value}'"
+                var_counter += 1
+            print(rules_string)
+        count_updated = roles.update()
+        if count_updated == 0:
+            self.message_user(
+                request,
+                f"{count_updated} Role(s) have been sent to the Proxy.",
+                messages.ERROR
+            )
+        else:
+            self.message_user(
+                request,
+                f"{count_updated} Role(s) have been sent to the Proxy."
+            )
+
 
 
 class RuleAdmin(admin.ModelAdmin):
@@ -63,8 +98,9 @@ class RuleAdmin(admin.ModelAdmin):
 
 
 class FieldAdmin(admin.ModelAdmin):
-    list_display = ('field_alias', 'field_erd', 'field_source_type', 'field_source_url', 'field_name', 'metadata', 'field_value',
-                    'field_function', 'function_field_list', 'field_list_url', 'source_list_url', 'field_description')
+    list_display = (
+        'field_alias', 'field_erd', 'field_source_type', 'field_source_url', 'field_name', 'metadata', 'field_value',
+        'field_function', 'function_field_list', 'field_list_url', 'source_list_url', 'field_description')
     list_filter = ('metadata', 'field_list', 'source_list')
     search_fields = ('field_alias', 'field_name', 'field_description')
     list_editable = ['metadata']
@@ -75,20 +111,49 @@ class FieldAdmin(admin.ModelAdmin):
 
     def field_source_url(self, field: Field):
         if field.field_source_type == 'data_source':
-            return format_html(f"<a href=\"/admin/storage/source/{str(field.field_source.id)}/ \"target=\"_blank\">{field.field_source}</a>")
+            return format_html(
+                f"<a href=\"/admin/storage/source/{str(field.field_source.id)}/ \"target=\"_blank\">{field.field_source}</a>")
         else:
             return field.field_source
 
     def source_list_url(self, field: Field):
-        return format_html(f"<a href=\"/admin/storage/source/{str(field.source_list.id)}/ \"target=\"_blank\">{field.source_list}</a>")
+        return format_html(
+            f"<a href=\"/admin/storage/source/{str(field.source_list.id)}/ \"target=\"_blank\">{field.source_list}</a>")
 
     def field_list_url(self, field: Field):
-        return format_html(f"<a href=\"/admin/storage/source/{str(field.field_list.id)}/ \"target=\"_blank\">{field.field_list}</a>")
+        return format_html(
+            f"<a href=\"/admin/storage/source/{str(field.field_list.id)}/ \"target=\"_blank\">{field.field_list}</a>")
+
+
+class FieldsInline(admin.TabularInline):
+    model = Field
+    extra = 1
+    list_display = [
+        'field_link', 'field_erd', 'field_source_type', 'field_source', 'field_name', 'metadata', 'field_value',
+        'field_function', 'function_field_list', 'field_list', 'source_list', 'field_description']
+    readonly_fields = [
+        'field_link', 'field_alias', 'field_erd', 'field_source_type', 'field_source', 'field_name', 'metadata', 'field_value',
+        'field_function', 'function_field_list', 'field_list', 'source_list', 'field_description']
+
+    def field_erd(self, field: Field):
+        return format_html(
+            f"<a href=\"/dm/field_diagram/{str(field.field_source_id)}/{str(field.id)}/\" target=\"_blank\">ERD</a>")
+
+    def field_link(self, field: Field):
+        return format_html(
+            f"<a href=\"/admin/storage/field/{str(field.id)}/ \"target=\"_blank\">{field.field_alias}</a>")
 
 
 class FieldListAdmin(admin.ModelAdmin):
-    list_display = ('field_list_name', 'data_source', 'field_list_description')
+    list_display = ('field_list_name', 'datasource_url', 'field_list_description')
     search_fields = ('field_list_name', 'data_source', 'field_list_description')
+    inlines = (FieldsInline,)
+
+    def datasource_url(self, field_list: FieldList):
+        return format_html(
+            f"<a href=\"/admin/storage/sourcelist/{str(field_list.data_source.id)}/ \"target=\"_blank\">{field_list.data_source}</a>")
+
+    datasource_url.short_description = 'DATA SOURCE'
 
 
 admin.site.register(UnionType)
