@@ -31,6 +31,7 @@ class RulesInline(admin.TabularInline):
         return format_html(
             f"<a href=\"/admin/storage/rule/{str(rule.id)}/ \"target=\"_blank\">{rule.name}</a>")
 
+
 class MetadataAdmin(admin.ModelAdmin):
     list_display = ('name', 'description', 'metadata_rules', 'default_rule_link')
     search_fields = ('name',)
@@ -75,7 +76,7 @@ class RoleAdmin(admin.ModelAdmin):
             for rule in rules:
                 rules_string = rules_string + f"&var{var_counter}=dashboard.variables['{rule.metadata}']&val{var_counter}='{rule.value}'"
                 var_counter += 1
-            print(rules_string)
+            print(rules_string)  # TODO add POST request to the Proxy endpoint
         count_updated = roles.update()
         if count_updated == 0:
             self.message_user(
@@ -88,7 +89,6 @@ class RoleAdmin(admin.ModelAdmin):
                 request,
                 f"{count_updated} Role(s) have been sent to the Proxy."
             )
-
 
 
 class RuleAdmin(admin.ModelAdmin):
@@ -132,7 +132,8 @@ class FieldsInline(admin.TabularInline):
         'field_link', 'field_erd', 'field_source_type', 'field_source', 'field_name', 'metadata', 'field_value',
         'field_function', 'function_field_list', 'field_list', 'source_list', 'field_description']
     readonly_fields = [
-        'field_link', 'field_alias', 'field_erd', 'field_source_type', 'field_source', 'field_name', 'metadata', 'field_value',
+        'field_link', 'field_alias', 'field_erd', 'field_source_type', 'field_source', 'field_name', 'metadata',
+        'field_value',
         'field_function', 'function_field_list', 'field_list', 'source_list', 'field_description']
 
     def field_erd(self, field: Field):

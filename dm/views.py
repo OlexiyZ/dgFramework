@@ -602,7 +602,6 @@ def field_linearization(source, field):
                          "source_type": field.field_source_type, "function": field.field_function}
             logging.debug(f"rw = 602: {fn_source}")
             return {
-                # "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>",  #TODO: remove field.field_source_id
                 "content": "function",
                     "children": [
                     {
@@ -614,7 +613,6 @@ def field_linearization(source, field):
             fn_source = {"id": field.id, "field": field.field_name, "field_list": str(field.field_list), "source_type": field.field_source_type, "value": field.field_value}
             logging.debug(f"rw = 614: {fn_source}")
             return {
-                # "content": f"<a href=\"/dm/fields/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>", #TODO: remove field.field_source_id
                 "content": "value",
                 "children": [
                     {
@@ -628,7 +626,6 @@ def field_linearization(source, field):
             logging.debug(f"rw = 614: {fn_source}")
             return {
                        "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>",
-                       # TODO: remove field.field_source_id
                        "children": [
                            {
                                "content": brown_rect + field.field_value
@@ -637,7 +634,7 @@ def field_linearization(source, field):
                    }, "value"
         case 'tbd':
             return {
-                "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>", #TODO: remove field.field_source_id
+                "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>",
                 "children": [
                     {
                         "content": 'TBD'
