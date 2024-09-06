@@ -7,6 +7,7 @@ from django.contrib import messages
 from django.utils.translation import gettext_lazy as _
 from django.forms import Textarea
 from django.db.models import QuerySet
+import requests
 
 
 class DGFAdminSite(AdminSite):
@@ -69,6 +70,9 @@ class RoleAdmin(admin.ModelAdmin):
 
     @admin.action(description='Send Role`s rules to the Proxy')
     def send_role(self, request, roles: QuerySet):
+        url = 'http://proxy.test.url'
+        count_updated = 0
+        count_not_updated = 0
         for role in roles:
             rules = role.rule.all()
             rules_string = ''
@@ -76,18 +80,31 @@ class RoleAdmin(admin.ModelAdmin):
             for rule in rules:
                 rules_string = rules_string + f"&var{var_counter}=dashboard.variables['{rule.metadata}']&val{var_counter}='{rule.value}'"
                 var_counter += 1
-            print(rules_string)  # TODO add POST request to the Proxy endpoint
-        count_updated = roles.update()
+            # print(rules_string)
+            data = {
+                'role': role.name,
+                'rules': rules_string
+            }
+            try:
+                response = requests.post(url, json=data)
+                if response.status_code == 200:
+                    count_updated += 1
+                else:
+                    count_not_updated += 1
+            except Exception as e:
+                count_not_updated += 1
+                # print("Something went wrong:", e)
+        # count_updated = roles.update()
         if count_updated == 0:
             self.message_user(
                 request,
-                f"{count_updated} Role(s) have been sent to the Proxy.",
+                f"{count_updated} Role(s) have been sent to the Proxy. {count_not_updated} was not updated.",
                 messages.ERROR
             )
         else:
             self.message_user(
                 request,
-                f"{count_updated} Role(s) have been sent to the Proxy."
+                f"{count_updated} Role(s) have been sent to the Proxy. {count_not_updated} was not updated."
             )
 
 
