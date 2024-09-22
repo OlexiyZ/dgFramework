@@ -423,7 +423,8 @@ def linearization(source_type, source_name, fields2content):
                 field_name["content"] = field.field_function
             elif field.field_source_type == 'value':
                 field_name["content"] = field.field_value
-            field_name["content"] = f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/\">{field.field_alias}</a>"
+            # field_name["content"] = f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/\">{field.field_alias}</a>"
+            field_name["content"] = f"<a href=\"/storage/field/{field.id}/\">{field.field_alias}</a>"
             f_fields.append(field_name)
         for source in sources:
             if source.source_type == 'data_source':
@@ -625,7 +626,8 @@ def field_linearization(source, field):
                          "source_type": field.source_type, "value": field.field_value}
             logging.debug(f"rw = 614: {fn_source}")
             return {
-                       "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>",
+                       # "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>",
+                       "content": f"<a href=\"/storage/field/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>",
                        "children": [
                            {
                                "content": brown_rect + field.field_value
@@ -634,7 +636,8 @@ def field_linearization(source, field):
                    }, "value"
         case 'tbd':
             return {
-                "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>",
+                # "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>",
+                "content": f"<a href=\"/storage/field/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>",
                 "children": [
                     {
                         "content": 'TBD'
@@ -686,7 +689,8 @@ def field_linearization(source, field):
             "content": source.source_type,
             "children": [
                 {
-                    "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>"
+                    # "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>"
+                    "content": f"<a href=\"/storage/field/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>"
                 },
                 {
                     "content": source.table_name
@@ -727,7 +731,8 @@ def field_linearization(source, field):
                        "content": source.source_type,
                        "children": [
                            {
-                               "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>"
+                               # "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>"
+                               "content": f"<a href=\"/storage/field/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>"
                            },
                            {
                                "content": content,
@@ -746,7 +751,8 @@ def field_linearization(source, field):
                        "content": source.source_type,
                        "children": [
                            {
-                               "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>"
+                               # "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>"
+                               "content": f"<a href=\"/storage/field/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>"
                            },
                            {
                                "content": content,
@@ -777,7 +783,8 @@ def field_linearization(source, field):
         "content": source.source_type,
         "children": [
             {
-                "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>"
+                # "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>"
+                "content": f"<a href=\"/storge/field/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>"
             },
             {
                 "content": content,

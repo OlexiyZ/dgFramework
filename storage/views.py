@@ -315,7 +315,10 @@ def import_csv(request):
 
                 elif row['source_type'] == 'table':
                     table_name = row['source_name']
-                    source_system = SourceSystem.objects.get(source_system_name=row['source_system'])
+                    try:
+                        source_system = SourceSystem.objects.get(source_system_name=row['source_system'])
+                    except SourceSystem.DoesNotExist:
+                        source_system = None
                     try:
                         source_scheme = SourceScheme.objects.get(source_scheme_name=row['source_scheme'])
                     except SourceScheme.DoesNotExist:
