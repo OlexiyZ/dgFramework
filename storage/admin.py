@@ -242,6 +242,8 @@ class SourceListAdmin(admin.ModelAdmin):
 
 
 class QueryAdmin(admin.ModelAdmin):
+    # fields = (
+    #     'query_name', 'erd', 'field_list_url', 'source_list_url', 'query_conditions', 'query_alias', 'query_description')
     list_display = (
         'query_name', 'erd', 'field_list_url', 'source_list_url', 'query_conditions', 'query_alias', 'query_description')
     search_fields = ('query_name', 'query_alias', 'query_description')

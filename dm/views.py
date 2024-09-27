@@ -417,14 +417,29 @@ def linearization(source_type, source_name, fields2content):
         # f_fields = []
         for field in fields:
             field_name = {}
-            if field.field_source_type in ('data_source', 'tbd'):
-                field_name["content"] = f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/\">{field.field_alias}</a>"
-            elif field.field_source_type == 'function':
-                field_name["content"] = field.field_function
-            elif field.field_source_type == 'value':
-                field_name["content"] = field.field_value
-            # field_name["content"] = f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/\">{field.field_alias}</a>"
             field_name["content"] = f"<a href=\"/storage/field/{field.id}/\">{field.field_alias}</a>"
+            if field.field_source_type in ('data_source', 'tbd'):
+                None
+                # field_name["children"] = [{"content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/\">{field.field_alias}</a>"}]
+            elif field.field_source_type == 'function':
+                # field_name["content"] = field.field_function
+                # ff_list = field.function_field_list.split(", ")
+                # for ff in ff_list:
+                    # ff_field = Field.objects.get(id=ff)
+                    # field_name["children"].append({"content": ff})
+                field_name["children"] = [{"content": purple_rect + field.field_function,
+                                           "children": [
+                                               {
+                                                   "content": field.function_field_list
+                                               }
+                                           ]
+                                          }
+                                          ]
+            elif field.field_source_type == 'value':
+                # field_name["content"] = field.field_value
+                field_name["children"] = [{"content": field.field_value}]
+            # field_name["content"] = f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/\">{field.field_alias}</a>"
+            # field_name["content"] = f"<a href=\"/storage/field/{field.id}/\">{field.field_alias}</a>"
             f_fields.append(field_name)
         for source in sources:
             if source.source_type == 'data_source':
