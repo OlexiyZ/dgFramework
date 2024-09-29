@@ -126,7 +126,7 @@ class Field(models.Model):
 
     class Meta:
         constraints = [
-            UniqueConstraint(fields=['field_list', 'field_alias'], name='field_constraint')
+            UniqueConstraint(fields=['field_list', 'field_alias', 'field_source_type'], name='field_constraint')
         ]
 
     def __str__(self):

@@ -423,16 +423,20 @@ def linearization(source_type, source_name, fields2content):
                 # field_name["children"] = [{"content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/\">{field.field_alias}</a>"}]
             elif field.field_source_type == 'function':
                 # field_name["content"] = field.field_function
-                # ff_list = field.function_field_list.split(", ")
+                cleaned_string = field.function_field_list.replace("\n", "").replace("\r", "")
+                ff_list = cleaned_string.split(",")
+                ff_fields = []
+                for f in ff_list:
+                    try:
+                        ff_field = Field.objects.get(field_list=field.field_list, field_alias=f)
+                        ff_fields.append({"content": f"<a href=\"/storage/field/{ff_field.id}/\">{ff_field.field_alias}</a>"})
+                    except Field.DoesNotExist:
+                        ff_fields.append({"content": f})
                 # for ff in ff_list:
                     # ff_field = Field.objects.get(id=ff)
                     # field_name["children"].append({"content": ff})
                 field_name["children"] = [{"content": purple_rect + field.field_function,
-                                           "children": [
-                                               {
-                                                   "content": field.function_field_list
-                                               }
-                                           ]
+                                           "children": ff_fields
                                           }
                                           ]
             elif field.field_source_type == 'value':
