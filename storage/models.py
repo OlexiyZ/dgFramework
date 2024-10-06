@@ -13,7 +13,6 @@ class Rule(models.Model):
     value = models.CharField(max_length=30)
     metadata = models.ForeignKey("Metadata", on_delete=models.CASCADE)
 
-
     def __str__(self):
         return self.name
 
@@ -32,6 +31,7 @@ class Role(models.Model):
     name = models.CharField(max_length=30)
     description = models.TextField(blank=True, null=True)
     rule = models.ManyToManyField(Rule, related_name="roles", blank=True)
+
     # metadata = models.ManyToManyField(Metadata, related_name="metadatas")
 
     def __str__(self):
@@ -77,12 +77,12 @@ class Source(models.Model):
     )
 
     source_union_list = models.ForeignKey(SourceList, on_delete=models.CASCADE,
-                                               related_name='source_list_names')
+                                          related_name='source_list_names')
     source_alias = models.CharField(max_length=30)
     source_type = models.CharField(max_length=30, choices=SOURCE_TYPES, default='tbd')
     query_name = models.ForeignKey("Query", on_delete=models.SET_NULL, null=True, blank=True)
     source_list = models.ForeignKey(SourceList, on_delete=models.SET_NULL, null=True, blank=True,
-                                         related_name='source_names')
+                                    related_name='source_names')
     table_name = models.CharField(max_length=30, blank=True, null=True)
     source_system = models.ForeignKey(SourceSystem, on_delete=models.SET_NULL, null=True, blank=True)
     source_scheme = models.ForeignKey(SourceScheme, on_delete=models.SET_NULL, null=True, blank=True)
@@ -114,7 +114,7 @@ class Field(models.Model):
 
     field_list = models.ForeignKey(FieldList, on_delete=models.CASCADE)
     source_list = models.ForeignKey(SourceList, on_delete=models.CASCADE, blank=True, null=True)
-    field_alias = models.CharField(max_length=30)
+    field_alias = models.CharField(max_length=30, blank=True, null=True)
     field_source_type = models.CharField(max_length=30, choices=FIELD_SOURCE_TYPES, default='tbd')
     field_source = models.ForeignKey(Source, on_delete=models.CASCADE, blank=True, null=True)
     field_name = models.CharField(max_length=30, blank=True, null=True)
@@ -124,14 +124,18 @@ class Field(models.Model):
     field_description = models.TextField(blank=True, null=True)
     metadata = models.ForeignKey(Metadata, on_delete=models.SET_NULL, blank=True, null=True)
 
-    class Meta:
-        constraints = [
-            UniqueConstraint(fields=['field_list', 'field_alias', 'field_source_type'], name='field_constraint')
-        ]
+    # class Meta:
+    #     constraints = [
+    #         UniqueConstraint(fields=['field_list', 'field_alias', 'field_source_type'], name='field_constraint')
+    #     ]
 
     def __str__(self):
         # return str(self.field_list) + "." + str(self.field_alias)
-        return str(self.field_alias)
+        if self.field_alias:
+            return str(self.field_alias)
+        else:
+            return str(self.field_name)
+
 
 class Query(models.Model):
     query_name = models.CharField(max_length=30, unique=True)
@@ -158,4 +162,3 @@ class Report(models.Model):
 
     def __str__(self):
         return self.report_name
-

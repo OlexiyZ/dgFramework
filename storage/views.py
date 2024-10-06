@@ -250,24 +250,44 @@ def import_csv(request):
                 # sanitized_function_field_list = sanitize_for_import(row['function_field_list'])
                 # sanitized_field_description = sanitize_for_import(row['field_description'])
 
-                field, created = Field.objects.update_or_create(
-                    field_list=field_list,
-                    source_list=source_list,
-                    field_alias=row['field_alias'],
-                    # field_source=field_source,
-                    defaults={
-                        'field_list': field_list,
-                        'source_list': source_list,
-                        'field_alias': row['field_alias'],
-                        'field_source_type': row['field_source_type'],
-                        'field_source': field_source,
-                        'field_name': row['field_name'],
-                        'field_value': row['field_value'],
-                        'field_function': row['field_function'],
-                        'function_field_list': row['function_field_list'],
-                        'field_description': row['field_description']
-                    }
-                )
+                if row['field_alias']:
+                    field, created = Field.objects.update_or_create(
+                        field_list=field_list,
+                        source_list=source_list,
+                        field_alias=row['field_alias'],
+                        # field_source=field_source,
+                        defaults={
+                            'field_list': field_list,
+                            'source_list': source_list,
+                            'field_alias': row['field_alias'],
+                            'field_source_type': row['field_source_type'],
+                            'field_source': field_source,
+                            'field_name': row['field_name'],
+                            'field_value': row['field_value'],
+                            'field_function': row['field_function'],
+                            'function_field_list': row['function_field_list'],
+                            'field_description': row['field_description']
+                        }
+                    )
+                else:
+                    field, created = Field.objects.update_or_create(
+                        field_list=field_list,
+                        source_list=source_list,
+                        field_name=row['field_name'],
+                        # field_source=field_source,
+                        defaults={
+                            'field_list': field_list,
+                            'source_list': source_list,
+                            'field_alias': row['field_alias'],
+                            'field_source_type': row['field_source_type'],
+                            'field_source': field_source,
+                            'field_name': row['field_name'],
+                            'field_value': row['field_value'],
+                            'field_function': row['field_function'],
+                            'function_field_list': row['function_field_list'],
+                            'field_description': row['field_description']
+                        }
+                    )
                 if created:
                     import_result.append((row['field_alias'], 'created'))
                     print(f"Field {field.field_alias} created")

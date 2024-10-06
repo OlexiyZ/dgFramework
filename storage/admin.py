@@ -126,7 +126,7 @@ class FieldAdmin(admin.ModelAdmin):
     list_display = (
         'field_alias', 'field_erd', 'field_source_type', 'field_source_url', 'field_name', 'metadata', 'field_value',
         'field_function', 'function_field_list', 'field_list_url', 'source_list_url', 'field_description')
-    list_filter = ('metadata', 'field_list', 'source_list')
+    list_filter = ('metadata', 'field_list', 'source_list', 'id')
     search_fields = ('field_alias', 'field_name', 'field_description')
     list_editable = ['metadata']
     formfield_overrides = {
@@ -181,6 +181,7 @@ class FieldsInline(admin.TabularInline):
 class FieldListAdmin(admin.ModelAdmin):
     list_display = ('field_list_name', 'datasource_url', 'field_list_description')
     search_fields = ('field_list_name', 'data_source', 'field_list_description')
+    # list_filter = ('id',)
     inlines = (FieldsInline,)
     formfield_overrides = {
         models.TextField: {'widget': Textarea(attrs={'rows': 3})},
