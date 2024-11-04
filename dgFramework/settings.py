@@ -22,7 +22,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-o!46yfbflocr&c9s3z8(azkfzrilj*z+c79g^5@!7xhu!(5s($"
+# SECRET_KEY = "django-insecure-o!46yfbflocr&c9s3z8(azkfzrilj*z+c79g^5@!7xhu!(5s($"
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-o!46yfbflocr&c9s3z8(azkfzrilj*z+c79g^5@!7xhu!(5s($')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # if platform.system() == "Linux":
@@ -85,15 +86,26 @@ WSGI_APPLICATION = "dgFramework.wsgi.application"
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql_psycopg2",
-            "NAME": "dg_bae",
-            "USER": "postgres",
-            "PASSWORD": "postgres",
-            "HOST": "localhost",
-            "PORT": "5432"
-        }
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': os.environ.get('DB_NAME', 'dg_bae'),  # Your database name
+        'USER': os.environ.get('DB_USER', 'postgres'),  # Your database user
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'postgres'),  # Your database password
+        'HOST': os.environ.get('DB_HOST', 'localhost'),  # Your database endpoint
+        'PORT': os.environ.get('DB_PORT', '5432'),  # Default PostgreSQL port
     }
+}
+
+# DATABASES = {
+#         "default": {
+#             "ENGINE": "django.db.backends.postgresql_psycopg2",
+#             "NAME": "dg_bae",
+#             "USER": "postgres",
+#             "PASSWORD": "postgres",
+#             "HOST": "localhost",
+#             "PORT": "5432"
+#         }
+#     }
 
 
 # if platform.system() == "Linux":
