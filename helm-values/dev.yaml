@@ -12,6 +12,12 @@ service:
     port: 8000
     protocol: TCP
 
+initContainers:
+- name: db-migration
+  image: 310899098394.dkr.ecr.eu-west-2.amazonaws.com/data-governance
+  tag: "67bce75" #TODO
+  command: ["python", "manage.py", "migrate"]
+
 deployment:
   annotations:
     vault.security.banzaicloud.io/vault-addr: "http://vault.vault.svc.cluster.local:8200"
