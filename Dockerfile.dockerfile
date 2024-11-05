@@ -1,4 +1,4 @@
-FROM python:3.11.9-slim-bookworm
+FROM python:3.11.9
 
 RUN apt update && \
     apt upgrade -y
@@ -26,10 +26,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . /app/
 
 # Run migrations and create superuser
-RUN python manage.py makemigrations
-#RUN python manage.py migrate
-RUN python manage.py createsuperuser --no-input || true
-RUN python manage.py collectstatic --noinput
+# RUN python manage.py makemigrations
+# RUN python manage.py migrate
+# RUN python manage.py createsuperuser --no-input || true
+# RUN python manage.py collectstatic --noinput
 
 EXPOSE 8000
 
