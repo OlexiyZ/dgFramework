@@ -89,7 +89,7 @@ livenessProbe:
   initialDelaySeconds: 15
   periodSeconds: 10
   failureThreshold: 3
- timeoutSeconds: 1
+  timeoutSeconds: 1
 readinessProbe:
   httpGet:
     path: /api/wp-json/v1/health
