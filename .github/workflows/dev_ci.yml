@@ -1,0 +1,42 @@
+name: 'Build & Push'
+  
+on:
+  push:
+    paths-ignore:
+      - 'helm-values/**'
+    branches:
+      - dev
+
+  workflow_dispatch:
+  
+jobs:
+  Checkout:
+    environment: development
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+          
+          
+  Build:
+    needs: [Checkout]
+    uses: BankalEtihad/reusable-workflows/.github/workflows/build_and_push.yaml@master
+    with:
+      image_name: data-governance
+      environment: development
+      docker_file: Dockerfile.dockerfile
+    secrets:
+      region: ${{secrets.DEV_AWS_REGION}}
+      aws_account_id: ${{secrets.DEV_AWS_ACCOUNT_ID}}
+      iam_role_arn: ${{secrets.DEV_AWS_IAM_ROLE_ARN}}
+
+     
+ 
+  Commit:
+   needs: [Checkout,Build]
+   uses: BankalEtihad/reusable-workflows/.github/workflows/update_image_tag.yaml@master
+   with:
+     path: helm-values/dev.yaml
+     environment: development
+   secrets:
+     pat_devops_bae: ${{secrets.PAT_DEVOPS_BAE}}
