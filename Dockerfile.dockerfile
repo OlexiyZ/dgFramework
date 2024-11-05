@@ -24,7 +24,7 @@ COPY . /app/
 
 # Run migrations and create superuser
 RUN python manage.py makemigrations
-RUN python manage.py migrate
+#RUN python manage.py migrate
 RUN python manage.py createsuperuser --no-input || true
 RUN python manage.py collectstatic --noinput
 
