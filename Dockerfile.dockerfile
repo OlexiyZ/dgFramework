@@ -10,9 +10,8 @@ ENV DEBUG = False
 WORKDIR /app
 
 # Install system dependencies
-RUN apt-get update \
-    && apt-get install -y gcc tzdata \
-    && apt-get clean
+RUN apk update && \
+    apk add --no-cache gcc tzdata
 
 # Install Python dependencies
 COPY requirements.txt /app/
