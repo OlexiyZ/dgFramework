@@ -1,4 +1,7 @@
-FROM python:3.11.9-alpine
+FROM python:3.11.9-slim-bookworm
+
+RUN apt update && \
+    apt upgrade -y
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -10,8 +13,9 @@ ENV DEBUG = False
 WORKDIR /app
 
 # Install system dependencies
-RUN apk update && \
-    apk add --no-cache gcc tzdata
+RUN apt-get update \
+    && apt-get install -y gcc tzdata \
+    && apt-get clean
 
 # Install Python dependencies
 COPY requirements.txt /app/
