@@ -36,4 +36,4 @@ EXPOSE 8000
 
 # Start the Django app
 #CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
-CMD ["python", "-m", "uvicorn", "dgFramework.asgi:application"]
+CMD ["python", "-m", "uvicorn", "dgFramework.asgi:application", "--host", "0.0.0.0", "--port", "8000"]
