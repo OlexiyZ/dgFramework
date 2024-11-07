@@ -21,9 +21,10 @@ RUN apt-get update \
 COPY requirements.txt /app/
 RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
-RUN python manage.py collectstatic
+
 # Copy the entire Django project into the working directory in the container
 COPY . /app/
+RUN python manage.py collectstatic
 
 # Run migrations and create superuser
 # RUN python manage.py makemigrations
