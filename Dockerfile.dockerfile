@@ -21,7 +21,7 @@ RUN apt-get update \
 COPY requirements.txt /app/
 RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
-
+RUN pip install uwsgi
 # Copy the entire Django project into the working directory in the container
 COPY . /app/
 
