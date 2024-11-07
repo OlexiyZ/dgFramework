@@ -42,6 +42,8 @@ deployment:
     value: "vault:secret/data/data-governance#DJANGO_SUPERUSER_EMAIL"
   - name: DJANGO_SUPERUSER_PASSWORD
     value: "vault:secret/data/data-governance#DJANGO_SUPERUSER_PASSWORD"
+  - name: HOST
+    value: "vault:secret/data/data-governance#HOST"
 
 
 
