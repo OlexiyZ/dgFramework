@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "storage",
     "dm",
+    'corsheaders',
     # "import",
 ]
 
@@ -59,6 +60,14 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
+]
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8000",
+    "http://0.0.0.0:8000",
+    os.getenv('HOST', 'http://0.0.0.0:8000'),
 ]
 
 ROOT_URLCONF = "dgFramework.urls"
