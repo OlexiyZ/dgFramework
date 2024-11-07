@@ -70,6 +70,12 @@ CORS_ALLOWED_ORIGINS = [
     os.getenv('HOST', 'http://0.0.0.0:8000'),
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:8000",
+    "http://0.0.0.0:8000",
+    os.getenv('HOST', 'http://0.0.0.0:8000'),
+]
+
 ROOT_URLCONF = "dgFramework.urls"
 
 TEMPLATES = [
