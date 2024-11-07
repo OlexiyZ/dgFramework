@@ -21,7 +21,7 @@ RUN apt-get update \
 COPY requirements.txt /app/
 RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
-RUN pip install uwsgi
+RUN python manage.py collectstatic
 # Copy the entire Django project into the working directory in the container
 COPY . /app/
 
@@ -35,4 +35,4 @@ EXPOSE 8000
 
 # Start the Django app
 #CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
-CMD ["uwsgi", "--ini", "dgFramework/uwsgi.ini"]
+CMD ["python", "-m", "uvicorn", "dgFramework.asgi:application"]

@@ -58,6 +58,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 ROOT_URLCONF = "dgFramework.urls"
@@ -88,11 +89,11 @@ WSGI_APPLICATION = "dgFramework.wsgi.application"
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': os.environ.get('DB_NAME', 'dg_bae'),  # Your database name
-        'USER': os.environ.get('DB_USER', 'postgres'),  # Your database user
-        'PASSWORD': os.environ.get('DB_PASSWORD', 'postgres'),  # Your database password
-        'HOST': os.environ.get('DB_HOST', 'localhost'),  # Your database endpoint
-        'PORT': os.environ.get('DB_PORT', '5432'),  # Default PostgreSQL port
+        'NAME': os.getenv('DB_NAME', 'dg_bae'),  # Your database name
+        'USER': os.getenv('DB_USER', 'postgres'),  # Your database user
+        'PASSWORD': os.getenv('DB_PASSWORD', 'postgres'),  # Your database password
+        'HOST': os.getenv('DB_HOST', 'localhost'),  # Your database endpoint
+        'PORT': os.getenv('DB_PORT', '5432'),  # Default PostgreSQL port
     }
 }
 
