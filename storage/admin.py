@@ -247,6 +247,7 @@ class QueryAdmin(admin.ModelAdmin):
     #     'query_name', 'erd', 'field_list_url', 'source_list_url', 'query_conditions', 'query_alias', 'query_description')
     list_display = (
         'query_name', 'erd', 'field_list_url', 'source_list_url', 'query_conditions', 'query_alias', 'query_description')
+    list_filter = ('reports__report_name',)
     search_fields = ('query_name', 'query_alias', 'query_description')
     formfield_overrides = {
         models.TextField: {'widget': Textarea(attrs={'rows': 3})},
@@ -277,33 +278,24 @@ class QueryAdmin(admin.ModelAdmin):
 
 class ReportAdmin(admin.ModelAdmin):
     list_display = (
-        'report_name', 'erd', 'field_list_url', 'source_list_url', 'report_description', 'report_url', 'version',
+        'report_name', 'erd', 'report_query_url', 'report_description', 'report_url', 'version',
         'change_description', 'change_date', 'changed_by')
     search_fields = ('report_name', 'report_description', 'report_url', 'change_description')
     formfield_overrides = {
         models.TextField: {'widget': Textarea(attrs={'rows': 3})},
     }
 
+    def report_query_url(self, report: Report):
+        if report.report_query != None:
+            return format_html(
+                f"<a href=\"/admin/storage/query/?id={str(report.report_query.id)} \"target=\"_blank\">{report.report_query}</a>")
+        else:
+            return "-"
+
     def erd(self, report: Report):
         return format_html(
-            f"<a href=\"/dm/diagram/query/{str(report.id)}/\" target=\"_blank\">ERD</a>")
+            f"<a href=\"/dm/diagram/query/{str(report.report_query.id)}/\" target=\"_blank\">ERD</a>")
 
-    def field_list_url(self, report: Report):
-        if report.field_list != None:
-            return format_html(
-                f"<a href=\"/admin/storage/field/?field_list__id__exact={str(report.field_list.id)} \"target=\"_blank\">{report.field_list}</a>")
-        else:
-            return "-"
-
-    def source_list_url(self, report: Report):
-        if report.source_list != None:
-            return format_html(
-                f"<a href=\"/admin/storage/source/?source_union_list__id__exact={str(report.source_list.id)} \"target=\"_blank\">{report.source_list}</a>")
-        else:
-            return "-"
-
-    field_list_url.short_description = "FIELD LIST"
-    source_list_url.short_description = "SOURCE LIST"
 
 class SourceAdmin(admin.ModelAdmin):
     list_display = (
