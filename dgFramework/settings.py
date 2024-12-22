@@ -25,12 +25,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-o!46yfbflocr&c9s3z8(azkfzrilj*z+c79g^5@!7xhu!(5s($')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# if platform.system() == "Linux":
-#     DEBUG = False
-# else:
-#     DEBUG = True
+if platform.system() == "Windows":
+    DEBUG = True
+else:
+    DEBUG = False
 
-DEBUG = False
+# DEBUG = False
 # DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
@@ -82,16 +82,39 @@ WSGI_APPLICATION = "dgFramework.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': os.environ.get('DB_NAME', 'dg_bae'),  # Your database name
-        'USER': os.environ.get('DB_USER', 'postgres'),  # Your database user
-        'PASSWORD': os.environ.get('DB_PASSWORD', 'postgres'),  # Your database password
-        'HOST': os.environ.get('DB_HOST', 'localhost'),  # Your database endpoint
-        'PORT': os.environ.get('DB_PORT', '5432'),  # Default PostgreSQL port
+if platform.system() == "Windows":
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql_psycopg2",
+            "NAME": "dg_bae",
+            "USER": "postgres",
+            "PASSWORD": "postgres",
+            "HOST": "localhost",
+            "PORT": "5432"
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': os.environ.get('DB_NAME', 'dg_bae'),  # Your database name
+            'USER': os.environ.get('DB_USER', 'postgres'),  # Your database user
+            'PASSWORD': os.environ.get('DB_PASSWORD', 'postgres'),  # Your database password
+            'HOST': os.environ.get('DB_HOST', 'localhost'),  # Your database endpoint
+            'PORT': os.environ.get('DB_PORT', '5432'),  # Default PostgreSQL port
+        }
+    }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#         'NAME': os.environ.get('DB_NAME', 'dg_bae'),  # Your database name
+#         'USER': os.environ.get('DB_USER', 'postgres'),  # Your database user
+#         'PASSWORD': os.environ.get('DB_PASSWORD', 'postgres'),  # Your database password
+#         'HOST': os.environ.get('DB_HOST', 'localhost'),  # Your database endpoint
+#         'PORT': os.environ.get('DB_PORT', '5432'),  # Default PostgreSQL port
+#     }
+# }
 
 # DATABASES = {
 #         'default': {
@@ -100,16 +123,6 @@ DATABASES = {
 #         }
 #     }
 
- # DATABASES = {
- #        "default": {
- #            "ENGINE": "django.db.backends.postgresql_psycopg2",
- #            "NAME": "dg_bae",
- #            "USER": "postgres",
- #            "PASSWORD": "postgres",
- #            "HOST": "localhost",
- #            "PORT": "5432"
- #        }
- #    }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators

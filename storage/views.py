@@ -1,7 +1,6 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponse, HttpRequest, JsonResponse
+from django.http import HttpResponse, HttpRequest, JsonResponse, Http404, FileResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
 from openpyxl import load_workbook
 import json
 import pandas as pd
@@ -9,6 +8,9 @@ import psycopg2
 from django.core.files.storage import FileSystemStorage
 import os
 from .models import *
+from django.core.management import call_command
+from datetime import datetime
+import glob
 
 wb = None
 
@@ -452,3 +454,88 @@ def import_table_from_excel(workbook_filename, sheet_name: str = '', table_name:
 
     # self.display_df(df)
     return df
+
+def db_management(request: HttpRequest):
+    context = {
+        "text": "Excel Import!!!"
+    }
+    return render(request, 'storage/dbmanagement.html', context)
+
+@csrf_exempt
+def upload_db_json(request):
+    # context = {'message': 'Файл успешно загружен'}
+    context = {}
+    if request.FILES.get('dbJson'):
+        file = request.FILES.get('dbJson')
+        if not file:
+            return JsonResponse({'error': 'No file to download'}, status=400)
+
+        # Здесь вы можете обрабатывать файл, например, сохранять его на сервере
+        fss = FileSystemStorage()
+        filename = fss.save(file.name, file)
+        # file_url = fss.url(filename)
+        file_path = fss.path(filename)
+        # context = {'message': 'File uploaded successfully', 'file_path': file_path}
+
+        import_file = file_path
+        try:
+            call_command('loaddata', import_file)
+            context = {'message': f'Data successfully loaded from {import_file}'}
+            print(f"Data successfully loaded from {import_file}")
+        except Exception as e:
+            print(f"Error while data loading: {e}")
+
+        try:
+            os.remove(import_file)
+            print(f"Deleted: {import_file}")
+        except Exception as e:
+            print(f"Error deleting {import_file}: {e}")
+
+        # Знаходимо всі файли, що відповідають масці
+        files_to_delete = glob.glob("dgf_storage_*.json")
+
+        # Видаляємо знайдені файли
+        for file_path in files_to_delete:
+            try:
+                os.remove(file_path)
+                print(f"Deleted: {file_path}")
+            except Exception as e:
+                print(f"Error deleting {file_path}: {e}")
+
+        return JsonResponse(context)
+
+    return render(request, 'storage/dbmanagement.html', {'message': 'File do not uploaded'})
+
+@csrf_exempt
+def download_db_json(request):
+    current_date = datetime.now().strftime("%Y-%m-%d")
+    output_file = f"dgf_storage_{current_date}.json"
+    # file_path = os.path.join('media', 'uploads', output_file)
+
+    # Виконання команди dumpdata
+    try:
+        call_command('dumpdata', 'storage', '--indent', '2', '--output', output_file)
+        print(f"Data successfully dumped to {output_file}")
+    except Exception as e:
+        print(f"Error while dumping data: {e}")
+
+    # Перевіряємо, чи існує файл
+    if not os.path.exists(output_file):
+        raise Http404("File not found.")
+
+    # Відправка файлу як відповідь
+    response = FileResponse(open(output_file, 'rb'), content_type='application/octet-stream')
+    response['Content-Disposition'] = f'attachment; filename="{output_file}"'
+
+    return response
+
+        # # Знаходимо всі файли, що відповідають масці
+        # files_to_delete = glob.glob("dgf_storage_*.json")
+        #
+        # # Видаляємо знайдені файли
+        # for file_path in files_to_delete:
+        #     try:
+        #         os.remove(file_path)
+        #         print(f"Deleted: {file_path}")
+        #     except Exception as e:
+        #         print(f"Error deleting {file_path}: {e}")
