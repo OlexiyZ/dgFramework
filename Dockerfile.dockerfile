@@ -7,7 +7,7 @@ RUN apt update && \
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV TZ=Asia/Amman
-ENV DEBUG = False
+ENV DEBUG = True
 
 # Set the working directory in the container
 WORKDIR /app
