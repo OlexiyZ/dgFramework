@@ -10,5 +10,7 @@ urlpatterns = [
     path("db_management/", db_management),
     path("upload_db_json/", upload_db_json),
     path("download_db_json/", download_db_json),
-    path("sql_parser/", sql_parser),
+    path("sql_parsing/", sql_parsing),
+    path("parse_sql_to_json/", parse_sql_to_json),
+    path("upload_json/", upload_json),
 ]

@@ -129,7 +129,7 @@
             const sqlContent = sqlEditor.getValue();
 
             try {
-                const response = await fetch('/parse_sql_to_json/', {
+                const response = await fetch('/storage/parse_sql_to_json/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -155,7 +155,7 @@
             const jsonContent = jsonEditor.getValue();
 
             try {
-                const response = await fetch('/upload_json/', {
+                const response = await fetch('/storage/upload_json/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

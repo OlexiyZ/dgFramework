@@ -11,6 +11,8 @@ from .models import *
 from django.core.management import call_command
 from datetime import datetime
 import glob
+from .sql_parser import find_select_from_where
+from .query_load import nested_queryies_load
 
 wb = None
 
@@ -530,8 +532,51 @@ def download_db_json(request):
     return response
 
 
-def sql_parser(request: HttpRequest):
+def sql_parsing(request: HttpRequest):
     context = {
         "text": "SQL parser!!!"
     }
-    return render(request, 'storage/sql_parser.html', context)
+    return render(request, 'storage/sql_parsing.html', context)
+
+
+@csrf_exempt
+def parse_sql_to_json(request):
+    if request.method == 'POST':
+        try:
+            # Отримуємо вміст SQL із запиту
+            body = json.loads(request.body)
+            sql_content = body.get('sql', '')
+
+            # Простий приклад парсингу SQL у JSON
+            # У реальних випадках тут можна викликати складний парсер SQL
+            # parsed_data = {
+            #     "query": sql_content.strip(),  # Упорядкований текст SQL
+            #     "message": "SQL parsed successfully!"
+            # }
+            parsed_data = find_select_from_where(sql_content)
+
+            # Повертаємо розпарсений SQL як JSON
+            return JsonResponse(parsed_data, status=200)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+
+    return JsonResponse({"error": "Invalid request method."}, status=400)
+
+
+@csrf_exempt
+def upload_json(request):
+    if request.method == 'POST':
+        try:
+            body = json.loads(request.body)
+            json_content = body.get('json', '')
+
+            result, load_message = nested_queryies_load(json_content)
+
+            if result:
+                return JsonResponse({"message": load_message}, status=200)
+            else:
+                return JsonResponse({"error": load_message}, status=500)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+
+    return JsonResponse({"error": "Invalid request method."}, status=400)

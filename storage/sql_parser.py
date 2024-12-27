@@ -104,15 +104,15 @@ def find_select_from_where(sql):
                 stack.append(current_query)
             query_counter += 1
             current_query = {
-                "query_name": f"Q_{query_counter}_{report_id}",
+                "query_name": f"{report_id}_Q_{query_counter}",
                 "SELECT": position,
                 "SELECT_end": position_end,
                 "FROM": None,
                 "FROM_end": None,
                 "WHERE": None,
                 "WHERE_end": None,
-                "query_fields": f"FL_{query_counter}_{report_id}",
-                "query_source": f"DS_{query_counter}_{report_id}",
+                "query_fields": f"{report_id}_FL_{query_counter}",
+                "query_source": f"{report_id}_DS_{query_counter}",
                 "columns": [],
                 "sources": [],
                 "nested": []
@@ -149,15 +149,15 @@ def find_select_from_where(sql):
                 stack.append(current_query)
             query_counter += 1
             current_query = {
-                "query_name": f"Q_{query_counter}_{report_id}",
+                "query_name": f"{report_id}_Q_{query_counter}",
                 "SELECT": position,  # position+1
                 "SELECT_end": position_end,
                 "FROM": None,
                 "FROM_end": None,
                 "WHERE": None,
                 "WHERE_end": None,
-                "query_fields": f"FL_{query_counter}_{report_id}",
-                "query_source": f"DS_{query_counter}_{report_id}",
+                "query_fields": f"{report_id}_FL_{query_counter}",
+                "query_source": f"{report_id}_DS_{query_counter}",
                 "columns": [],
                 "sources": [],
                 "nested": []

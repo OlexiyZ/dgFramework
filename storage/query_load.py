@@ -1,6 +1,7 @@
 import json
+import re
 from pathlib import Path
-from models import Query, SourceList, Source, FieldList, Field
+from .models import Query, SourceList, Source, FieldList, Field
 
 def process_field_list(field_data):
     """
@@ -47,10 +48,14 @@ def process_query(query_data, parent_query=None):
     """
     Recursive function for processing queries and their nesting.
     """
+
+    # Creating a SourceList for a query
+    source_list, _ = SourceList.objects.get_or_create(source_list=query_data["query_source"])
     # Creating a FieldList for a query
     query_field_list, _ = FieldList.objects.get_or_create(
         field_list_name=query_data["query_fields"],
-        data_source=SourceList.objects.get(source_list=query_data["query_source"]),
+        # data_source=SourceList.objects.get(source_list=query_data["query_source"]),
+        data_source=SourceList.objects.get(id=source_list.id),
     )
 
     # Creating a request
@@ -80,8 +85,14 @@ def process_query(query_data, parent_query=None):
 
 # Basic processing process
 def nested_queryies_load(nested_queries):
-    for query in nested_queries.get("queries", []):
-        process_query(query)
+    cleaned_string = re.sub(r"\s+", " ", nested_queries).strip()
+    json_data = json.loads(cleaned_string)
+    try:
+        for query in json_data.get("queries", []):
+            process_query(query)
+        return True, f"Imported successfully"
+    except Exception as e:
+        return False, f"error: {str(e)}"
 
 
 if __name__ == "__main__":
