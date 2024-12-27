@@ -529,13 +529,9 @@ def download_db_json(request):
 
     return response
 
-        # # Знаходимо всі файли, що відповідають масці
-        # files_to_delete = glob.glob("dgf_storage_*.json")
-        #
-        # # Видаляємо знайдені файли
-        # for file_path in files_to_delete:
-        #     try:
-        #         os.remove(file_path)
-        #         print(f"Deleted: {file_path}")
-        #     except Exception as e:
-        #         print(f"Error deleting {file_path}: {e}")
+
+def sql_parser(request: HttpRequest):
+    context = {
+        "text": "SQL parser!!!"
+    }
+    return render(request, 'storage/sql_parser.html', context)
