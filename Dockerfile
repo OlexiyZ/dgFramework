@@ -1,10 +1,13 @@
 FROM python:3.11.9
 
 # Set environment variables
-#ENV PYTHONDONTWRITEBYTECODE=1
-#ENV PYTHONUNBUFFERED=1
-#ENV TZ=Asia/Amman
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV TZ=Asia/Amman
 #ENV DEBUG=False
+#ENV DJANGO_SUPERUSER_USERNAME=admin
+#ENV DJANGO_SUPERUSER_EMAIL=admin@example.com
+ENV DJANGO_SUPERUSER_PASSWORD=12345
 
 # Set the working directory in the container
 WORKDIR /app
@@ -25,10 +28,11 @@ COPY . /app/
 # Run migrations and create superuser
 RUN python manage.py makemigrations
 RUN python manage.py migrate
-RUN python manage.py createsuperuser --no-input || true
+RUN python manage.py createsuperuser --no-input --username=admin --email=admin@example.com || true
 RUN python manage.py collectstatic --noinput
 
 EXPOSE 8000
 
 # Start the Django app
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+#CMD ["gunicorn", "--bind", "0.0.0.0:8000", "your_project_name.wsgi:application"]

@@ -1,7 +1,6 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponse, HttpRequest, JsonResponse
+from django.http import HttpResponse, HttpRequest, JsonResponse, Http404, FileResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
 from openpyxl import load_workbook
 import json
 import pandas as pd
@@ -9,6 +8,11 @@ import psycopg2
 from django.core.files.storage import FileSystemStorage
 import os
 from .models import *
+from django.core.management import call_command
+from datetime import datetime
+import glob
+from .sql_parser import find_select_from_where
+from .query_load import nested_queryies_load
 
 wb = None
 
@@ -452,3 +456,127 @@ def import_table_from_excel(workbook_filename, sheet_name: str = '', table_name:
 
     # self.display_df(df)
     return df
+
+def db_management(request: HttpRequest):
+    context = {
+        "text": "Excel Import!!!"
+    }
+    return render(request, 'storage/dbmanagement.html', context)
+
+@csrf_exempt
+def upload_db_json(request):
+    # context = {'message': 'Файл успешно загружен'}
+    context = {}
+    if request.FILES.get('dbJson'):
+        file = request.FILES.get('dbJson')
+        if not file:
+            return JsonResponse({'error': 'No file to download'}, status=400)
+
+        # Здесь вы можете обрабатывать файл, например, сохранять его на сервере
+        fss = FileSystemStorage()
+        filename = fss.save(file.name, file)
+        # file_url = fss.url(filename)
+        file_path = fss.path(filename)
+        # context = {'message': 'File uploaded successfully', 'file_path': file_path}
+
+        import_file = file_path
+        try:
+            call_command('loaddata', import_file)
+            context = {'message': f'Data successfully loaded from {import_file}'}
+            print(f"Data successfully loaded from {import_file}")
+        except Exception as e:
+            print(f"Error while data loading: {e}")
+
+        try:
+            os.remove(import_file)
+            print(f"Deleted: {import_file}")
+        except Exception as e:
+            print(f"Error deleting {import_file}: {e}")
+
+        # Знаходимо всі файли, що відповідають масці
+        files_to_delete = glob.glob("dgf_storage_*.json")
+
+        # Видаляємо знайдені файли
+        for file_path in files_to_delete:
+            try:
+                os.remove(file_path)
+                print(f"Deleted: {file_path}")
+            except Exception as e:
+                print(f"Error deleting {file_path}: {e}")
+
+        return JsonResponse(context)
+
+    return render(request, 'storage/dbmanagement.html', {'message': 'File do not uploaded'})
+
+@csrf_exempt
+def download_db_json(request):
+    current_date = datetime.now().strftime("%Y-%m-%d")
+    output_file = f"dgf_storage_{current_date}.json"
+    # file_path = os.path.join('media', 'uploads', output_file)
+
+    # Виконання команди dumpdata
+    try:
+        call_command('dumpdata', 'storage', '--indent', '2', '--output', output_file)
+        print(f"Data successfully dumped to {output_file}")
+    except Exception as e:
+        print(f"Error while dumping data: {e}")
+
+    # Перевіряємо, чи існує файл
+    if not os.path.exists(output_file):
+        raise Http404("File not found.")
+
+    # Відправка файлу як відповідь
+    response = FileResponse(open(output_file, 'rb'), content_type='application/octet-stream')
+    response['Content-Disposition'] = f'attachment; filename="{output_file}"'
+
+    return response
+
+
+def sql_parsing(request: HttpRequest):
+    context = {
+        "text": "SQL parser!!!"
+    }
+    return render(request, 'storage/sql_parsing.html', context)
+
+
+@csrf_exempt
+def parse_sql_to_json(request):
+    if request.method == 'POST':
+        try:
+            # Отримуємо вміст SQL із запиту
+            body = json.loads(request.body)
+            sql_content = body.get('sql', '')
+
+            # Простий приклад парсингу SQL у JSON
+            # У реальних випадках тут можна викликати складний парсер SQL
+            # parsed_data = {
+            #     "query": sql_content.strip(),  # Упорядкований текст SQL
+            #     "message": "SQL parsed successfully!"
+            # }
+            parsed_data = find_select_from_where(sql_content)
+
+            # Повертаємо розпарсений SQL як JSON
+            return JsonResponse(parsed_data, status=200)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+
+    return JsonResponse({"error": "Invalid request method."}, status=400)
+
+
+@csrf_exempt
+def upload_json(request):
+    if request.method == 'POST':
+        try:
+            body = json.loads(request.body)
+            json_content = body.get('json', '')
+
+            result, load_message = nested_queryies_load(json_content)
+
+            if result:
+                return JsonResponse({"message": load_message}, status=200)
+            else:
+                return JsonResponse({"error": load_message}, status=500)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+
+    return JsonResponse({"error": "Invalid request method."}, status=400)
