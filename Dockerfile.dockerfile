@@ -7,7 +7,7 @@ RUN apt update && \
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV TZ=Asia/Amman
-ENV DEBUG = False
+ENV DEBUG = True
 
 # Set the working directory in the container
 WORKDIR /app
@@ -24,6 +24,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the entire Django project into the working directory in the container
 COPY . /app/
+RUN python manage.py collectstatic
 
 # Run migrations and create superuser
 # RUN python manage.py makemigrations
@@ -34,4 +35,5 @@ COPY . /app/
 EXPOSE 8000
 
 # Start the Django app
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+#CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["python", "-m", "uvicorn", "dgFramework.asgi:application", "--host", "0.0.0.0", "--port", "8000"]

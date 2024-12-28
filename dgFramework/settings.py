@@ -32,6 +32,8 @@ else:
 
 # DEBUG = False
 # DEBUG = True
+=======
+DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 
@@ -46,6 +48,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "storage",
     "dm",
+    'corsheaders',
     # "import",
 ]
 
@@ -57,6 +60,21 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
+]
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8000",
+    "http://0.0.0.0:8000",
+    os.getenv('HOST', 'http://0.0.0.0:8000'),
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:8000",
+    "http://0.0.0.0:8000",
+    os.getenv('HOST', 'http://0.0.0.0:8000'),
 ]
 
 ROOT_URLCONF = "dgFramework.urls"
@@ -103,6 +121,15 @@ else:
             'HOST': os.environ.get('DB_HOST', 'localhost'),  # Your database endpoint
             'PORT': os.environ.get('DB_PORT', '5432'),  # Default PostgreSQL port
         }
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': os.getenv('DB_NAME', 'dg_bae'),  # Your database name
+        'USER': os.getenv('DB_USER', 'postgres'),  # Your database user
+        'PASSWORD': os.getenv('DB_PASSWORD', 'postgres'),  # Your database password
+        'HOST': os.getenv('DB_HOST', 'localhost'),  # Your database endpoint
+        'PORT': os.getenv('DB_PORT', '5432'),  # Default PostgreSQL port
     }
 
 # DATABASES = {
