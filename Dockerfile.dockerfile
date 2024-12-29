@@ -28,10 +28,10 @@ RUN python manage.py collectstatic
 
 # Run migrations and create superuser
 # RUN python manage.py drop_all_tables
-RUN python manage.py flush
+# RUN #python manage.py flush
 RUN python manage.py makemigrations
 RUN python manage.py migrate
-RUN python manage.py createsuperuser --no-input || true
+# RUN python manage.py createsuperuser --no-input || true
 RUN python manage.py collectstatic --noinput
 
 EXPOSE 8000
