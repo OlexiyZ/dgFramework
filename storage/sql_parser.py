@@ -491,7 +491,7 @@ def extract_sources(from_text, from_position_end, source_list_name):
                 (
                     r"\bUNION ALL\b|\bINNER JOIN\b|\bLEFT JOIN\b|\bLEFT OUTER JOIN\b|\bRIGHT JOIN\b|"
                     r"\bRIGHT OUTER JOIN\b|\bFULL JOIN\b|\bFULL OUTER JOIN\b|r\bCROSS JOIN\b|\bSELF JOIN\b|"
-                    r"\bNATURAL JOIN\b"
+                    r"\bNATURAL JOIN\b|\bJOIN\b"
                 ),
                 source[0],
                 re.IGNORECASE
