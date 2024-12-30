@@ -124,11 +124,11 @@ WSGI_APPLICATION = "dgFramework.wsgi.application"
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': os.getenv('DB_NAME', 'dg_bae'),  # Your database name
-        'USER': os.getenv('DB_USER', 'postgres'),  # Your database user
-        'PASSWORD': os.getenv('DB_PASSWORD', 'postgres'),  # Your database password
-        'HOST': os.getenv('DB_HOST', 'localhost'),  # Your database endpoint
-        'PORT': os.getenv('DB_PORT', '5432'),  # Default PostgreSQL port
+        'NAME': os.getenv('DB_NAME'),  # Your database name
+        'USER': os.getenv('DB_USER'),  # Your database user
+        'PASSWORD': os.getenv('DB_PASSWORD'),  # Your database password
+        'HOST': os.getenv('DB_HOST'),  # Your database endpoint
+        'PORT': os.getenv('DB_PORT'),  # Default PostgreSQL port
     }
 }
 
