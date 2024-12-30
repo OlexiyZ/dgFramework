@@ -563,7 +563,7 @@ def extract_sources(from_text, from_position_end, source_list_name):
                     "source_scheme": schema.strip() if schema else None,
                     "source_system": None,
                     "union_type": union_type if union_type else None,
-                    "union_condition": None,
+                    "union_condition": condition.strip() if condition else None,
                     "source_description": None
                 })
             # else:
