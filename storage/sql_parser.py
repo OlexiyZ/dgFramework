@@ -21,7 +21,7 @@ WHERE
 
 report_id = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
 query_counter = 0  # Счетчик для генерации уникальных имен запросов
-query_description = ""
+# query_description = ""
 
 
 def query_cleaning(sql_text):
@@ -47,7 +47,7 @@ def query_cleaning(sql_text):
 
 
 def extract_query_description(sql_text):
-    global query_description
+    # global query_description
     pattern = r"^/\*[\s\S]*?\*/"
 
     # Check if a multiline comment exists
@@ -57,30 +57,65 @@ def extract_query_description(sql_text):
         query_description = match.group()
         # Remove the comment from the string
         sql_text = re.sub(pattern, "", sql_text.strip(), count=1).strip()
+    else:
+        query_description = None
 
-    return sql_text
+    return sql_text, query_description
+
+
+def define_query_conditions_1(param):
+    """
+    Defines query conditions based on provided parameters.
+    """
+    query_conditions = None
+    open_parentheses = 0
+    parentheses_match = list(re.finditer(r"\(|\)", param.strip(), re.IGNORECASE))
+    if parentheses_match:
+        for match in parentheses_match:
+            if match.group() == "(":
+                open_parentheses += 1
+            elif match.group() == ")" and open_parentheses > 0:
+                open_parentheses -= 1
+            else:
+                query_conditions = param[:match.start()+1].strip()
+                return query_conditions
+    else:
+        query_conditions = param.strip()
+
+    return query_conditions
+
+
+def define_query_conditions(condition, position):
+    """
+    Defines query conditions based on provided parameters.
+    """
+    query_conditions = None
+    open_parentheses = 0
+    i = 0
+    match = re.search(r"[()]", condition)
+    if match:
+        for char in condition:
+            if char == "(":
+                open_parentheses += 1
+            elif char == ")":
+                open_parentheses -= 1
+            elif open_parentheses < 0:
+                query_conditions = condition[:i-1].strip()
+                return query_conditions, position + i - 1
+                break
+            i += 1
+        return query_conditions, position + len(condition)  # position + i
+    else:
+        query_conditions = condition.strip()
+
+    return query_conditions, position + len(condition)
 
 
 def find_select_from_where(sql):
     global query_counter
-    sql = extract_query_description(sql)
+    sql, query_description = extract_query_description(sql)
     sql = query_cleaning(sql).strip()
     tokens = []
-    # tokens = list(re.finditer(r"(SELECT|FROM|WHERE|;|\(|\))", sql, re.IGNORECASE))
-    # tokens = list(re.finditer(r"(SELECT|FROM|WHERE|;)", sql, re.IGNORECASE))
-    # tokens = list(re.finditer(r"(\bSELECT\b|\bFROM\b|\bWHERE\b|;)", sql, re.IGNORECASE))
-    # tokens = list(re.finditer(r"(\bSELECT\b|\bFROM\b|\bWHERE\b|;|\(\s*SELECT|\(|\))", sql, re.IGNORECASE))
-    # tokens = list(re.finditer(r"\bFROM \(|\bFROM\b|\bSELECT\b|\bWHERE\b|;|\(\s*SELECT|\(|\)", sql, re.IGNORECASE))
-    # tokens = list(re.finditer(r"\bFROM \(|\bFROM\b|\bSELECT\b|\bWHERE\b|;|\b\(SELECT\b|\(|\)", sql, re.IGNORECASE))
-    # tokens = list(re.finditer(r"\bFROM \(|\bFROM\b|\b\(SELECT\b|\bSELECT\b|\bWHERE\b|;|\(|\)", sql, re.IGNORECASE))
-    # tokens_p_select = list(re.finditer(r"\(SELECT", sql, re.IGNORECASE))
-    # tokens_select_w = list(re.finditer(r"\b SELECT \b", sql, re.IGNORECASE))
-    # tokens_select = list(re.finditer(r"^SELECT\b", sql, re.IGNORECASE))
-    # tokens_from_p = list(re.finditer(r"\bFROM \(", sql, re.IGNORECASE))
-    # tokens_from = list(re.finditer(r"\bFROM\b", sql, re.IGNORECASE))
-    # tokens_where = list(re.finditer(r"\bWHERE\b", sql, re.IGNORECASE))
-    # tokens_p = list(re.finditer(r";|\(|\)", sql, re.IGNORECASE))
-    # tokens.append(tokens_p_select)
     stack = []  # Стек для отслеживания вложенных SELECT
     queries = []  # Список найденных SELECT-FROM-WHERE конструкций
     current_query = None
@@ -111,16 +146,20 @@ def find_select_from_where(sql):
                 "FROM_end": None,
                 "WHERE": None,
                 "WHERE_end": None,
+                "query_end": None,
                 "query_fields": f"{report_id}_FL_{query_counter}",
                 "query_source": f"{report_id}_DS_{query_counter}",
+                "query_conditions": None,
+                "query_description": query_description,
+                "query_body": None,
                 "columns": [],
                 "sources": [],
                 "nested": []
             }
+            query_description = None
 
         elif "FROM" in keyword:  # elif keyword == "FROM":
-            if current_query is None or (current_query is not None and current_query[
-                "FROM"] is None):  # current_query and current_query["FROM"] is None
+            if current_query is None or (current_query is not None and current_query["FROM"] is None):
                 current_query["FROM"] = position
                 current_query["FROM_end"] = position_end + 1
                 # Извлечение столбцов
@@ -131,7 +170,9 @@ def find_select_from_where(sql):
                 current_query["columns"] = columns
 
                 # Извлечение источников
-                from_text = extract_from(sql, position)
+                from_text, query_end = extract_from(sql, position)
+                current_query["query_end"] = query_end if query_end else None
+                current_query["query_body"] = sql[current_query["SELECT"]:query_end].strip() if query_end else None
                 sources = extract_sources(from_text, current_query["FROM_end"], source_list_name)
                 current_query["sources"] = sources
 
@@ -139,6 +180,12 @@ def find_select_from_where(sql):
             if current_query and current_query["WHERE"] is None:
                 current_query["WHERE"] = position
                 current_query["WHERE_end"] = position_end
+                query_conditions, query_end = define_query_conditions(sql[position_end:], position_end)
+                # query_conditions = define_query_conditions_1(sql[position_end:])
+                current_query["query_conditions"] = query_conditions if query_conditions else None
+                current_query["query_end"] = query_end if query_end else None
+                current_query["query_body"] = sql[current_query["SELECT"]:query_end].strip() if query_end else None
+
 
         elif re.sub(r"[\s]+", "", keyword) == "(SELECT":
             # if current_query:
@@ -156,12 +203,17 @@ def find_select_from_where(sql):
                 "FROM_end": None,
                 "WHERE": None,
                 "WHERE_end": None,
+                "query_end": None,
                 "query_fields": f"{report_id}_FL_{query_counter}",
                 "query_source": f"{report_id}_DS_{query_counter}",
+                "query_conditions": None,
+                "query_description": query_description,
+                "query_body": None,
                 "columns": [],
                 "sources": [],
                 "nested": []
             }
+            query_description = None
 
         elif keyword == "(":
             parentheses = True
@@ -201,7 +253,6 @@ def find_select_from_where(sql):
             queries.append(current_query)
             current_query = None
     return {
-        "description": query_description,
         "queries": queries
     }
 
@@ -407,26 +458,16 @@ def extract_from(sql, from_position):
             if current_from and not parentheses_from:
                 stack_from.append(current_from)
                 current_from = from_text[position:]
-                # current_from = {"query": "", "nested": []}   ???
-
-                # current_query = from_text[:match.start()].strip()
-                # queries.append(current_query)
-                # current_query = ""
                 parentheses_from = True
             else:
                 current_from = from_text[position:]
 
-        elif keyword == ")":  # and not parentheses_from:  # or keyword in ("WHERE", ";"):
-            # from_text = from_text[:match.start()]    # 1
-            # from_text = re.sub(r"(?i)(\bFROM\b)", "", from_text).strip()
-            # return from_text.strip()   #1
+        elif keyword == ")":
             if current_from and not parentheses_from:
                 if stack_from:
                     parent_from = stack_from.pop()
-                    # parent_from["nested"].append(current_from)
                     current_from = parent_from
                 else:
-                    # forms.append(current_from.strip())
                     current_from = None
             else:
                 parentheses_from = False
@@ -435,20 +476,19 @@ def extract_from(sql, from_position):
             if current_from and not parentheses_from:
                 if stack_from:
                     parent_from = stack_from.pop()
-                    # parent_from["nested"].append(current_from)
                     current_from = parent_from
                 else:
-                    # queries.append(current_query)
-                    # current_from = None
                     from_text = from_text[:position]
-                    return from_text.strip()
+                    return from_text.strip(), from_position + position
 
         else:
             parentheses_from = False
 
-    if stop_match:
-        # from_text = from_text[:position]
-        return from_text.strip()
+    # if stop_match:
+    #     # from_text = from_text[:position]
+    #     return from_text.strip()
+
+    return from_text.strip(), from_position + len(from_text)
 
 
 def extract_sources(from_text, from_position_end, source_list_name):
