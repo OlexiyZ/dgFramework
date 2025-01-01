@@ -139,7 +139,7 @@ def find_select_from_where(sql):
                 stack.append(current_query)
             query_counter += 1
             current_query = {
-                "query_name": f"{report_id}_Q_{query_counter}",
+                "query_name": f"Q_{report_id}_{query_counter}",
                 "SELECT": position,
                 "SELECT_end": position_end,
                 "FROM": None,
@@ -147,8 +147,8 @@ def find_select_from_where(sql):
                 "WHERE": None,
                 "WHERE_end": None,
                 "query_end": None,
-                "query_fields": f"{report_id}_FL_{query_counter}",
-                "query_source": f"{report_id}_DS_{query_counter}",
+                "query_fields": f"FL_{report_id}_{query_counter}",
+                "query_source": f"DS_{report_id}_{query_counter}",
                 "query_conditions": None,
                 "query_description": query_description,
                 "query_body": None,
@@ -196,7 +196,7 @@ def find_select_from_where(sql):
                 stack.append(current_query)
             query_counter += 1
             current_query = {
-                "query_name": f"{report_id}_Q_{query_counter}",
+                "query_name": f"Q_{report_id}_{query_counter}",
                 "SELECT": position,  # position+1
                 "SELECT_end": position_end,
                 "FROM": None,
@@ -204,8 +204,8 @@ def find_select_from_where(sql):
                 "WHERE": None,
                 "WHERE_end": None,
                 "query_end": None,
-                "query_fields": f"{report_id}_FL_{query_counter}",
-                "query_source": f"{report_id}_DS_{query_counter}",
+                "query_fields": f"FL_{report_id}_{query_counter}",
+                "query_source": f"DS_{report_id}_{query_counter}",
                 "query_conditions": None,
                 "query_description": query_description,
                 "query_body": None,
