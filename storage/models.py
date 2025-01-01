@@ -144,6 +144,7 @@ class Query(models.Model):
     query_conditions = models.TextField(blank=True, null=True)
     query_alias = models.CharField(max_length=30, blank=True, null=True)
     query_description = models.TextField(blank=True, null=True)
+    query_body = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return self.query_name
