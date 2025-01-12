@@ -599,12 +599,12 @@ def field_diagram(request, source_id, field_id):
         source = 'None'
     # field = Field.objects.get(id=field_id, field_source_id=source_id)
     field = Field.objects.get(id=field_id)
-    logging.debug(f"Start {field.field_alias}/{field.field_name}")
+    # logging.debug(f"Start {field.field_alias}/{field.field_name}")
     linear, fn_source = field_linearization(source, field)
     linear_m = {"content": f"<a href=\"/storage/field/{field.id}/ \"target=\"_blank\">{field}</a>",  # str(field),
                 "children": [linear]}
     context = {"model": linear_m}
-    logging.debug(f"End: {fn_source}")
+    # logging.debug(f"End: {fn_source}")
     return render(request, 'dm/diagram.html', context)
 
 
@@ -624,7 +624,7 @@ def field_linearization(source, field):
     match field.field_source_type:
         case 'value':
             fn_source = {"id": field.id, "field": field.field_name, "field_list": str(field.field_list), "source_type": field.field_source_type, "value": field.field_value}
-            logging.debug(f"rw = 614: {fn_source}")
+            # logging.debug(f"rw = 614: {fn_source}")
             return {
                 "content": "value",
                 "children": [
@@ -636,7 +636,7 @@ def field_linearization(source, field):
         case 'table':
             fn_source = {"id": field.id, "field": field.field_name, "field_list": str(field.field_list),
                          "source_type": field.source_type, "value": field.field_value}
-            logging.debug(f"rw = 614: {fn_source}")
+            # logging.debug(f"rw = 614: {fn_source}")
             return {
                        # "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>",
                        "content": f"<a href=\"/storage/field/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>",
@@ -696,7 +696,7 @@ def field_linearization(source, field):
 
     elif field.field_source_type == 'table':  # and source.source_alias == field.field_source.source_alias:
         fn_source = {"field_id": field.id, "field": field.field_name, "field_list": str(field.field_list), "source_type": field.field_source_type, "table": field.field_source}
-        logging.debug(f"rw = 672: {fn_source}")
+        # logging.debug(f"rw = 672: {fn_source}")
         return {
             "content": source.source_type,
             "children": [
