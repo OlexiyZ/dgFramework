@@ -16,7 +16,6 @@
 /datamanagement/
 /storage/query4.sql
 /storage/nested_queries.json
-/storage/migrations/
 **/__pycache__
 .env
 static

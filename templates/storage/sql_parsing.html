@@ -144,6 +144,7 @@
                 const data = await response.json();
                 jsonEditor.setValue(JSON.stringify(data, null, 2));
                 message.textContent = 'SQL parsed successfully!';
+                message.style.color = 'green';
             } catch (error) {
                 message.textContent = error.message;
                 message.style.color = 'red';
@@ -168,10 +169,10 @@
                 }
 
                 const data = await response.json();
-                message.textContent = data.message;
+                message.innerHTML = data.message;
                 message.style.color = 'green';
             } catch (error) {
-                message.textContent = error.message;
+                message.innerHTML = error.message;
                 message.style.color = 'red';
             }
         });

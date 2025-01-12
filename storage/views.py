@@ -573,6 +573,7 @@ def upload_json(request):
             result, load_message = nested_queryies_load(json_content)
 
             if result:
+                load_message = load_message.replace(', [', ',<br>[')
                 return JsonResponse({"message": load_message}, status=200)
             else:
                 return JsonResponse({"error": load_message}, status=500)
