@@ -13,6 +13,8 @@ from datetime import datetime
 import glob
 from .sql_parser import find_select_from_where
 from .query_load import nested_queryies_load
+import random
+import string
 
 wb = None
 
@@ -553,7 +555,8 @@ def parse_sql_to_json(request):
             #     "query": sql_content.strip(),  # Упорядкований текст SQL
             #     "message": "SQL parsed successfully!"
             # }
-            parsed_data = find_select_from_where(sql_content)
+            report_id = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
+            parsed_data = find_select_from_where(sql_content, report_id)
 
             # Повертаємо розпарсений SQL як JSON
             return JsonResponse(parsed_data, status=200)

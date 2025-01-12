@@ -2,6 +2,7 @@ import json
 import re
 from pathlib import Path
 from .models import Query, SourceList, Source, FieldList, Field, UnionType, SourceSystem, SourceScheme
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 
 def process_field_list(field_data):
     """
@@ -51,12 +52,15 @@ def process_field_list(field_data):
                 )
         else:
             # field_source = None
-            field_source = Source.objects.get(source_union_list=source_list)
-
-            # if not field_data['field_alias'] and not field_data['field_name']:
-            #     field_source = field_data['function_field_list']
-            # else:
-            #     field_source = None
+            if not field_data['field_alias']:
+                try:
+                    field_source = Source.objects.get(source_union_list=source_list)
+                except ObjectDoesNotExist:
+                    field_source = None
+                except MultipleObjectsReturned:
+                    field_source = Source.objects.filter(source_union_list=source_list).first()
+            else:
+                field_source = None
 
         if field_data['field_alias']:
             field, created = Field.objects.update_or_create(
@@ -122,7 +126,7 @@ def process_field_list(field_data):
                         'field_description': field_data['field_description']
                     }
                 )
-        # processed_field_name = field_data['field_alias'] if field_data['field_alias'] else field_data['field_name']
+        processed_field_name = field_data['field_alias'] if field_data['field_alias'] else field_data['field_name']
         if not field_data['field_alias'] and not field_data['field_name']:
             processed_field_name = field_data['function_field_list']
         if created:
@@ -238,7 +242,7 @@ def process_query(query_data, parent_query=None, query_json=None):
             defaults={'source_list_description': None}
         )
         if source_list_created:
-            import_result.append((query_data['source_list'], 'SourceList created'))
+            import_result.append((query_data['query_source'], 'SourceList created'))
             # print(f"Source {source_list.source_list} SourceList created")
         if source_list:
             # Creating a FieldList for a query
@@ -264,11 +268,11 @@ def process_query(query_data, parent_query=None, query_json=None):
             }
         )
         if created:
-            import_result.append((query_data['query_name'], 'created'))
-            print(f"Query {query_name.query_name} created")
+            import_result.append((query_data['query_name'], 'Query created'))
+            print(f"Query {query_name.query_name} Query created")
         else:
-            import_result.append((query_data['query_name'], 'updated'))
-            print(f"Query {query_name.query_name} updated")
+            import_result.append((query_data['query_name'], 'Query updated'))
+            print(f"Query {query_name.query_name} Query updated")
     except Exception as e:
         import_result.append(f"{query_data['query_name']}: {e}")
         print(f"Error inserting data: {e}")

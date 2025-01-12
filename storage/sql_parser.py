@@ -19,9 +19,10 @@ WHERE
   lookup_type = 'Business Line';
 """
 
-report_id = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
-query_counter = 0  # Счетчик для генерации уникальных имен запросов
+# report_id = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
+# query_counter = 0  # Счетчик для генерации уникальных имен запросов
 # query_description = ""
+report_id = ""
 
 
 def query_cleaning(sql_text):
@@ -111,8 +112,12 @@ def define_query_conditions(condition, position):
     return query_conditions, position + len(condition)
 
 
-def find_select_from_where(sql):
-    global query_counter
+def find_select_from_where(sql, unique_id):
+    # global query_counter
+    # report_id = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
+    global report_id
+    report_id = unique_id
+    query_counter = 0
     sql, query_description = extract_query_description(sql)
     sql = query_cleaning(sql).strip()
     tokens = []
@@ -137,10 +142,10 @@ def find_select_from_where(sql):
         if keyword == "SELECT":  # or re.sub(r"[\s]+", "", keyword) == "(SELECT":
             if current_query:
                 stack.append(current_query)
-            query_counter += 1
+            # query_counter += 1
             current_query = {
                 # "query_name": f"Q_{report_id}_{query_counter}",
-                "query_name": f"Q_{report_id}_{position}",
+                "query_name": f"Q_{report_id}_{position}" if query_counter != 0 else f"Q_{report_id}_main",
                 "SELECT": position,
                 "SELECT_end": position_end,
                 "FROM": None,
@@ -148,8 +153,8 @@ def find_select_from_where(sql):
                 "WHERE": None,
                 "WHERE_end": None,
                 "query_end": None,
-                "query_fields": f"FL_{report_id}_{position}",
-                "query_source": f"DS_{report_id}_{position}",
+                "query_fields": f"FL_{report_id}_{position}" if query_counter != 0 else f"FL_{report_id}_main",
+                "query_source": f"DS_{report_id}_{position}" if query_counter != 0 else f"DS_{report_id}_main",
                 "query_conditions": None,
                 "query_alias": None,
                 "query_description": query_description,
@@ -159,6 +164,7 @@ def find_select_from_where(sql):
                 "nested": []
             }
             query_description = None
+            query_counter += 1
 
         elif "FROM" in keyword:  # elif keyword == "FROM":
             if current_query is None or (current_query is not None and current_query["FROM"] is None):
@@ -196,10 +202,11 @@ def find_select_from_where(sql):
             # parentheses = True
             if current_query:
                 stack.append(current_query)
-            query_counter += 1
+            # query_counter += 1
             current_query = {
                 # "query_name": f"Q_{report_id}_{query_counter}",
-                "query_name": f"Q_{report_id}_{position}",
+                # "query_name": f"Q_{report_id}_{position}",
+                "query_name": f"Q_{report_id}_{position}" if query_counter != 0 else f"Q_{report_id}_main",
                 "SELECT": position,  # position+1
                 "SELECT_end": position_end,
                 "FROM": None,
@@ -207,8 +214,10 @@ def find_select_from_where(sql):
                 "WHERE": None,
                 "WHERE_end": None,
                 "query_end": None,
-                "query_fields": f"FL_{report_id}_{position}",
-                "query_source": f"DS_{report_id}_{position}",
+                # "query_fields": f"FL_{report_id}_{position}",
+                # "query_source": f"DS_{report_id}_{position}",
+                "query_fields": f"FL_{report_id}_{position}" if query_counter != 0 else f"FL_{report_id}_main",
+                "query_source": f"DS_{report_id}_{position}" if query_counter != 0 else f"DS_{report_id}_main",
                 "query_conditions": None,
                 "query_alias": None,
                 "query_description": query_description,
@@ -218,6 +227,7 @@ def find_select_from_where(sql):
                 "nested": []
             }
             query_description = None
+            query_counter += 1
 
         elif keyword == "(":
             parentheses = True
@@ -655,8 +665,8 @@ if __name__ == "__main__":
         print("File not found!")
     except IOError:
         print("Error reading the file!")
-
-    result = find_select_from_where(sql)
+    report_id = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
+    result = find_select_from_where(sql, report_id)
 
     # Преобразование результата в JSON
     if result:
