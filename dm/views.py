@@ -710,29 +710,41 @@ def field_linearization(source, field):
             ]
         }, field_chains
     elif field.field_source_type == 'function':
-        cleaned_string = field.function_field_list.replace("\n", "").replace("\r", "").replace(" ", "")
-        ff_list = cleaned_string.split(",")
-        # ff_fields = []
-        for f in ff_list:
-            try:
-                ff_field = Field.objects.get(field_list=field.field_list, field_name=f)
-                fn_response, fn_source = field_linearization(ff_field.field_source, ff_field)
-                if fn_response['content'] != 'None':
-                    children.append(fn_response)
-                    # field_chains.append(fn_source)
-                # ff_fields.append(
-                #     {"content": f"<a href=\"/storage/field/{ff_field.id}/ \"target=\"_blank\">{ff_field}</a>"})
-            except Field.DoesNotExist:
-                children.append({"content": f})
-        return {
-            "content": "function",
-                "children": [
-                {
-                    "content": purple_rect + field.field_function,
-                    "children": children  # ff_fields
-                }
-            ]
-        }, "None"  # "function"
+        if field.field_alias != field.function_field_list:
+            cleaned_string = field.function_field_list.replace("\n", "").replace("\r", "").replace(" ", "")
+            ff_list = cleaned_string.split(",")
+            # ff_fields = []
+            for f in ff_list:
+                try:
+                    ff_field = Field.objects.get(field_list=field.field_list, field_name=f)
+                    fn_response, fn_source = field_linearization(ff_field.field_source, ff_field)
+                    if fn_response['content'] != 'None':
+                        children.append(fn_response)
+                        # field_chains.append(fn_source)
+                    # ff_fields.append(
+                    #     {"content": f"<a href=\"/storage/field/{ff_field.id}/ \"target=\"_blank\">{ff_field}</a>"})
+                except Field.DoesNotExist:
+                    children.append({"content": f})
+            return {
+                "content": "function",
+                    "children": [
+                    {
+                        "content": purple_rect + field.field_function,
+                        "children": children  # ff_fields
+                    }
+                ]
+            }, "None"  # "function"
+        else:
+            return {
+                       "content": "function",
+                       "children": [
+                           {
+                               "content": purple_rect + field.field_function,
+                               "children": children  # ff_fields
+                           }
+                       ]
+                   }, "None"  # "function"
+
     else:
         return {
             "content": "None"

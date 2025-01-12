@@ -139,7 +139,8 @@ def find_select_from_where(sql):
                 stack.append(current_query)
             query_counter += 1
             current_query = {
-                "query_name": f"Q_{report_id}_{query_counter}",
+                # "query_name": f"Q_{report_id}_{query_counter}",
+                "query_name": f"Q_{report_id}_{position}",
                 "SELECT": position,
                 "SELECT_end": position_end,
                 "FROM": None,
@@ -147,9 +148,10 @@ def find_select_from_where(sql):
                 "WHERE": None,
                 "WHERE_end": None,
                 "query_end": None,
-                "query_fields": f"FL_{report_id}_{query_counter}",
-                "query_source": f"DS_{report_id}_{query_counter}",
+                "query_fields": f"FL_{report_id}_{position}",
+                "query_source": f"DS_{report_id}_{position}",
                 "query_conditions": None,
+                "query_alias": None,
                 "query_description": query_description,
                 "query_body": None,
                 "columns": [],
@@ -196,7 +198,8 @@ def find_select_from_where(sql):
                 stack.append(current_query)
             query_counter += 1
             current_query = {
-                "query_name": f"Q_{report_id}_{query_counter}",
+                # "query_name": f"Q_{report_id}_{query_counter}",
+                "query_name": f"Q_{report_id}_{position}",
                 "SELECT": position,  # position+1
                 "SELECT_end": position_end,
                 "FROM": None,
@@ -204,9 +207,10 @@ def find_select_from_where(sql):
                 "WHERE": None,
                 "WHERE_end": None,
                 "query_end": None,
-                "query_fields": f"FL_{report_id}_{query_counter}",
-                "query_source": f"DS_{report_id}_{query_counter}",
+                "query_fields": f"FL_{report_id}_{position}",
+                "query_source": f"DS_{report_id}_{position}",
                 "query_conditions": None,
+                "query_alias": None,
                 "query_description": query_description,
                 "query_body": None,
                 "columns": [],
@@ -346,6 +350,8 @@ def extract_columns(select_text, select_position_end, field_list_name, source_li
                 "field_value": None,
                 "field_function": column_name.strip() if column_name else None,
                 "function_field_list": field_list,
+                "field_description": None,
+                "field_query_body": None
             }
         elif match and "SELECT" in match.group().upper():
             column_position = column_position - 1 if match.group(1) == "(SELECT" else column_position
@@ -356,11 +362,13 @@ def extract_columns(select_text, select_position_end, field_list_name, source_li
                 "field_source_type": "data_source",
                 "data_source_type": "query",
                 "query_position": column_position,
-                "field_source": source_alias.strip() if source_alias else None,
-                "field_name": column_name.strip() if column_name else None,
+                "field_source": source_alias.strip() if source_alias else f"Q_{report_id}_{column_position}",
+                "field_name": None,
                 "field_value": None,
                 "field_function": None,
-                "function_field_list": None
+                "function_field_list": None,
+                "field_description": None,
+                "field_query_body": column_name.strip() if column_name else None
             }
         elif '(' in column_name.strip() and ')' in column_name.strip():
             field_list = define_function_fields(column_name.strip() if column_name else None)
@@ -375,6 +383,8 @@ def extract_columns(select_text, select_position_end, field_list_name, source_li
                 "field_value": None,
                 "field_function": column_name.strip() if column_name else None,
                 "function_field_list": field_list,
+                "field_description": None,
+                "field_query_body": None
             }
         elif column_name.strip().replace('.', '').isdigit() or column_name.strip().upper() == 'NULL' \
                 or "'" in column_name.strip():  # or '"' in column_name.strip():  #  or ('(' not in column_name.strip() and ')' not in column_name.strip())
@@ -388,7 +398,9 @@ def extract_columns(select_text, select_position_end, field_list_name, source_li
                 "field_name": None,
                 "field_value": column_name.strip() if column_name else None,
                 "field_function": None,
-                "function_field_list": None
+                "function_field_list": None,
+                "field_description": None,
+                "field_query_body": None
             }
         else:
             return {
@@ -401,7 +413,9 @@ def extract_columns(select_text, select_position_end, field_list_name, source_li
                 "field_name": column_name.strip() if column_name else None,
                 "field_value": None,
                 "field_function": None,
-                "function_field_list": None
+                "function_field_list": None,
+                "field_description": None,
+                "field_query_body": None
             }
 
     # Split the SELECT text into individual column definitions
@@ -539,7 +553,7 @@ def extract_sources(from_text, from_position_end, source_list_name):
             if join_match:
                 # union_type = ""
                 # source_position = source[1] + len(source[2])+1 if len(source) > 2 else source[1]
-                union_type = source[2] if len(source) > 2 and source[2] else "main"
+                union_type = source[2] if len(source) > 2 and source[2] else "MAIN"
                 current_source = (source[0][:join_match.start()], source[1], union_type)
                 next_source = (source[0][join_match.end() + 1:], source[1] + join_match.end() + 1, join_match.group())
                 source_list.insert(source_list.index(source) + 1, next_source)
@@ -550,7 +564,7 @@ def extract_sources(from_text, from_position_end, source_list_name):
     source_definitions = split_join_sources(source_definitions)
 
     for source in source_definitions:  # .split(","):
-        union_type = source[2] if len(source) > 2 and source[2] else "coma"
+        union_type = source[2] if len(source) > 2 and source[2] else "COMA"
         # source = source[0].strip()
         # Датасорсы с алиасами и кондишинами
         match_condition = re.match(r"^(.*?)\s+(\w+)\s+ON\s+(.*)$", source[0].strip(), re.IGNORECASE)
@@ -578,13 +592,14 @@ def extract_sources(from_text, from_position_end, source_list_name):
                     "source_alias": alias.strip() if alias else None,
                     "source_type": "query",
                     # "source_name": datasource.strip() if datasource else None,
-                    "source_name": source[0],
+                    "source_name": f"Q_{report_id}_{source[1]}",
                     "source_position": source[1],
                     "source_scheme": None,
                     "source_system": None,
                     "union_type": union_type.strip() if union_type else None,
                     "union_condition": condition.strip() if condition else None,
-                    "source_description": None
+                    "source_description": None,
+                    "source_query_body": source[0].strip() if source[0] else None,
                 }
             )
         else:
@@ -604,7 +619,8 @@ def extract_sources(from_text, from_position_end, source_list_name):
                     "source_system": None,
                     "union_type": union_type if union_type else None,
                     "union_condition": condition.strip() if condition else None,
-                    "source_description": None
+                    "source_description": None,
+                    "source_query_body": None,
                 })
             # else:
             #     # Если алиас не найден

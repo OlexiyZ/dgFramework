@@ -54,7 +54,7 @@ class SourceSystem(models.Model):
 
 class SourceScheme(models.Model):
     source_scheme_name = models.CharField(max_length=30, unique=True)
-    source_system = models.ForeignKey(SourceSystem, on_delete=models.CASCADE)
+    source_system = models.ForeignKey(SourceSystem, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return self.source_scheme_name
@@ -89,6 +89,7 @@ class Source(models.Model):
     union_type = models.ForeignKey(UnionType, on_delete=models.SET_NULL, null=True, blank=True)
     union_condition = models.TextField(max_length=255, null=True, blank=True)
     source_description = models.TextField(blank=True, null=True)
+    query_body = models.TextField(blank=True, null=True)
 
     def __str__(self):
         # return str(self.source_union_list) + "." + str(self.source_alias)
@@ -122,6 +123,7 @@ class Field(models.Model):
     field_function = models.TextField(max_length=255, blank=True, null=True)
     function_field_list = models.CharField(max_length=255, blank=True, null=True)
     field_description = models.TextField(blank=True, null=True)
+    field_query_body = models.TextField(blank=True, null=True)
     metadata = models.ForeignKey(Metadata, on_delete=models.SET_NULL, blank=True, null=True)
 
     # class Meta:
@@ -145,6 +147,7 @@ class Query(models.Model):
     query_alias = models.CharField(max_length=30, blank=True, null=True)
     query_description = models.TextField(blank=True, null=True)
     query_body = models.TextField(blank=True, null=True)
+    query_json = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return self.query_name
