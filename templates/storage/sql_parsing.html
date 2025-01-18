@@ -138,7 +138,8 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error('Failed to parse SQL.');
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to parse SQL.');
                 }
 
                 const data = await response.json();
@@ -146,7 +147,7 @@
                 message.textContent = 'SQL parsed successfully!';
                 message.style.color = 'green';
             } catch (error) {
-                message.textContent = error.message;
+                message.innerHTML = 'Failed to parse SQL: ' + error.message;
                 message.style.color = 'red';
             }
         });

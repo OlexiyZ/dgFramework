@@ -124,8 +124,8 @@ def find_select_from_where(sql, unique_id):
     stack = []  # Стек для отслеживания вложенных SELECT
     queries = []  # Список найденных SELECT-FROM-WHERE конструкций
     current_query = None
-    parentheses = False
-
+    # parentheses = False
+    parentheses = 0
     # queries.append(
     #     {
     #         "query_description": query_description
@@ -203,11 +203,12 @@ def find_select_from_where(sql, unique_id):
             if current_query:
                 stack.append(current_query)
             # query_counter += 1
+            select_position = position + 1
             current_query = {
                 # "query_name": f"Q_{report_id}_{query_counter}",
                 # "query_name": f"Q_{report_id}_{position}",
-                "query_name": f"Q_{report_id}_{position}" if query_counter != 0 else f"Q_{report_id}_main",
-                "SELECT": position,  # position+1
+                "query_name": f"Q_{report_id}_{select_position}" if query_counter != 0 else f"Q_{report_id}_main",
+                "SELECT": select_position,  # position
                 "SELECT_end": position_end,
                 "FROM": None,
                 "FROM_end": None,
@@ -216,8 +217,8 @@ def find_select_from_where(sql, unique_id):
                 "query_end": None,
                 # "query_fields": f"FL_{report_id}_{position}",
                 # "query_source": f"DS_{report_id}_{position}",
-                "query_fields": f"FL_{report_id}_{position}" if query_counter != 0 else f"FL_{report_id}_main",
-                "query_source": f"DS_{report_id}_{position}" if query_counter != 0 else f"DS_{report_id}_main",
+                "query_fields": f"FL_{report_id}_{select_position}" if query_counter != 0 else f"FL_{report_id}_main",
+                "query_source": f"DS_{report_id}_{select_position}" if query_counter != 0 else f"DS_{report_id}_main",
                 "query_conditions": None,
                 "query_alias": None,
                 "query_description": query_description,
@@ -227,16 +228,19 @@ def find_select_from_where(sql, unique_id):
                 "nested": []
             }
             query_description = None
+            # parentheses = True
             query_counter += 1
 
         elif keyword == "(":
-            parentheses = True
+            # parentheses = True
+            parentheses += 1
             # if current_query:
             #     stack.append(current_query)
             #     current_query = None
 
         elif keyword == ")":
-            if current_query and not parentheses:
+            # if current_query and not parentheses:
+            if current_query and parentheses <= 0:
                 if stack:
                     parent_query = stack.pop()
                     parent_query["nested"].append(current_query)
@@ -245,8 +249,8 @@ def find_select_from_where(sql, unique_id):
                     queries.append(current_query)
                     current_query = None
             else:
-                parentheses = False
-
+                # parentheses = False
+                parentheses -= 1
         elif keyword == ";":
             if current_query:
                 # Обработка незавершенного SELECT, если FROM не найден
@@ -281,15 +285,15 @@ def extract_columns(select_text, select_position_end, field_list_name, source_li
 
     position_counter = select_position_end + 1
 
-    match_distinct = re.match(r"(?i)(^\()", select_text.strip())
+    match_distinct = re.match(r"(?i)(^\()", select_text)  # .strip())
     if match_distinct:
         position_counter = select_position_end + len(match_distinct.group())
         select_text = re.sub(r"(?i)(^\()", "", select_text, count=1)  # .strip()
 
-    match_distinct = re.match(r"(?i)(\bDISTINCT\s)", select_text.strip())
+    match_distinct = re.match(r"(?i)(\bDISTINCT\s)", select_text)   # .strip())
     if match_distinct:
         position_counter = select_position_end + len(match_distinct.group()) + 1
-        select_text = re.sub(r"(?i)(\bDISTINCT\s)", "", select_text, count=1).strip()
+        select_text = re.sub(r"(?i)(\bDISTINCT\s)", "", select_text, count=1)   # .strip()
 
     columns = []
 
@@ -304,9 +308,9 @@ def extract_columns(select_text, select_position_end, field_list_name, source_li
 
         for char in text:
             if char == ',' and open_parentheses == 0:
-                column = ''.join(current).strip()
+                column = ''.join(current)  # .strip()
                 # result.append((''.join(current).strip(), position_counter))
-                result.append((column, position_counter - len(column) + 1))
+                result.append((column, position_counter - len(column)))   # + 1
                 current = []
             else:
                 if char == '(':
@@ -317,8 +321,8 @@ def extract_columns(select_text, select_position_end, field_list_name, source_li
             position_counter += 1
         # Add the last column
         if current:
-            column = ''.join(current).strip()
-            result.append((column, position_counter - len(column) + 1))
+            column = ''.join(current)  # .strip()
+            result.append((column, position_counter - len(column)))  # + 1
         return result
 
     def define_function_fields(text):
@@ -346,7 +350,7 @@ def extract_columns(select_text, select_position_end, field_list_name, source_li
 
     # Define column types
     def define_column_type(column_name, alias, source_alias, column_position):
-        match = re.search(r"(\bSELECT\b|\(\s*SELECT|\bCASE\b)", column_name.strip(), re.IGNORECASE)
+        match = re.search(r"^(\bSELECT\b|\(\s*SELECT|\bCASE\b)", column_name.strip(), re.IGNORECASE)
         if match and match.group().upper() == "CASE":
             field_list = define_function_fields(column_name.strip() if column_name else None)
             return {
@@ -364,7 +368,8 @@ def extract_columns(select_text, select_position_end, field_list_name, source_li
                 "field_query_body": None
             }
         elif match and "SELECT" in match.group().upper():
-            column_position = column_position - 1 if match.group(1) == "(SELECT" else column_position
+            column_position = column_position + 1 if match.group(1) == "(SELECT" else column_position
+            # column_position = column_position if match.group(1) == "(SELECT" else column_position
             return {
                 "field_list": field_list_name,
                 "source_list_name": source_list_name,
@@ -378,7 +383,7 @@ def extract_columns(select_text, select_position_end, field_list_name, source_li
                 "field_function": None,
                 "function_field_list": None,
                 "field_description": None,
-                "field_query_body": column_name.strip() if column_name else None
+                "field_query_body": column_name[1:].strip() if column_name else None
             }
         elif '(' in column_name.strip() and ')' in column_name.strip():
             field_list = define_function_fields(column_name.strip() if column_name else None)
@@ -464,7 +469,8 @@ def extract_from(sql, from_position):
     Извлечение текста после FROM.
     """
     stack_from = []
-    parentheses_from = False
+    # parentheses_from = False
+    parentheses_from = 0
     current_from = None
     forms = []  # Список найденных WHERE конструкций
     from_text = sql[from_position:]
@@ -479,7 +485,8 @@ def extract_from(sql, from_position):
         position = match.start()
 
         if keyword == "(":
-            if current_from and not parentheses_from:
+            # if current_from and not parentheses_from:
+            if current_from and parentheses_from <= 0:
                 stack_from.append(current_from)
                 current_from = from_text[position:]
                 parentheses_from = True
@@ -487,17 +494,19 @@ def extract_from(sql, from_position):
                 current_from = from_text[position:]
 
         elif keyword == ")":
-            if current_from and not parentheses_from:
+            if current_from and parentheses_from <= 0:
                 if stack_from:
                     parent_from = stack_from.pop()
                     current_from = parent_from
                 else:
                     current_from = None
             else:
-                parentheses_from = False
+                # parentheses_from = False
+                parentheses_from -= 1
 
         elif keyword in ("WHERE", ";"):
-            if current_from and not parentheses_from:
+            # if current_from and not parentheses_from:
+            if current_from and parentheses_from <= 0:
                 if stack_from:
                     parent_from = stack_from.pop()
                     current_from = parent_from
@@ -506,7 +515,8 @@ def extract_from(sql, from_position):
                     return from_text.strip(), from_position + position
 
         else:
-            parentheses_from = False
+            # parentheses_from = False
+            parentheses_from -= 1
 
     # if stop_match:
     #     # from_text = from_text[:position]
@@ -596,14 +606,15 @@ def extract_sources(from_text, from_position_end, source_list_name):
         match_subquery = re.match(r"\(\s*SELECT\b", datasource.strip(), re.IGNORECASE)
         if match_subquery:
             # source_position = source[1] + len(union_type)+1 if union_type else source[1]
+            source_position = source[1] + 1
             sources.append(
                 {
                     "source_union_list_name": source_list_name,
                     "source_alias": alias.strip() if alias else None,
                     "source_type": "query",
                     # "source_name": datasource.strip() if datasource else None,
-                    "source_name": f"Q_{report_id}_{source[1]}",
-                    "source_position": source[1],
+                    "source_name": f"Q_{report_id}_{source_position}",
+                    "source_position": source_position,
                     "source_scheme": None,
                     "source_system": None,
                     "union_type": union_type.strip() if union_type else None,
