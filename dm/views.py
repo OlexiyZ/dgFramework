@@ -448,7 +448,7 @@ def linearization(source_type, source_name, fields2content):
                 field_name["children"] = [{"content": field.field_value}]
             # field_name["content"] = f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/\">{field.field_alias}</a>"
             # field_name["content"] = f"<a href=\"/storage/field/{field.id}/\">{field.field_alias}</a>"
-            if field.field_alias:
+            if field.field_alias or field.field_name:
                 f_fields.append(field_name)
         for source in sources:
             if source.source_type == 'data_source':
