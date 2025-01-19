@@ -1,8 +1,10 @@
 import json
 import re
 from pathlib import Path
-from .models import Query, SourceList, Source, FieldList, Field, UnionType, SourceSystem, SourceScheme
+from .models import Query, SourceList, Source, FieldList, Field, UnionType, SourceSystem, SourceScheme, Report
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
+from django.utils.timezone import now
+
 
 def process_field_list(field_data):
     """
@@ -83,7 +85,8 @@ def process_field_list(field_data):
                 }
             )
         else:
-            processed_field_name = field_data['field_alias'] if field_data['field_alias'] else field_data['function_field_list']
+            processed_field_name = field_data['field_alias'] if field_data['field_alias'] else field_data[
+                'function_field_list']
             if field_data['field_name']:
                 field, created = Field.objects.update_or_create(
                     field_list=field_list,
@@ -215,7 +218,8 @@ def process_source(source_data):
                 'query_body': source_data['source_query_body']
             }
         )
-        processed_source_alias = source_data['source_alias'] if source_data['source_alias'] else source_data['source_name']
+        processed_source_alias = source_data['source_alias'] if source_data['source_alias'] else source_data[
+            'source_name']
         if created:
             import_result.append(f"{processed_source_alias} DataSource created")
             print(f"DataSource {processed_source_alias} created")
@@ -228,6 +232,61 @@ def process_source(source_data):
         print(f"Error inserting data: {e}")
 
     return import_result
+
+
+def create_report(query_name, report_name):
+    """
+    Fetch the Report with the highest version for a given report_name.
+    If no such report exists, create a new one.
+    """
+    import_result = []
+    try:
+        report = Report.objects.get(report_name=report_name)
+        if report:
+            current_query = report.report_query.query_name
+            current_version = report.version
+            # current_description = report.description
+            current_change_description = report.change_description
+
+            report.report_query = query_name
+            report.report_description = query_name.query_description,
+            report.version = str(float(current_version) + 1) if current_version else "1.0"
+            report.change_description = f'{current_change_description}' \
+                                        f'\n--------------------------------------------------------' \
+                                        f'\n{now().strftime("%Y-%m-%d %H:%M:%S")}' \
+                                        f'\nReport version: {report.version}' \
+                                        f'\nReport description:{query_name.query_description}' \
+                                        f'\nReport Query: {query_name.query_name}'
+            report.change_date = now().strftime("%Y-%m-%d %H:%M:%S")
+            # report.changed_by=changed_by_user
+
+            report.save()
+            import_result.append(f"Report {report_name} updated")
+
+            return True, import_result
+
+    except Report.DoesNotExist:
+        # print("No report found")
+        import_result.append(f"Report {report_name} does not exist. Trying to create a new.")
+        try:
+            report = Report.objects.create(report_name=report_name,
+                                           report_query=query_name,
+                                           report_description=query_name.query_description,
+                                           change_description=f'{now().strftime("%Y-%m-%d %H:%M:%S")}'
+                                                              f'\nInitial version'
+                                                              f'\n{query_name.query_description}',
+                                           change_date=now().strftime("%Y-%m-%d %H:%M:%S"),
+                                           # changed_by=changed_by_user
+                                           )
+            if report:
+                import_result.append(f"Report {report_name} created.")
+                return True, import_result
+        except Exception as e:
+            import_result.append(f"Report {report_name} did not created: {e}")
+            return False, import_result
+    except Report.MultipleObjectsReturned:
+        import_result.append(f"Report {report_name} did not created. Error: Multiple reports found!")
+        return False, import_result
 
 
 def process_query(query_data, parent_query=None, query_json=None):
@@ -268,9 +327,15 @@ def process_query(query_data, parent_query=None, query_json=None):
             }
         )
         if created:
+            if query_data['report_name']:
+                report_created, creation_result = create_report(query_name, query_data['report_name'])
+                import_result.append(creation_result)
             import_result.append((query_data['query_name'], 'Query created'))
             print(f"Query {query_name.query_name} Query created")
         else:
+            if query_data['report_name']:
+                report_created, creation_result = create_report(query_name, query_data['report_name'])
+                import_result.append(creation_result)
             import_result.append((query_data['query_name'], 'Query updated'))
             print(f"Query {query_name.query_name} Query updated")
     except Exception as e:
@@ -279,15 +344,15 @@ def process_query(query_data, parent_query=None, query_json=None):
 
     # return import_result
 
-# ----------------------------------------------------------------
-#     query = Query.objects.create(
-#         query_name=query_data["query_name"],
-#         field_list=query_field_list,
-#         query_conditions=query_data.get("query_conditions"),
-#         query_description=query_data.get("query_description"),
-#         query_alias=query_data.get("query_alias"),
-#         source_list=SourceList.objects.get(source_list=query_data["query_source"]),
-#     )
+    # ----------------------------------------------------------------
+    #     query = Query.objects.create(
+    #         query_name=query_data["query_name"],
+    #         field_list=query_field_list,
+    #         query_conditions=query_data.get("query_conditions"),
+    #         query_description=query_data.get("query_description"),
+    #         query_alias=query_data.get("query_alias"),
+    #         source_list=SourceList.objects.get(source_list=query_data["query_source"]),
+    #     )
 
     # Source processing
     for source in query_data.get("sources", []):

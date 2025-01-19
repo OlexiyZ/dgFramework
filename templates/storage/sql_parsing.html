@@ -117,6 +117,7 @@
             const file = fileInput.files[0];
             if (file) {
                 const reader = new FileReader();
+                fileInput.dataset.filename = file.name;
                 reader.onload = (e) => {
                     sqlEditor.setValue(e.target.result);
                 };
@@ -127,6 +128,13 @@
         // Parse SQL to JSON
         document.getElementById('parseSQLButton').addEventListener('click', async () => {
             const sqlContent = sqlEditor.getValue();
+            const file = fileInput.files[0];
+
+            let requestBody = { sql: sqlContent };
+            if (file) {
+                const fileNameWithoutExt = fileInput.dataset.filename.split('.').slice(0, -1).join('.'); // Delete extension
+                requestBody.filename = fileNameWithoutExt;
+            }
 
             try {
                 const response = await fetch('/storage/parse_sql_to_json/', {
@@ -134,11 +142,12 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ sql: sqlContent })
+                    body: JSON.stringify(requestBody)
                 });
 
                 if (!response.ok) {
-                    throw new Error('Failed to parse SQL.');
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to parse SQL.');
                 }
 
                 const data = await response.json();
@@ -146,7 +155,7 @@
                 message.textContent = 'SQL parsed successfully!';
                 message.style.color = 'green';
             } catch (error) {
-                message.textContent = error.message;
+                message.innerHTML = 'Failed to parse SQL: ' + error.message;
                 message.style.color = 'red';
             }
         });
