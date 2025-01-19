@@ -293,8 +293,11 @@ class ReportAdmin(admin.ModelAdmin):
             return "-"
 
     def erd(self, report: Report):
-        return format_html(
-            f"<a href=\"/dm/diagram/query/{str(report.report_query.id)}/\" target=\"_blank\">ERD</a>")
+        if report.report_query:
+            return format_html(
+                f"<a href=\"/dm/diagram/query/{str(report.report_query.id)}/\" target=\"_blank\">ERD</a>")
+        else:
+            return "-"
 
 
 class SourceAdmin(admin.ModelAdmin):

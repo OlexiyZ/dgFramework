@@ -548,6 +548,7 @@ def parse_sql_to_json(request):
             # Отримуємо вміст SQL із запиту
             body = json.loads(request.body)
             sql_content = body.get('sql', '')
+            report_name = body.get('filename', '')
 
             # Простий приклад парсингу SQL у JSON
             # У реальних випадках тут можна викликати складний парсер SQL
@@ -556,7 +557,7 @@ def parse_sql_to_json(request):
             #     "message": "SQL parsed successfully!"
             # }
             report_id = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
-            parsed_data = find_select_from_where(sql_content, report_id)
+            parsed_data = find_select_from_where(sql_content, report_id, report_name)
 
             # Повертаємо розпарсений SQL як JSON
             return JsonResponse(parsed_data, status=200)

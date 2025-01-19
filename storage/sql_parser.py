@@ -112,7 +112,7 @@ def define_query_conditions(condition, position):
     return query_conditions, position + len(condition)
 
 
-def find_select_from_where(sql, unique_id):
+def find_select_from_where(sql, unique_id, report_name):
     # global query_counter
     # report_id = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
     global report_id
@@ -144,6 +144,7 @@ def find_select_from_where(sql, unique_id):
                 stack.append(current_query)
             # query_counter += 1
             current_query = {
+                "report_name": report_name if report_name else None,
                 # "query_name": f"Q_{report_id}_{query_counter}",
                 "query_name": f"Q_{report_id}_{position}" if query_counter != 0 else f"Q_{report_id}_main",
                 "SELECT": position,
