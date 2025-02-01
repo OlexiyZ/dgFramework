@@ -174,14 +174,15 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error('Failed to upload JSON.');
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to upload JSON.');
                 }
 
                 const data = await response.json();
                 message.innerHTML = data.message;
                 message.style.color = 'green';
             } catch (error) {
-                message.innerHTML = error.message;
+                message.innerHTML = 'Failed to upload JSON: ' + error.message;
                 message.style.color = 'red';
             }
         });
