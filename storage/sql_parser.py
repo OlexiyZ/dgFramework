@@ -482,106 +482,6 @@ def find_select_from_where(sql, unique_id, report_name):
     }
 
 
-def find_max_fields(sql_text):
-    """
-    Функція визначає всі поля, що використовуються у функції MAX в SQL-коді.
-    The function identifies all fields used in the MAX function within SQL code.
-    """
-    # 📌 Паттерн для пошуку MAX(...) з урахуванням вкладених дужок
-    pattern = re.compile(r"MAX\s*\((.*?)\)", re.IGNORECASE | re.DOTALL)
-
-    matches = pattern.findall(sql_text)  # Знаходимо всі відповідності
-
-    fields = []
-    for match in matches:
-        # 🔍 Видаляємо пробіли навколо
-        field_content = match.strip()
-
-        # 📌 Ігноруємо складні вирази з CASE або функціями
-        if not re.search(r"\bCASE\b|\bWHEN\b|\bTHEN\b|\bELSE\b|\bEND\b|\(", field_content, re.IGNORECASE):
-            fields.append(field_content)
-        else:
-            # 📌 Для CASE шукаємо поля всередині WHEN або THEN
-            inner_fields = re.findall(r"\b(\w+\.\w+|\w+)\b", field_content)
-            fields.extend(inner_fields)
-
-    return list(set(fields))  # Унікальні значення
-
-
-def find_max_fields_and_aliases_1(sql_text):
-    """
-    Функція знаходить всі поля, що використовуються у функції MAX та їх аліаси.
-    The function identifies all fields used in the MAX function and their aliases.
-    """
-    # 📌 Паттерн для пошуку MAX(...) з можливим ALIAS (AS або через пробіл)
-    pattern = re.compile(
-        r"MAX\s*\((.*?)\)\s*(?:AS\s+(\w+)|(\w+))?",
-        re.IGNORECASE | re.DOTALL
-    )
-
-    matches = pattern.findall(sql_text)
-
-    results = []
-    for match in matches:
-        field_content = match[0].strip()  # Поле всередині MAX(...)
-        alias = match[1] or match[2] or None  # ALIAS через AS або пробіл
-        fild_list = []
-
-        # 📌 Перевірка на складні вирази (CASE)
-        if not re.search(r"\bCASE\b|\bWHEN\b|\bTHEN\b|\bELSE\b|\bEND\b|\(", field_content, re.IGNORECASE):
-            fild_list.append(field_content)
-        else:
-            # 🔍 Для CASE шукаємо поля всередині
-            inner_fields = re.findall(r"\b(\w+\.\w+|\w+)\b", field_content)
-            for inner_field in inner_fields:
-                fild_list.append(inner_field)
-
-    return fild_list, alias
-
-
-def find_max_fields_and_aliases_2(sql_text):
-    """
-    Функція знаходить всі поля, що використовуються у функції MAX та їх аліаси.
-    The function identifies all fields used in the MAX function and their aliases.
-    """
-    # 📌 Паттерн для пошуку MAX(...) з можливим ALIAS (AS або через пробіл)
-    pattern = re.compile(
-        r"MAX\s*\((.*?)\)\s*(?:AS\s+(\w+)|(\w+))?",
-        re.IGNORECASE | re.DOTALL
-    )
-
-    matches = pattern.findall(sql_text)
-    fild_list = []
-
-    for match in matches:
-        field_content = match[0].strip()        # Поле всередині MAX(...)
-        alias = match[1] or match[2] or None    # ALIAS через AS або пробіл
-
-        # 📌 1. Якщо звичайне поле без складних виразів
-        if re.match(r"^\w+(\.\w+)?$", field_content):
-            fild_list.append(field_content)
-
-        # 📌 2. Якщо арифметичний вираз (наприклад, salary + bonus)
-        elif re.search(r"[\+\-\*/]", field_content):
-            # Знаходимо всі імена полів у виразі
-            fields = re.findall(r"\b(\w+\.\w+|\w+)\b", field_content)
-            for field in fields:
-                fild_list.append(field_content)
-
-        # 📌 3. Якщо умовний вираз (CASE WHEN)
-        elif re.search(r"\bCASE\b", field_content, re.IGNORECASE):
-            # Витягуємо всі поля з умовного виразу
-            case_fields = re.findall(r"\b(\w+\.\w+|\w+)\b", field_content)
-            for field in case_fields:
-                fild_list.append(field_content)
-
-        # 📌 4. Якщо інший складний вираз
-        else:
-            fild_list.append(field_content)
-
-    return fild_list, alias
-
-
 def find_max_fields_and_aliases(sql_text):
     """
     Функція знаходить всі поля, що використовуються у функції MAX та їх аліаси.
@@ -631,18 +531,106 @@ def find_max_fields_and_aliases(sql_text):
     return fild_list, alias
 
 
+def find_first_value_fields_and_aliases_1(sql_text):
+    """
+    Функція знаходить всі поля, що використовуються у функції FIRST_VALUE та їх аліаси.
+    The function identifies all fields used in the FIRST_VALUE function and their aliases.
+    """
+    pattern = re.compile(
+        r"FIRST_VALUE\s*\((.*?)\)\s*(?:AS\s+(\w+)|(\w+))?",
+        re.IGNORECASE | re.DOTALL
+    )
+
+    matches = pattern.findall(sql_text)
+    # results = []
+    fild_list = []
+
+    for match in matches:
+        field_content = match[0].strip()        # Поле всередині FIRST_VALUE(...)
+        alias = match[1] or match[2] or None    # ALIAS через AS або пробіл
+
+        # 📌 1. Якщо звичайне поле без складних виразів
+        if re.match(r"^\w+(\.\w+)?$", field_content):
+            fild_list.append(field_content)
+
+        # 📌 2. Якщо арифметичний вираз (наприклад, salary + bonus)
+        elif re.search(r"[\+\-\*/]", field_content):
+            # Знаходимо всі поля в арифметичних виразах
+            fields = re.findall(r"\b\w+\.\w+|\w+\b", field_content)
+            unique_fields = list(set(fields))  # Унікальні значення
+            # for field in unique_fields:
+            #     results.append({"field": field, "alias": alias})
+            fild_list = unique_fields
+
+        # 📌 3. Якщо умовний вираз (CASE WHEN)
+        elif re.search(r"\bCASE\b", field_content, re.IGNORECASE):
+            case_fields = re.findall(r"\b(\w+\.\w+|\w+)\b", field_content)
+            # for field in case_fields:
+            #     results.append({"field": field, "alias": alias})
+            fild_list = case_fields
+
+        # 📌 4. Якщо інший складний вираз
+        else:
+            fild_list.append(field_content)
+
+        # if not alias:
+        alias = "FIRST_VALUE_" + fild_list[0]
+        fild_list = ", ".join(str(item) for item in fild_list)
+
+    return fild_list, alias
+
+
+def find_first_value_fields_and_aliases(sql_text):
+    """
+    Функція знаходить всі поля, що використовуються у функції FIRST_VALUE та їх аліаси.
+    The function identifies all fields used in the FIRST_VALUE function and their aliases.
+    """
+    pattern = re.compile(
+        r"FIRST_VALUE\s*\((.*?)\)\s*OVER\s*\(.*?ORDER BY\s+(.*?)\)\s*(?:AS\s+(\w+)|(\w+))?",
+        re.IGNORECASE | re.DOTALL
+    )
+
+    matches = pattern.findall(sql_text)
+    fild_list = []
+    results = []
+
+    for match in matches:
+        first_value_field = match[0].strip()   # Поле всередині FIRST_VALUE(...)
+        order_by_field = match[1].strip()      # Поле всередині ORDER BY
+        alias = match[2] or match[3] or None   # ALIAS через AS або пробіл
+
+        # 📌 Додаємо поле з FIRST_VALUE
+        if first_value_field:
+            # results.append({"field": first_value_field, "alias": alias})
+            fild_list.append(first_value_field)
+
+        # 📌 Додаємо поле з ORDER BY
+        if order_by_field:
+            # Можливість для декількох полів в ORDER BY
+            order_by_fields = [f.strip() for f in order_by_field.split(",")]
+            for field in order_by_fields:
+                # results.append({"field": field, "alias": alias})
+                fild_list.append(field)
+
+        if not alias:
+            alias = "FIRST_VALUE_" + fild_list[0]
+        fild_list = ", ".join(str(item) for item in fild_list)
+
+    return fild_list, alias
+
+
 def define_function_params(sql_text):
     """
     Defines functions and parameters.
     """
     if "MAX" in sql_text:
-        # function_field_list = find_max_fields(sql_text)
         fild_list, alias = find_max_fields_and_aliases(sql_text)
-        # if not alias:
-        #     alias = "MAX_" + fild_list[0]
         return "MAX", fild_list, alias
+
     elif "FIRST_VALUE" in sql_text:
-        return "FIRST_VALUE", None, None
+        fild_list, alias = find_first_value_fields_and_aliases(sql_text)
+        return "FIRST_VALUE", fild_list, alias
+
     else:
         return None, None, None
 
