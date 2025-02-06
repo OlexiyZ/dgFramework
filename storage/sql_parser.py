@@ -644,31 +644,31 @@ def extracted_sources_definition(source_definitions, source_list_name):
     return sources
 
 
-def define_with_sources(main_query_position):
-    global main_query, report_id, with_names
-    sources = []
-
-    for with_source in with_names:
-        alias = with_source
-        with_source_position = with_names[with_source][0]
-        with_source_body = with_names[with_source][1]
-        sources.append(
-            {
-                "source_union_list_name": f"DS_{report_id}_{main_query_position}",
-                "source_alias": alias.strip() if alias else None,
-                "source_type": "query",
-                "source_name": f"Q_{report_id}_{with_source_position}",
-                "source_position": with_source_position,
-                "source_scheme": None,
-                "source_system": None,
-                "union_type": "COMA",
-                "union_condition": None,
-                "source_description": None,
-                "source_query_body": with_source_body,
-            }
-        )
-
-    return sources
+# def define_with_sources(main_query_position):
+#     global main_query, report_id, with_names
+#     sources = []
+#
+#     for with_source in with_names:
+#         alias = with_source
+#         with_source_position = with_names[with_source][0]
+#         with_source_body = with_names[with_source][1]
+#         sources.append(
+#             {
+#                 "source_union_list_name": f"DS_{report_id}_{main_query_position}",
+#                 "source_alias": alias.strip() if alias else None,
+#                 "source_type": "query",
+#                 "source_name": f"Q_{report_id}_{with_source_position}",
+#                 "source_position": with_source_position,
+#                 "source_scheme": None,
+#                 "source_system": None,
+#                 "union_type": "COMA",
+#                 "union_condition": None,
+#                 "source_description": None,
+#                 "source_query_body": with_source_body,
+#             }
+#         )
+#
+#     return sources
 
 
 def find_select_from_where(sql, unique_id, report_name):
@@ -821,10 +821,10 @@ def find_select_from_where(sql, unique_id, report_name):
                 extracted_sources = parse_sql_sources(sql, position)
                 sources = extracted_sources_definition(extracted_sources, source_list_name)
 
-                if current_query["query_name"] == main_query["name"] and with_names:
-                    with_sources = define_with_sources(main_query["position"])
-                    sources.extend(with_sources)
-                    with_names = {}
+                # if current_query["query_name"] == main_query["name"] and with_names:
+                    # with_sources = define_with_sources(main_query["position"])
+                    # sources.extend(with_sources)
+                    # with_names = {}
 
                 current_query["query_end"] = query_end if query_end else None
                 current_query["query_body"] = sql[current_query["SELECT"]:query_end].strip() if query_end else None
