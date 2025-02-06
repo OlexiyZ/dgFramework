@@ -674,10 +674,12 @@ def extracted_sources_definition(source_definitions, source_list_name):
 def find_select_from_where(sql, unique_id, report_name):
     global with_names
     global main_query
+    with_names = {}
+    main_query = {}
     # global query_counter
     # report_id = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
     global report_id
-    report_id = unique_id
+    report_id = report_name + "-" + unique_id
     # query_counter = None
     query_counter = 1
     sql, query_description = extract_query_description(sql)
@@ -777,7 +779,13 @@ def find_select_from_where(sql, unique_id, report_name):
             if current_query:
                 stack.append(current_query)
             query_name = f"Q_{report_id}_{position}"
-            query_report_name = report_name if query_name == main_query["name"] else None
+
+            if with_names:
+                query_report_name = report_name if query_name == main_query.get("name") else None
+            else:
+                query_report_name = report_name
+                report_name = ""
+
             # query_counter += 1
             current_query = {
                 # "report_name": report_name if report_name else None,
@@ -846,7 +854,13 @@ def find_select_from_where(sql, unique_id, report_name):
                 stack.append(current_query)
             # query_counter += 1
             query_name = f"Q_{report_id}_{position}"
-            query_report_name = report_name if query_name == main_query["name"] else None
+
+            if with_names:
+                query_report_name = report_name if query_name == main_query.get("name") else None
+            else:
+                query_report_name = report_name
+                report_name = ""
+
             select_position = position
             current_query = {
                 # "report_name": report_name if report_name else None,
@@ -1388,22 +1402,22 @@ def extract_from(sql, from_position):
     return from_text.strip(), from_position + len(from_text)
 
 
-def queries_to_json(queries):
-    def format_query(query):
-        return {
-            "name": query["name"],
-            "SELECT": query["SELECT"],
-            "SELECT_end": query["SELECT_END"],
-            "FROM": query["FROM"],
-            "FROM_end": query["FROM_end"],
-            "WHERE": query["WHERE"],
-            "WHERE_end": query["WHERE_end"],
-            "columns": query["columns"],
-            "sources": query["sources"],
-            "nested": [format_query(nested_query) for nested_query in query["nested"]],
-        }
-
-    return [format_query(query) for query in queries]
+# def queries_to_json(queries):
+#     def format_query(query):
+#         return {
+#             "name": query["name"],
+#             "SELECT": query["SELECT"],
+#             "SELECT_end": query["SELECT_END"],
+#             "FROM": query["FROM"],
+#             "FROM_end": query["FROM_end"],
+#             "WHERE": query["WHERE"],
+#             "WHERE_end": query["WHERE_end"],
+#             "columns": query["columns"],
+#             "sources": query["sources"],
+#             "nested": [format_query(nested_query) for nested_query in query["nested"]],
+#         }
+#
+#     return [format_query(query) for query in queries]
 
 
 # Основная программа

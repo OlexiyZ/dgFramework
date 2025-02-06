@@ -274,7 +274,7 @@ def create_report(query_name, report_name):
     try:
         report = Report.objects.get(report_name=report_name)
         if report:
-            current_query = report.report_query.query_name
+            # current_query = report.report_query.query_name
             current_version = report.version
             # current_description = report.description
             current_change_description = report.change_description

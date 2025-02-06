@@ -61,7 +61,7 @@ class SourceScheme(models.Model):
 
 
 class SourceList(models.Model):
-    source_list = models.CharField(max_length=30, unique=True)
+    source_list = models.CharField(max_length=255, unique=True)
     source_list_description = models.TextField(blank=True, null=True)
 
     def __str__(self):
@@ -140,7 +140,7 @@ class Field(models.Model):
 
 
 class Query(models.Model):
-    query_name = models.CharField(max_length=30, unique=True)
+    query_name = models.CharField(max_length=255, unique=True)
     field_list = models.ForeignKey(FieldList, on_delete=models.CASCADE, blank=True, null=True)
     source_list = models.ForeignKey(SourceList, on_delete=models.CASCADE, blank=True, null=True)
     query_conditions = models.TextField(blank=True, null=True)
@@ -155,7 +155,7 @@ class Query(models.Model):
 
 class Report(models.Model):
     # report_id = models.TextField(unique=True, max_length=30)
-    report_name = models.CharField(max_length=30, unique=True)
+    report_name = models.CharField(max_length=50, unique=True)
     report_query = models.ForeignKey(Query, on_delete=models.SET_NULL, blank=True, null=True, related_name='reports')
     # field_list = models.ForeignKey(FieldList, on_delete=models.CASCADE, blank=True, null=True)
     # source_list = models.ForeignKey(SourceList, on_delete=models.CASCADE, blank=True, null=True)
