@@ -25,13 +25,18 @@ def process_field_list(field_data):
 
         if field_data['field_source']:
             if field_data['data_source_type'] == 'query':
-                query_object, created = Query.objects.get_or_create(query_name=field_data['field_source'])
-                if created:
-                    import_result.append((query_object.query_name, 'Query created'))
-                    print(f"Field {query_object.query_name} Query created")
-                else:
-                    import_result.append((query_object.query_name, 'Query updated'))
-                    print(f"Field {query_object.query_name} Query updated")
+                try:
+                    query_object, created = Query.objects.get_or_create(query_name=field_data['field_source'])
+                    if created:
+                        import_result.append((query_object.query_name, 'Query created'))
+                        print(f"Field {query_object.query_name} Query created")
+                    else:
+                        import_result.append((query_object.query_name, 'Query updated'))
+                        print(f"Field {query_object.query_name} Query updated")
+                except Exception as e:
+                    import_result.append(f"Query {query_object.query_name} creation error: {e}")
+                    print(f"Query {query_object.query_name} creation error: {e}")
+
                 field_source, created = Source.objects.get_or_create(
                     source_union_list=source_list,
                     query_name=query_object,
@@ -56,51 +61,33 @@ def process_field_list(field_data):
             # field_source = None
             if not field_data['field_alias']:
                 try:
-                    field_source = Source.objects.get(source_union_list=source_list)
+                    field_source = Source.objects.get(
+                        source_union_list=source_list
+                    )
                 except ObjectDoesNotExist:
                     field_source = None
                 except MultipleObjectsReturned:
                     field_source = Source.objects.filter(source_union_list=source_list).first()
+                except Exception as e:
+                    import_result.append(f"Getting Source {source_list} error: {e}")
+                    print(f"Getting Source {source_list} error: {e}")
             else:
                 field_source = None
 
         if field_data['field_alias']:
-            field, created = Field.objects.update_or_create(
-                field_list=field_list,
-                source_list=source_list,
-                field_alias=field_data['field_alias'] if field_data['field_alias'] else field_source,
-                field_source=field_source,
-                defaults={
-                    'field_list': field_list,
-                    'source_list': source_list,
-                    'field_alias': field_data['field_alias'],
-                    'field_source_type': field_data['field_source_type'],
-                    # 'field_source': field_source,
-                    'field_name': field_data['field_name'],
-                    'field_value': field_data['field_value'],
-                    'field_function': field_data['field_function'],
-                    'function_field_list': field_data['function_field_list'],
-                    'field_query_body': field_data['field_query_body'],
-                    'field_description': field_data['field_description']
-                }
-            )
-        else:
-            processed_field_name = field_data['field_alias'] if field_data['field_alias'] else field_data[
-                'function_field_list']
-            if field_data['field_name']:
+            try:
                 field, created = Field.objects.update_or_create(
                     field_list=field_list,
                     source_list=source_list,
-                    field_name=field_data['field_name'],  # if field_data['field_name'] else processed_field_name,
+                    field_alias=field_data['field_alias'] if field_data['field_alias'] else field_source,
                     field_source=field_source,
-                    # field_source_type=field_data['field_source_type'],
                     defaults={
                         'field_list': field_list,
                         'source_list': source_list,
                         'field_alias': field_data['field_alias'],
                         'field_source_type': field_data['field_source_type'],
                         # 'field_source': field_source,
-                        'field_name': field_data['field_name'] if field_data['field_name'] else processed_field_name,
+                        'field_name': field_data['field_name'],
                         'field_value': field_data['field_value'],
                         'field_function': field_data['field_function'],
                         'function_field_list': field_data['function_field_list'],
@@ -108,27 +95,62 @@ def process_field_list(field_data):
                         'field_description': field_data['field_description']
                     }
                 )
+            except Exception as e:
+                import_result.append(f"Field alias {field_data['field_alias']} create or update error: {e}")
+                print(f"Field alias {field_data['field_alias']} create or update error: {e}")
+        else:
+            processed_field_name = field_data['field_alias'] if field_data['field_alias'] else field_data[
+                'function_field_list']
+            if field_data['field_name']:
+                try:
+                    field, created = Field.objects.update_or_create(
+                        field_list=field_list,
+                        source_list=source_list,
+                        field_name=field_data['field_name'],  # if field_data['field_name'] else processed_field_name,
+                        field_source=field_source,
+                        # field_source_type=field_data['field_source_type'],
+                        defaults={
+                            'field_list': field_list,
+                            'source_list': source_list,
+                            'field_alias': field_data['field_alias'],
+                            'field_source_type': field_data['field_source_type'],
+                            # 'field_source': field_source,
+                            'field_name': field_data['field_name'] if field_data['field_name'] else processed_field_name,
+                            'field_value': field_data['field_value'],
+                            'field_function': field_data['field_function'],
+                            'function_field_list': field_data['function_field_list'],
+                            'field_query_body': field_data['field_query_body'],
+                            'field_description': field_data['field_description']
+                        }
+                    )
+                except Exception as e:
+                    import_result.append(f"Field {processed_field_name} create or update error: {e}")
+                    print(f"Field {processed_field_name} create or update error: {e}")
             else:
-                field, created = Field.objects.update_or_create(
-                    field_list=field_list,
-                    source_list=source_list,
-                    field_alias=field_data['field_alias'] if field_data['field_alias'] else processed_field_name,
-                    field_source=field_source,
-                    # field_source_type=field_data['field_source_type'],
-                    defaults={
-                        'field_list': field_list,
-                        'source_list': source_list,
-                        # 'field_alias': field_data['field_alias'],
-                        'field_source_type': field_data['field_source_type'],
-                        # 'field_source': field_source,
-                        'field_name': field_data['field_name'] if field_data['field_name'] else processed_field_name,
-                        'field_value': field_data['field_value'],
-                        'field_function': field_data['field_function'],
-                        'function_field_list': field_data['function_field_list'],
-                        'field_query_body': field_data['field_query_body'],
-                        'field_description': field_data['field_description']
-                    }
-                )
+                try:
+                    field, created = Field.objects.update_or_create(
+                        field_list=field_list,
+                        source_list=source_list,
+                        field_alias=field_data['field_alias'] if field_data['field_alias'] else processed_field_name,
+                        field_source=field_source,
+                        # field_source_type=field_data['field_source_type'],
+                        defaults={
+                            'field_list': field_list,
+                            'source_list': source_list,
+                            # 'field_alias': field_data['field_alias'],
+                            'field_source_type': field_data['field_source_type'],
+                            # 'field_source': field_source,
+                            'field_name': field_data['field_name'] if field_data['field_name'] else processed_field_name,
+                            'field_value': field_data['field_value'],
+                            'field_function': field_data['field_function'],
+                            'function_field_list': field_data['function_field_list'],
+                            'field_query_body': field_data['field_query_body'],
+                            'field_description': field_data['field_description']
+                        }
+                    )
+                except Exception as e:
+                    import_result.append(f"Field {processed_field_name} create or update error: {e}")
+                    print(f"Field {processed_field_name} create or update error: {e}")
         processed_field_name = field_data['field_alias'] if field_data['field_alias'] else field_data['field_name']
         if not field_data['field_alias'] and not field_data['field_name']:
             processed_field_name = field_data['function_field_list']
@@ -139,8 +161,8 @@ def process_field_list(field_data):
             import_result.append((processed_field_name, 'Field updated'))
             print(f"Field {processed_field_name} Field updated")
     except Exception as e:
-        import_result.append(f"{processed_field_name}: {e}")
-        print(f"Error inserting data: {e}")
+        import_result.append(f"Field {processed_field_name} create or update error: {e}")
+        print(f"Field {processed_field_name} create or update error: {e}")
 
     return import_result
 
@@ -162,16 +184,25 @@ def process_source(source_data):
             source_system = None
             source_scheme = None
             # query_body = source_data['query_body']
-            union_type = UnionType.objects.get(union_type=source_data['union_type'])
-            query_name, created = Query.objects.get_or_create(
-                query_name=source_data['source_name']
-            )
-            if created:
-                import_result.append((source_data['source_name'], 'Query created'))
-                print(f"Query {query_name.query_name} created")
-            else:
-                import_result.append((source_data['source_name'], 'Query already exist'))
-                print(f"Query {query_name.query_name} already exist")
+            try:
+                union_type = UnionType.objects.get(union_type=source_data['union_type'])
+            except Exception as e:
+                import_result.append(f"UnionType {source_data['union_type']} getting error: {e}")
+                print(f"UnionType {source_data['union_type']} getting error: {e}")
+
+            try:
+                query_name, created = Query.objects.get_or_create(
+                    query_name=source_data['source_name']
+                )
+                if created:
+                    import_result.append((source_data['source_name'], 'Query created'))
+                    print(f"Query {query_name.query_name} created")
+                else:
+                    import_result.append((source_data['source_name'], 'Query already exist'))
+                    print(f"Query {query_name.query_name} already exist")
+            except Exception as e:
+                import_result.append(f"Query {source_data['source_name']} creation error: {e}")
+                print(f"Query {source_data['source_name']} creation error: {e}")
 
         elif source_data['source_type'] == 'data_source':
             source_list = SourceList.objects.get(source_list=source_data['source_name'])
@@ -243,7 +274,7 @@ def create_report(query_name, report_name):
     try:
         report = Report.objects.get(report_name=report_name)
         if report:
-            current_query = report.report_query.query_name
+            # current_query = report.report_query.query_name
             current_version = report.version
             # current_description = report.description
             current_change_description = report.change_description
@@ -271,6 +302,7 @@ def create_report(query_name, report_name):
         try:
             report = Report.objects.create(report_name=report_name,
                                            report_query=query_name,
+                                           version="1.0",
                                            report_description=query_name.query_description,
                                            change_description=f'{now().strftime("%Y-%m-%d %H:%M:%S")}'
                                                               f'\nInitial version'
@@ -286,6 +318,9 @@ def create_report(query_name, report_name):
             return False, import_result
     except Report.MultipleObjectsReturned:
         import_result.append(f"Report {report_name} did not created. Error: Multiple reports found!")
+        return False, import_result
+    except Exception as e:
+        import_result.append(f"Report {report_name} did not created. Error: {e}")
         return False, import_result
 
 
@@ -339,8 +374,8 @@ def process_query(query_data, parent_query=None, query_json=None):
             import_result.append((query_data['query_name'], 'Query updated'))
             print(f"Query {query_name.query_name} Query updated")
     except Exception as e:
-        import_result.append(f"{query_data['query_name']}: {e}")
-        print(f"Error inserting data: {e}")
+        import_result.append(f"Query {query_data['query_name']} creation error: {e}")
+        print(f"Query {query_data['query_name']} creation error: {e}")
 
     # return import_result
 
@@ -370,7 +405,10 @@ def process_query(query_data, parent_query=None, query_json=None):
 
     # Handling nested queries
     for nested_query in query_data.get("nested", []):
-        result = process_query(nested_query, parent_query='query_name_')
+        if nested_query:
+            result = process_query(nested_query, parent_query='query_name_')
+        else:
+            result = ("No nested query data found",)
         import_result.append(result)
         print(result)
 
@@ -390,7 +428,7 @@ def nested_queryies_load(nested_queries):
             # query_json = None
         return True, f"Imported successfully:<br>{query_import_result}"
     except Exception as e:
-        return False, f"error: {str(e)}"
+        return False, f"Nested query load error: {str(e)}"
 
 
 if __name__ == "__main__":

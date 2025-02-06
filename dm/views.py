@@ -417,12 +417,11 @@ def linearization(source_type, source_name, fields2content):
         # f_fields = []
         for field in fields:
             field_name = {}
-            # field_name["content"] = f"<a href=\"/storage/field/{field.id}/\">{field.field_alias}</a>"
-            # field_name["content"] = f"<a href=\"/storage/field/{field.id}/ \"target=\"_blank\">{field}</a>"
-            field_name["content"] = f"<a href=\"/storage/field/?id={field.id} \"target=\"_blank\">{field}</a>"
+            field_display_name = f"{field.field_source}.{field}" if field.field_source else field
+            # field_name["content"] = f"<a href=\"/storage/field/?id={field.id} \"target=\"_blank\">{field}</a>"
+            field_name["content"] = f"<a href=\"/storage/field/?id={field.id} \"target=\"_blank\">{field_display_name}</a>"
             if field.field_source_type in ('data_source', 'tbd'):
                 None
-                # field_name["children"] = [{"content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/\">{field.field_alias}</a>"}]
             elif field.field_source_type == 'function':
                 # field_name["content"] = field.field_function
                 cleaned_string = field.function_field_list.replace("\n", "").replace("\r", "").replace(" ", "")
@@ -431,9 +430,9 @@ def linearization(source_type, source_name, fields2content):
                 for f in ff_list:
                     try:
                         ff_field = Field.objects.get(field_list=field.field_list, field_name=f)
-                        # ff_fields.append({"content": f"<a href=\"/storage/field/{ff_field.id}/\">{ff_field.field_alias}</a>"})
+                        field_display_name = f"{ff_field.field_source}.{ff_field}" if ff_field.field_source else ff_field
                         ff_fields.append(
-                            {"content": f"<a href=\"/storage/field/{ff_field.id}/ \"target=\"_blank\">{ff_field}</a>"})
+                            {"content": f"<a href=\"/storage/field/{ff_field.id}/ \"target=\"_blank\">{field_display_name}</a>"})
                     except Field.DoesNotExist:
                         ff_fields.append({"content": f})
                 # for ff in ff_list:
@@ -446,8 +445,6 @@ def linearization(source_type, source_name, fields2content):
             elif field.field_source_type == 'value':
                 # field_name["content"] = field.field_value
                 field_name["children"] = [{"content": field.field_value}]
-            # field_name["content"] = f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/\">{field.field_alias}</a>"
-            # field_name["content"] = f"<a href=\"/storage/field/{field.id}/\">{field.field_alias}</a>"
             if field.field_alias or field.field_name:
                 f_fields.append(field_name)
         for source in sources:
@@ -601,7 +598,8 @@ def field_diagram(request, source_id, field_id):
     field = Field.objects.get(id=field_id)
     # logging.debug(f"Start {field.field_alias}/{field.field_name}")
     linear, fn_source = field_linearization(source, field)
-    linear_m = {"content": f"<a href=\"/storage/field/{field.id}/ \"target=\"_blank\">{field}</a>",  # str(field),
+    field_display_name = f"{field.field_source}.{field}" if field.field_source else field
+    linear_m = {"content": f"<a href=\"/storage/field/{field.id}/ \"target=\"_blank\">{field_display_name}</a>",  # str(field),
                 "children": [linear]}
     context = {"model": linear_m}
     # logging.debug(f"End: {fn_source}")
@@ -637,9 +635,10 @@ def field_linearization(source, field):
             fn_source = {"id": field.id, "field": field.field_name, "field_list": str(field.field_list),
                          "source_type": field.source_type, "value": field.field_value}
             # logging.debug(f"rw = 614: {fn_source}")
+            field_display_name = f"{field.field_source}.{field}" if field.field_source else field
             return {
                        # "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>",
-                       "content": f"<a href=\"/storage/field/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>",
+                       "content": f"<a href=\"/storage/field/{field.id}/ \"target=\"_blank\">{field_display_name}</a>",
                        "children": [
                            {
                                "content": brown_rect + field.field_value
@@ -647,9 +646,10 @@ def field_linearization(source, field):
                        ]
                    }, "value"
         case 'tbd':
+            field_display_name = f"{field.field_source}.{field}" if field.field_source else field
             return {
                 # "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>",
-                "content": f"<a href=\"/storage/field/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>",
+                "content": f"<a href=\"/storage/field/{field.id}/ \"target=\"_blank\">{field_display_name}</a>",
                 "children": [
                     {
                         "content": 'TBD'
@@ -697,12 +697,13 @@ def field_linearization(source, field):
     elif field.field_source_type == 'table':  # and source.source_alias == field.field_source.source_alias:
         fn_source = {"field_id": field.id, "field": field.field_name, "field_list": str(field.field_list), "source_type": field.field_source_type, "table": field.field_source}
         # logging.debug(f"rw = 672: {fn_source}")
+        field_display_name = f"{field.field_source}.{field}" if field.field_source else field
         return {
             "content": source.source_type,
             "children": [
                 {
                     # "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>"
-                    "content": f"<a href=\"/storage/field/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>"
+                    "content": f"<a href=\"/storage/field/{field.id}/ \"target=\"_blank\">{field_display_name}</a>"
                 },
                 {
                     "content": source.table_name
@@ -774,12 +775,13 @@ def field_linearization(source, field):
         if field.field_name in fields_names:
             data_source_hyperlink = f"<a href=\"/dm/sources/{str(source.id)}/{source.source_type}/ \"target=\"_blank\">{str(source.source_alias)}</a>"
             content = data_source_hyperlink
+            field_display_name = f"{field.field_source}.{field}" if field.field_source else field
             return {
                        "content": source.source_type,
                        "children": [
                            {
                                # "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>"
-                               "content": f"<a href=\"/storage/field/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>"
+                               "content": f"<a href=\"/storage/field/{field.id}/ \"target=\"_blank\">{field_display_name}</a>"
                            },
                            {
                                "content": content,
@@ -794,12 +796,13 @@ def field_linearization(source, field):
     elif source != "None" and source.source_type == 'table':
         if field.field_source.source_alias == source.source_alias:
             content = yellow_rect + str(source.table_name)
+            field_display_name = f"{field.field_source}.{field}" if field.field_source else field
             return {
                        "content": source.source_type,
                        "children": [
                            {
-                               # "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>"
-                               "content": f"<a href=\"/storage/field/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>"
+                               # "content": f"<a href=\"/storage/field/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>"
+                               "content": f"<a href=\"/storage/field/{field.id}/ \"target=\"_blank\">{field_display_name}</a>"
                            },
                            {
                                "content": content,

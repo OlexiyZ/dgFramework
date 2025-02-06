@@ -360,15 +360,6 @@ def import_csv(request):
                     source_union_list=source_union_list,
                     source_alias=row['source_alias'],
                     source_type=row['source_type'],
-                    # query_name=query_name,
-                    # source_list=source_list,
-                    # table_name=table_name,
-                    # source_system=row['source_system'],
-                    # source_scheme=row['source_scheme'],
-                    # union_type=row['union_type'],
-                    # union_condition=row['union_condition'],
-                    # source_description=row['source_description'],
-
                     defaults={
                         # 'source_union_list': source_union_list,
                         # 'source_alias': row['source_alias'],
@@ -548,7 +539,8 @@ def parse_sql_to_json(request):
             # Отримуємо вміст SQL із запиту
             body = json.loads(request.body)
             sql_content = body.get('sql', '')
-            report_name = body.get('filename', '')
+            # report_name = body.get('filename', '')
+            report_name = body.get('fileNameWithoutExt', '')
 
             # Простий приклад парсингу SQL у JSON
             # У реальних випадках тут можна викликати складний парсер SQL
