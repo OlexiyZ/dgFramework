@@ -23,8 +23,8 @@ WHERE
 # query_counter = 0  # Счетчик для генерации уникальных имен запросов
 # query_description = ""
 report_id = ""
-with_names = {}
-main_query = ""
+with_names = {}  # dict of WITH datasource names and positions
+main_query = {}  # report main query name and position
 
 
 def query_cleaning(sql_text):
@@ -66,28 +66,6 @@ def extract_query_description(sql_text):
     return sql_text, query_description
 
 
-def define_query_conditions_1(param):
-    """
-    Defines query conditions based on provided parameters.
-    """
-    query_conditions = None
-    open_parentheses = 0
-    parentheses_match = list(re.finditer(r"\(|\)", param.strip(), re.IGNORECASE))
-    if parentheses_match:
-        for match in parentheses_match:
-            if match.group() == "(":
-                open_parentheses += 1
-            elif match.group() == ")" and open_parentheses > 0:
-                open_parentheses -= 1
-            else:
-                query_conditions = param[:match.start()+1].strip()
-                return query_conditions
-    else:
-        query_conditions = param.strip()
-
-    return query_conditions
-
-
 def define_query_conditions(condition, position):
     """
     Defines query conditions based on provided parameters.
@@ -114,37 +92,6 @@ def define_query_conditions(condition, position):
         query_conditions = condition.strip()
 
     return query_conditions, position + len(condition)
-
-
-def extract_with_as_1(sql):
-    """
-    Витягує element1 та element2 з конструкції "WITH element1 AS (element2)",
-    враховуючи вкладені дужки.
-    """
-    pattern = re.compile(r"\bWITH\s+(\w+)\s+AS\s+\((.+)\)", re.IGNORECASE | re.DOTALL)
-
-    match = pattern.search(sql)
-    if not match:
-        return None, None
-
-    element1 = match.group(1)
-    element2 = match.group(2)
-
-    # Виділення element2 з урахуванням вкладених дужок
-    open_brackets = 1
-    element2_final = ""
-    for i, char in enumerate(element2):
-        if char == "(":
-            open_brackets += 1
-        elif char == ")":
-            open_brackets -= 1
-
-        element2_final += char
-
-        if open_brackets == 0:
-            break  # Завершили зчитування element2
-
-    return element1, element2_final.strip()
 
 
 def extract_with_as(sql):
@@ -671,7 +618,7 @@ def extracted_sources_definition(source_definitions, source_list_name):
 
                 if table in with_names:
                     source_type = "query"
-                    source_position = with_names[table]
+                    source_position = with_names[table][0]
                     source_name = f"Q_{report_id}_{source_position}"
                 else:
                     source_type = "table"
@@ -694,6 +641,33 @@ def extracted_sources_definition(source_definitions, source_list_name):
             # else:
             #     # Если алиас не найден
             #     sources.append({"table": source, "alias": None})
+    return sources
+
+
+def define_with_sources(main_query_position):
+    global main_query, report_id, with_names
+    sources = []
+
+    for with_source in with_names:
+        alias = with_source
+        with_source_position = with_names[with_source][0]
+        with_source_body = with_names[with_source][1]
+        sources.append(
+            {
+                "source_union_list_name": f"DS_{report_id}_{main_query_position}",
+                "source_alias": alias.strip() if alias else None,
+                "source_type": "query",
+                "source_name": f"Q_{report_id}_{with_source_position}",
+                "source_position": with_source_position,
+                "source_scheme": None,
+                "source_system": None,
+                "union_type": "COMA",
+                "union_condition": None,
+                "source_description": None,
+                "source_query_body": with_source_body,
+            }
+        )
+
     return sources
 
 
@@ -738,14 +712,18 @@ def find_select_from_where(sql, unique_id, report_name):
                 stack.append(current_query)
             # element_Alias, FROM, FROM_end = extract_with_as(sql[position:])
             element_Alias, FROM, FROM_end = extract_with_as(sql)
-            with_names = {element_Alias: position}
+            query_body = sql[FROM:FROM_end]
+            with_names = {element_Alias: [position, query_body]}
+            select_end_position = position_end - 2
+            from_position = position_end - 1
+            from_end_position = position_end - 1
             current_query = {
                 "report_name": None,
                 "query_name": f"Q_{report_id}_{position}",
                 "SELECT": position,
-                "SELECT_end": position_end - 2,
-                "FROM": position_end - 1,
-                "FROM_end": position_end - 1,
+                "SELECT_end": select_end_position,
+                "FROM": from_position,
+                "FROM_end": from_end_position,
                 "WHERE": None,
                 "WHERE_end": None,
                 "query_end": FROM_end,
@@ -776,11 +754,11 @@ def find_select_from_where(sql, unique_id, report_name):
                         "source_union_list_name": f"DS_{report_id}_{position}",
                         "source_alias": None,
                         "source_type": "query",
-                        "source_name": f"Q_{report_id}_{position_end}",
-                        "source_position": position_end,
+                        "source_name": f"Q_{report_id}_{from_end_position}",
+                        "source_position": from_end_position,
                         "source_scheme": None,
                         "source_system": None,
-                        "union_type": None,
+                        "union_type": "MAIN",
                         "union_condition": None,
                         "source_description": None,
                         "source_query_body": None,
@@ -790,7 +768,8 @@ def find_select_from_where(sql, unique_id, report_name):
             }
             query_description = None
             with_main_query_position = current_query["query_end"] + 2
-            main_query = f"Q_{report_id}_{with_main_query_position}"
+            main_query["name"] = f"Q_{report_id}_{with_main_query_position}"
+            main_query["position"] = with_main_query_position
             # report_name = None
 
         elif keyword in ["SELECT", " SELECT", " SELECT "]:  # or re.sub(r"[\s]+", "", keyword) == "(SELECT":
@@ -798,7 +777,7 @@ def find_select_from_where(sql, unique_id, report_name):
             if current_query:
                 stack.append(current_query)
             query_name = f"Q_{report_id}_{position}"
-            query_report_name = report_name if query_name == main_query else None
+            query_report_name = report_name if query_name == main_query["name"] else None
             # query_counter += 1
             current_query = {
                 # "report_name": report_name if report_name else None,
@@ -839,9 +818,13 @@ def find_select_from_where(sql, unique_id, report_name):
 
                 # Извлечение источников
                 from_text, query_end = extract_from(sql, position)
-
                 extracted_sources = parse_sql_sources(sql, position)
                 sources = extracted_sources_definition(extracted_sources, source_list_name)
+
+                if current_query["query_name"] == main_query["name"] and with_names:
+                    with_sources = define_with_sources(main_query["position"])
+                    sources.extend(with_sources)
+                    with_names = {}
 
                 current_query["query_end"] = query_end if query_end else None
                 current_query["query_body"] = sql[current_query["SELECT"]:query_end].strip() if query_end else None
@@ -852,7 +835,6 @@ def find_select_from_where(sql, unique_id, report_name):
                 current_query["WHERE"] = position
                 current_query["WHERE_end"] = position_end
                 query_conditions, query_end = define_query_conditions(sql[position_end:], position_end)
-                # query_conditions = define_query_conditions_1(sql[position_end:])
                 current_query["query_conditions"] = query_conditions if query_conditions else None
                 current_query["query_end"] = query_end if query_end else None
                 current_query["query_body"] = sql[current_query["SELECT"]:query_end].strip() if query_end else None
@@ -864,7 +846,7 @@ def find_select_from_where(sql, unique_id, report_name):
                 stack.append(current_query)
             # query_counter += 1
             query_name = f"Q_{report_id}_{position}"
-            query_report_name = report_name if query_name == main_query else None
+            query_report_name = report_name if query_name == main_query["name"] else None
             select_position = position
             current_query = {
                 # "report_name": report_name if report_name else None,
@@ -1266,7 +1248,7 @@ def extract_columns(select_text, select_position, field_list_name, source_list_n
             return {
                 "field_list": field_list_name,
                 "source_list_name": source_list_name,
-                "field_alias": alias.strip() if alias else None,
+                "field_alias": alias.strip() if alias else column_name,
                 "field_source_type": "value",
                 "data_source_type": None,
                 "field_source": source_alias.strip() if source_alias else None,
