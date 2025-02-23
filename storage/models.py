@@ -165,6 +165,23 @@ class Report(models.Model):
     change_description = models.TextField(blank=True, null=True)
     change_date = models.TextField(blank=True, null=True)
     changed_by = models.TextField(blank=True, null=True)
+    report_script = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return self.report_name
+
+
+class ReportVersion(models.Model):
+    report = models.ForeignKey(Report, on_delete=models.CASCADE)
+    version = models.CharField(max_length=10)
+    report_query = models.ForeignKey(Query, on_delete=models.SET_NULL, blank=True, null=True)
+    version_description = models.TextField(blank=True, null=True)
+    script = models.TextField(blank=True, null=True)
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(fields=['report', 'version'], name='field_constraint')
+        ]
+
+    def __str__(self):
+        return self.report.report_name + " v." + self.version

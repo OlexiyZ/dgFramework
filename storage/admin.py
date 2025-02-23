@@ -8,6 +8,7 @@ from django.utils.translation import gettext_lazy as _
 from django.forms import Textarea
 from django.db.models import QuerySet
 import requests
+from django.template.defaultfilters import truncatechars
 
 
 class DGFAdminSite(AdminSite):
@@ -24,11 +25,11 @@ dgf_admin = DGFAdminSite(name='dgf_admin')
 
 class RulesInline(admin.TabularInline):
     model = Rule
-    extra = 1
+    extra = 0
     list_display = ('name', 'rule_link', 'value', 'description', 'metadata')
     readonly_fields = ('name', 'rule_link', 'value', 'description', 'metadata')
     formfield_overrides = {
-        models.TextField: {'widget': Textarea(attrs={'rows': 3})},
+        models.TextField: {'widget': Textarea(attrs={'rows': 5, 'cols': 100})},
     }
 
     def rule_link(self, rule: Rule):
@@ -42,7 +43,7 @@ class MetadataAdmin(admin.ModelAdmin):
     ordering = ['name']
     inlines = (RulesInline,)
     formfield_overrides = {
-        models.TextField: {'widget': Textarea(attrs={'rows': 3})},
+        models.TextField: {'widget': Textarea(attrs={'rows': 5, 'cols': 100})},
     }
 
     def metadata_rules(self, metadata: Metadata):
@@ -67,7 +68,7 @@ class RoleAdmin(admin.ModelAdmin):
     # inlines = (RuleInline,)
     actions = ['send_role']
     formfield_overrides = {
-        models.TextField: {'widget': Textarea(attrs={'rows': 3})},
+        models.TextField: {'widget': Textarea(attrs={'rows': 5, 'cols': 100})},
     }
 
     def rule_list(self, obj):
@@ -118,7 +119,7 @@ class RuleAdmin(admin.ModelAdmin):
     list_filter = ('metadata',)
     search_fields = ('name',)
     formfield_overrides = {
-        models.TextField: {'widget': Textarea(attrs={'rows': 3})},
+        models.TextField: {'widget': Textarea(attrs={'rows': 5, 'cols': 100})},
     }
 
 
@@ -126,11 +127,11 @@ class FieldAdmin(admin.ModelAdmin):
     list_display = (
         'field_alias', 'field_erd', 'field_source_type', 'field_source_url', 'field_name', 'metadata', 'field_value',
         'field_function', 'function_field_list', 'field_list_url', 'source_list_url', 'field_description')
-    list_filter = ('metadata', 'field_list', 'source_list', 'id')
+    list_filter = ('metadata', 'field_list', 'source_list')
     search_fields = ('field_alias', 'field_name', 'field_description')
     list_editable = ['metadata']
     formfield_overrides = {
-        models.TextField: {'widget': Textarea(attrs={'rows': 3})},
+        models.TextField: {'widget': Textarea(attrs={'rows': 3, 'cols': 100})},
     }
 
     def field_erd(self, field: Field):
@@ -158,14 +159,17 @@ class FieldAdmin(admin.ModelAdmin):
 
 class FieldsInline(admin.TabularInline):
     model = Field
-    extra = 1
-    list_display = [
-        'field_link', 'field_erd', 'field_source_type', 'field_source', 'field_name', 'metadata', 'field_value',
-        'field_function', 'function_field_list', 'field_list', 'source_list', 'field_description']
+    extra = 0
+    # list_display = [
+    #     'field_link', 'field_erd', 'field_source_type', 'field_source', 'field_name', 'metadata', 'field_value',
+    #     'field_function', 'function_field_list', 'field_list', 'source_list', 'field_description']
     readonly_fields = [
         'field_link', 'field_alias', 'field_erd', 'field_source_type', 'field_source', 'field_name', 'metadata',
         'field_value',
         'field_function', 'function_field_list', 'field_list', 'source_list', 'field_description']
+    formfield_overrides = {
+        models.TextField: {'widget': Textarea(attrs={'rows': 3, 'cols': 50})},
+    }
 
     def field_erd(self, field: Field):
         return format_html(
@@ -196,15 +200,16 @@ class FieldListAdmin(admin.ModelAdmin):
 
 class SourcesInline(admin.TabularInline):
     model = Source
-    extra = 1
+    extra = 0
     fk_name = 'source_union_list'
     list_display = (
         'source_alias', 'source_union_list_url', 'source_type', 'query_name', 'source_list_url', 'table_name', 'source_system',
         'source_scheme', 'union_type', 'union_condition', 'source_description')
-    readonly_fields = (
-        'source_alias', 'source_union_list_url', 'source_type', 'query_name', 'source_list', 'table_name',
-        'source_system',
-        'source_scheme', 'union_type', 'union_condition', 'source_description')
+    readonly_fields = [field.name for field in Source._meta.fields]
+    # readonly_fields = (
+    #     'source_alias', 'source_union_list_url', 'source_type', 'query_name', 'source_list', 'table_name',
+    #     'source_system',
+    #     'source_scheme', 'union_type', 'union_condition', 'source_description')
     # list_filter = ('source_union_list', 'source_type', 'table_name', 'source_system', 'source_scheme')
     # search_fields = ('source_alias', 'source_description')
 
@@ -246,11 +251,11 @@ class QueryAdmin(admin.ModelAdmin):
     # fields = (
     #     'query_name', 'erd', 'field_list_url', 'source_list_url', 'query_conditions', 'query_alias', 'query_description')
     list_display = (
-        'query_name', 'erd', 'field_list_url', 'source_list_url', 'query_conditions', 'query_alias', 'query_description')
+        'query_name', 'erd', 'field_list_url', 'source_list_url', 'query_conditions_short', 'query_alias', 'query_description_short')
     list_filter = ('reports__report_name',)
     search_fields = ('query_name', 'query_alias', 'query_description')
     formfield_overrides = {
-        models.TextField: {'widget': Textarea(attrs={'rows': 3})},
+        models.TextField: {'widget': Textarea(attrs={'rows': 5, 'cols': 100})},
     }
 
     def erd(self, query: Query):
@@ -273,17 +278,41 @@ class QueryAdmin(admin.ModelAdmin):
         else:
             return "-"
 
+    def query_conditions_short(self, obj: Query):
+        return format_html("<span title='{}'>{}</span>", obj.query_conditions, truncatechars(obj.query_conditions, 50))
+
+    def query_description_short(self, obj: Query):
+        return format_html("<span title='{}'>{}</span>", obj.query_description, truncatechars(obj.query_description, 50))
+
+
     field_list_url.short_description = "FIELD LIST"
     source_list_url.short_description = "SOURCE LIST"
+    query_conditions_short.short_description = "QUERY CONDITION"
+
+
+class ReportVersionInline(admin.TabularInline):
+    model = ReportVersion
+    extra = 0
+    fields = ['version', 'report_query']
+    readonly_fields = [field.name for field in ReportVersion._meta.fields]
+
 
 class ReportAdmin(admin.ModelAdmin):
     list_display = (
-        'report_name', 'erd', 'report_query_url', 'report_description', 'report_url', 'version',
-        'change_description', 'change_date', 'changed_by')
+        'report_name', 'erd', 'report_query_url', 'report_description_short', 'report_url', 'ver',
+        'change_description_short', 'change_date', 'changed_by')
     search_fields = ('report_name', 'report_description', 'report_url', 'change_description')
     formfield_overrides = {
-        models.TextField: {'widget': Textarea(attrs={'rows': 3})},
+        models.TextField: {'widget': Textarea(attrs={'rows': 3, 'cols': 100})},
     }
+    inlines = (ReportVersionInline,)
+
+    def ver(self, report: Report):
+        if report.version != None:
+            return format_html(
+                f"<a href=\"/admin/storage/reportversion/?report__id__exact={str(report.id)} \"target=\"_blank\">{report.version}</a>")
+        else:
+            return "-"
 
     def report_query_url(self, report: Report):
         if report.report_query != None:
@@ -299,6 +328,33 @@ class ReportAdmin(admin.ModelAdmin):
         else:
             return "-"
 
+    def change_description_short(self, obj: Report):
+        return format_html("<span title='{}'>{}</span>", obj.change_description, truncatechars(obj.change_description, 50))
+    change_description_short.short_description = "CHANGE DESCRIPTION"
+
+    def report_description_short(self, obj: Report):
+        return format_html("<span title='{}'>{}</span>", obj.report_description, truncatechars(obj.report_description, 50))
+    report_description_short.short_description = "REPORT DESCRIPTION"
+
+
+class ReportVersionAdmin(admin.ModelAdmin):
+    list_display = (
+        'report', 'version', 'report_query', 'version_description_short', 'script_short')
+    search_fields = ('report', 'report_query')
+    list_filter = ['report']
+    formfield_overrides = {
+        models.TextField: {'widget': Textarea(attrs={'rows': 5, 'cols': 100})},
+    }
+
+    def version_description_short(self, obj: ReportVersion):
+        return format_html("<span title='{}'>{}</span>", obj.version_description, truncatechars(obj.version_description, 50))
+
+    version_description_short.short_description = "VERSION DESCRIPTION"
+
+    def script_short(self, obj: ReportVersion):
+        return format_html("<span title='{}'>{}</span>", obj.script, truncatechars(obj.script, 50))
+
+    script_short.short_description = "SCRIPT"
 
 class SourceAdmin(admin.ModelAdmin):
     list_display = (
@@ -307,7 +363,7 @@ class SourceAdmin(admin.ModelAdmin):
     list_filter = ('source_union_list', 'source_type', 'table_name', 'source_system', 'source_scheme')
     search_fields = ('source_alias', 'source_description')
     formfield_overrides = {
-        models.TextField: {'widget': Textarea(attrs={'rows': 3})},
+        models.TextField: {'widget': Textarea(attrs={'rows': 5, 'cols': 100})},
     }
 
 
@@ -338,6 +394,7 @@ admin.site.register(FieldList, FieldListAdmin)
 admin.site.register(Field, FieldAdmin)
 admin.site.register(Query, QueryAdmin)
 admin.site.register(Report, ReportAdmin)
+admin.site.register(ReportVersion, ReportVersionAdmin)
 admin.site.register(Metadata, MetadataAdmin)
 admin.site.register(Role, RoleAdmin)
 admin.site.register(Rule, RuleAdmin)
@@ -348,6 +405,7 @@ dgf_admin.register(FieldList, FieldListAdmin)
 dgf_admin.register(Field, FieldAdmin)
 dgf_admin.register(Query, QueryAdmin)
 dgf_admin.register(Report, ReportAdmin)
+dgf_admin.register(ReportVersion, ReportVersionAdmin)
 dgf_admin.register(Metadata, MetadataAdmin)
 dgf_admin.register(Role, RoleAdmin)
 dgf_admin.register(Rule, RuleAdmin)

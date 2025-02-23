@@ -565,8 +565,9 @@ def upload_json(request):
         try:
             body = json.loads(request.body)
             json_content = body.get('json', '')
+            sql_content = body.get('sql', '')
 
-            result, load_message = nested_queryies_load(json_content)
+            result, load_message = nested_queryies_load(json_content, sql_content)
 
             if result:
                 load_message = load_message.replace(', [', ',<br>[')

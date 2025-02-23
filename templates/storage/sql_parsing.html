@@ -180,6 +180,7 @@
     // Завантаження JSON на сервер
     document.getElementById('uploadJSONButton').addEventListener('click', async () => {
       const jsonContent = jsonEditor.getValue();
+      const sqlContent = sqlEditor.getValue();
 
       try {
         const response = await fetch('/storage/upload_json/', {
@@ -187,7 +188,10 @@
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ json: jsonContent })
+          body: JSON.stringify({
+            json: jsonContent,
+            sql: sqlContent
+          })
         });
 
         if (!response.ok) {
