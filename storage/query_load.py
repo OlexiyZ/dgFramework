@@ -1,7 +1,7 @@
 import json
 import re
 from pathlib import Path
-from .models import Query, SourceList, Source, FieldList, Field, UnionType, SourceSystem, SourceScheme, Report
+from .models import Query, SourceList, Source, FieldList, Field, UnionType, SourceSystem, SourceScheme, Report, ReportVersion
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.utils.timezone import now
 
@@ -265,7 +265,24 @@ def process_source(source_data):
     return import_result
 
 
-def create_report(query_name, report_name):
+def create_report_version(report, query_name=None, sql_content=None):
+    import_result = []
+    try:
+        report_version = ReportVersion.objects.create(report=report,
+                                                      version=report.version,
+                                                      report_query=report.report_query,
+                                                      version_description=f'\nReport description:{query_name.query_description}',
+                                                      script=sql_content
+                                                      )
+        import_result.append(f"Report Version {report_version} created")
+    except Exception as e:
+        import_result.append(f"Report Version {report_version} did not created: {e}")
+        return False, import_result
+
+    return import_result
+
+
+def create_report(query_name, report_name, sql_content=None):
     """
     Fetch the Report with the highest version for a given report_name.
     If no such report exists, create a new one.
@@ -294,6 +311,9 @@ def create_report(query_name, report_name):
             report.save()
             import_result.append(f"Report {report_name} updated")
 
+            create_report_version_result = create_report_version(report, query_name, sql_content)
+            import_result.extend(create_report_version_result)
+
             return True, import_result
 
     except Report.DoesNotExist:
@@ -306,16 +326,25 @@ def create_report(query_name, report_name):
                                            report_description=query_name.query_description,
                                            change_description=f'{now().strftime("%Y-%m-%d %H:%M:%S")}'
                                                               f'\nInitial version'
+                                                              f'\nMain query: {query_name}'
+                                                              f'\nMain query description:'
                                                               f'\n{query_name.query_description}',
                                            change_date=now().strftime("%Y-%m-%d %H:%M:%S"),
                                            # changed_by=changed_by_user
                                            )
             if report:
                 import_result.append(f"Report {report_name} created.")
+
+                create_report_version_result = create_report_version(report, query_name, sql_content)
+                import_result.extend(create_report_version_result)
+
                 return True, import_result
         except Exception as e:
             import_result.append(f"Report {report_name} did not created: {e}")
             return False, import_result
+
+
+
     except Report.MultipleObjectsReturned:
         import_result.append(f"Report {report_name} did not created. Error: Multiple reports found!")
         return False, import_result
@@ -324,7 +353,7 @@ def create_report(query_name, report_name):
         return False, import_result
 
 
-def process_query(query_data, parent_query=None, query_json=None):
+def process_query(query_data, parent_query=None, query_json=None, sql_content=None):
     """
     Recursive function for processing queries and their nesting.
     """
@@ -361,16 +390,13 @@ def process_query(query_data, parent_query=None, query_json=None):
                 'query_json': query_json,
             }
         )
+        if query_data['report_name']:
+            report_created, creation_result = create_report(query_name, query_data['report_name'], sql_content)
+            import_result.append(creation_result)
         if created:
-            if query_data['report_name']:
-                report_created, creation_result = create_report(query_name, query_data['report_name'])
-                import_result.append(creation_result)
             import_result.append((query_data['query_name'], 'Query created'))
             print(f"Query {query_name.query_name} Query created")
         else:
-            if query_data['report_name']:
-                report_created, creation_result = create_report(query_name, query_data['report_name'])
-                import_result.append(creation_result)
             import_result.append((query_data['query_name'], 'Query updated'))
             print(f"Query {query_name.query_name} Query updated")
     except Exception as e:
@@ -416,14 +442,14 @@ def process_query(query_data, parent_query=None, query_json=None):
 
 
 # Basic processing process
-def nested_queryies_load(nested_queries):
+def nested_queryies_load(nested_queries, sql_content):
     query_import_result = []
     query_json = nested_queries
     cleaned_string = re.sub(r"\s+", " ", nested_queries).strip()
     json_data = json.loads(cleaned_string)
     try:
         for query in json_data.get("queries", []):
-            result = process_query(query, None, query_json)
+            result = process_query(query, None, query_json, sql_content)
             query_import_result.append(result)
             # query_json = None
         return True, f"Imported successfully:<br>{query_import_result}"
