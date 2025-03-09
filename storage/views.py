@@ -115,8 +115,8 @@ def sanitize_for_import(value):
     else:
         return value
 
-def load2db(self, df):
 
+def load2db(self, df):
     def __sanitize_for_sql(value):
         if isinstance(value, str):
             escaped_value = value.replace("'", "''")
@@ -241,7 +241,8 @@ def import_csv(request):
                     import_result.append((row['source_list'], 'SourceList created'))
                     print(f"Field {source_list.source_list} SourceList created")
 
-                field_list, created = FieldList.objects.get_or_create(field_list_name=row['field_list'], data_source=source_list)
+                field_list, created = FieldList.objects.get_or_create(field_list_name=row['field_list'],
+                                                                      data_source=source_list)
                 if created:
                     import_result.append((row['field_list'], 'FieldList created'))
                     print(f"Field {field_list.field_list_name} FieldList created")
@@ -450,11 +451,13 @@ def import_table_from_excel(workbook_filename, sheet_name: str = '', table_name:
     # self.display_df(df)
     return df
 
+
 def db_management(request: HttpRequest):
     context = {
         "text": "Excel Import!!!"
     }
     return render(request, 'storage/dbmanagement.html', context)
+
 
 @csrf_exempt
 def upload_db_json(request):
@@ -500,6 +503,7 @@ def upload_db_json(request):
         return JsonResponse(context)
 
     return render(request, 'storage/dbmanagement.html', {'message': 'File do not uploaded'})
+
 
 @csrf_exempt
 def download_db_json(request):
@@ -578,3 +582,19 @@ def upload_json(request):
             return JsonResponse({"error": str(e)}, status=500)
 
     return JsonResponse({"error": "Invalid request method."}, status=400)
+
+
+@csrf_exempt
+def sql_matching(request):
+    old_query = "SELECT id, name FROM users WHERE active = 1;"
+    old_version = "Query v 1.0"
+    new_query = "SELECT id, name, email FROM users WHERE active = 1 ORDER BY name;"
+    new_version = "Query v 2.0"
+
+    # return render(request, 'storage/sql_matching.html', {'query1': query1, 'query2': query2})
+    return render(request, 'storage/sql_matching.html', {
+        'old_query': old_query,
+        'new_query': new_query,
+        'old_version': old_version,
+        'new_version': new_version
+    })

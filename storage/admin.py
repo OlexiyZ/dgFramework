@@ -9,6 +9,7 @@ from django.forms import Textarea
 from django.db.models import QuerySet
 import requests
 from django.template.defaultfilters import truncatechars
+from django.shortcuts import render
 
 
 class DGFAdminSite(AdminSite):
@@ -342,6 +343,7 @@ class ReportVersionAdmin(admin.ModelAdmin):
         'report', 'version', 'report_query', 'version_description_short', 'script_short')
     search_fields = ('report', 'report_query')
     list_filter = ['report']
+    actions = ['versions_compare']
     formfield_overrides = {
         models.TextField: {'widget': Textarea(attrs={'rows': 5, 'cols': 100})},
     }
@@ -355,6 +357,30 @@ class ReportVersionAdmin(admin.ModelAdmin):
         return format_html("<span title='{}'>{}</span>", obj.script, truncatechars(obj.script, 50))
 
     script_short.short_description = "SCRIPT"
+
+    @admin.action(description='Compare versions (select only two versions)')
+    def versions_compare(self, request, queries: QuerySet):
+        # selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
+        selected = queries
+        if len(selected) != 2:
+            self.message_user(request, 'Please select exactly two versions to compare.')
+            return
+
+        new_object = selected[0]
+        old_object = selected[1]
+        # report_version_1 = ReportVersion.objects.get(id=selected[0])
+        new_query = new_object.script
+        new_version = str(new_object)
+        # report_version_2 = ReportVersion.objects.get(id=selected[1])
+        old_query = old_object.script
+        old_version = str(old_object)
+
+        return render(request, 'storage/sql_matching.html', {
+            'old_query': old_query,
+            'new_query': new_query,
+            'old_version': old_version,
+            'new_version': new_version
+        })
 
 class SourceAdmin(admin.ModelAdmin):
     list_display = (

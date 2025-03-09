@@ -13,4 +13,5 @@ urlpatterns = [
     path("sql_parsing/", sql_parsing),
     path("parse_sql_to_json/", parse_sql_to_json),
     path("upload_json/", upload_json),
+    path("sql_matching/", sql_matching),
 ]
