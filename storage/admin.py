@@ -67,7 +67,7 @@ class RoleAdmin(admin.ModelAdmin):
     filter_horizontal = ('rule',)
     ordering = ['name']
     # inlines = (RuleInline,)
-    actions = ['send_role']
+    actions = ['send_roles']
     formfield_overrides = {
         models.TextField: {'widget': Textarea(attrs={'rows': 5, 'cols': 100})},
     }
@@ -75,11 +75,23 @@ class RoleAdmin(admin.ModelAdmin):
     def rule_list(self, obj):
         return ', '.join([rule.name for rule in obj.rule.all()])
 
+
+    @admin.action(description='Test Send Role`s rules to the Proxy')
+    def send_roles_(self, request, roles: QuerySet):
+        context = {
+            'clientId': request.session.get('clientId', ''),
+            'id_token': request.session.get('id_token', ''),
+            'access_token': request.session.get('access_token', ''),
+        }
+        return render(request, 'storage/send_roles.html', context)
+
+
     @admin.action(description='Send Role`s rules to the Proxy')
-    def send_role(self, request, roles: QuerySet):
+    def send_roles(self, request, roles: QuerySet):
         url = 'http://proxy.test.url'
         count_updated = 0
         count_not_updated = 0
+        rules_to_send = []
         for role in roles:
             rules = role.rule.all()
             rules_string = ''
@@ -92,27 +104,37 @@ class RoleAdmin(admin.ModelAdmin):
                 'role': role.name,
                 'rules': rules_string
             }
-            try:
-                response = requests.post(url, json=data)
-                if response.status_code == 200:
-                    count_updated += 1
-                else:
-                    count_not_updated += 1
-            except Exception as e:
-                count_not_updated += 1
-                # print("Something went wrong:", e)
-        # count_updated = roles.update()
-        if count_updated == 0:
-            self.message_user(
-                request,
-                f"{count_updated} Role(s) have been sent to the Proxy. {count_not_updated} was not updated.",
-                messages.ERROR
-            )
-        else:
-            self.message_user(
-                request,
-                f"{count_updated} Role(s) have been sent to the Proxy. {count_not_updated} was not updated."
-            )
+            rules_to_send.append(data)
+
+        context = {
+            'clientId': request.session.get('clientId', ''),
+            'id_token': request.session.get('id_token', ''),
+            'access_token': request.session.get('access_token', ''),
+            'rules': rules_to_send
+        }
+        return render(request, 'storage/send_roles.html', context)
+
+        #     try:
+        #         response = requests.post(url, json=data)
+        #         if response.status_code == 200:
+        #             count_updated += 1
+        #         else:
+        #             count_not_updated += 1
+        #     except Exception as e:
+        #         count_not_updated += 1
+        #         # print("Something went wrong:", e)
+        # # count_updated = roles.update()
+        # if count_updated == 0:
+        #     self.message_user(
+        #         request,
+        #         f"{count_updated} Role(s) have been sent to the Proxy. {count_not_updated} was not updated.",
+        #         messages.ERROR
+        #     )
+        # else:
+        #     self.message_user(
+        #         request,
+        #         f"{count_updated} Role(s) have been sent to the Proxy. {count_not_updated} was not updated."
+        #     )
 
 
 class RuleAdmin(admin.ModelAdmin):
