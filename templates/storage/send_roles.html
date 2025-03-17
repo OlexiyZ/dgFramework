@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>Запуск звіту</title>
+    <style>
+      /* Стилі для простого модального вікна */
+      .modal {
+          display: none; /* Приховано за замовчуванням */
+          position: fixed;
+          z-index: 1;
+          left: 0;
+          top: 0;
+          width: 100%;
+          height: 100%;
+          overflow: auto;
+          background-color: rgba(0,0,0,0.4); /* Чорний фон з прозорістю */
+      }
+      .modal-content {
+          background-color: #fefefe;
+          margin: 15% auto;
+          padding: 20px;
+          border: 1px solid #888;
+          width: 80%;
+          max-width: 500px;
+          text-align: center;
+      }
+      .close-btn {
+          background-color: #4CAF50;
+          color: white;
+          padding: 10px 20px;
+          border: none;
+          cursor: pointer;
+      }
+    </style>
+</head>
+<body>
+
+<!-- Модальне вікно -->
+<div id="resultModal" class="modal">
+  <div class="modal-content">
+    <p id="resultMessage"></p>
+    <button id="closeBtn" class="close-btn">OK</button>
+  </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function(){
+        // Функція для показу модального вікна з повідомленням
+        function showModal(message) {
+            var modal = document.getElementById('resultModal');
+            document.getElementById('resultMessage').textContent = message;
+            modal.style.display = "block";
+        }
+
+        // Автоматичний POST реквест при завантаженні шаблону
+        fetch("https://reports-govern.baelab.net/rules/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                      clientId: "{{ clientId }}",
+                      id_token: "{{ id_token }}",
+                      access_token: "{{ access_token }}"
+                    })
+            // body: JSON.stringify({})
+        })
+        .then(function(response) {
+            if (response.ok) {
+                return response.json(); // Припустимо, що відповідь приходить у форматі JSON
+            } else {
+                throw new Error("Сталася помилка при виконанні запиту.");
+            }
+        })
+        .then(function(data) {
+            // Успішна відповідь
+            showModal("Запит виконано успішно.");
+        })
+        .catch(function(error) {
+            // Помилка при виконанні запиту
+            showModal("Помилка: " + error.message);
+        });
+
+        // Обробник кліку по кнопці в модальному вікні
+        document.getElementById('closeBtn').addEventListener("click", function(){
+            window.location.href = "/storage/role/";
+        });
+    });
+</script>
+</body>
+</html>
