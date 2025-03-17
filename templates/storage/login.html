@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Login with Okta</title>
+    <!-- Підключаємо Okta Auth SDK (змініть версію за потребою) -->
+<!--    <script src="https://global.oktacdn.com/okta-auth-js/5.3.1/okta-auth-js.min.js"></script>-->
+    <script src="https://global.oktacdn.com/okta-auth-js/7.5.1/okta-auth-js.min.js"></script>
+</head>
+<body>
+    <h1>Login with Okta</h1>
+    <!-- Кнопка для початку процесу логіну -->
+    <button id="login-button">Login with Okta</button>
+
+    <script>
+        // Налаштування OktaAuth – замініть {yourOktaDomain} і {yourClientId} на свої значення
+        console.log("redirectUri: ", window.location.origin + '/storage/login/')
+        const oktaAuth = new OktaAuth({
+            issuer: 'https://dev-24630760.okta.com/oauth2/default',
+            clientId: '0oanssrjqw0KXnJuH5d7',
+            redirectUri: window.location.origin + '/storage/login/'  //'http://localhost:8000/storage/login/'  // повертаємось на цю сторінку після аутентифікації
+            // redirectUri: window.location.origin + 'http://localhost:8000/storage/login/'  // повертаємось на цю сторінку після аутентифікації
+        });
+        console.log("oktaAuth :", oktaAuth);
+        // Обробка кліку по кнопці для запуску редіректу на Okta
+        document.getElementById('login-button').addEventListener('click', async function() {
+            try {
+                console.log("login-button");
+                await oktaAuth.token.getWithRedirect({
+                    responseType: ['token', 'id_token'],
+                    scopes: ['openid', 'profile', 'email']
+                });
+                console.log("login-button ended successfully");
+            } catch (err) {
+                console.error('Error during getWithRedirect: ', err);
+            }
+        });
+
+        // Функція обробки callback від Okta
+        async function handleAuthentication() {
+            console.log("handleAuthentication");
+            try {
+                // Парсинг токенів із URL (якщо вони є)
+                const tokenContainer = await oktaAuth.token.parseFromUrl();
+                console.log('Tokens: ', tokenContainer);
+
+                let accessToken, idToken;
+                if(tokenContainer.tokens.accessToken) {
+                    accessToken = tokenContainer.tokens.accessToken.accessToken;
+                }
+                if(tokenContainer.tokens.idToken) {
+                    idToken = tokenContainer.tokens.idToken.idToken;
+                }
+                if(accessToken && idToken) {
+                    // Відправляємо токени на сервер для сесійного логіну
+                    const response = await fetch('/storage/oidc-login/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            access_token: accessToken,
+                            id_token: idToken
+                        })
+                    });
+                    const result = await response.json();
+                    if(result.redirect) {
+                        window.location.href = result.redirect;
+                    } else {
+                        console.error('Login error: ', result);
+                    }
+                }
+            } catch (err) {
+                console.error('Error handling authentication: ', err);
+            }
+        }
+
+        // Якщо URL містить хеш з токенами, обробляємо callback
+        console.log('start callback');
+        // if (window.location.search) {
+        if ( window.location.search && window.location.search.indexOf("code=")>=0){
+            console.log('обробляємо callback');
+            handleAuthentication();
+        }
+    </script>
+</body>
+</html>

@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "storage",
     "dm",
     'corsheaders',
+    # 'mozilla_django_oidc',
     # "import",
 ]
 
@@ -61,6 +62,7 @@ MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
+    # 'mozilla_django_oidc.middleware.SessionRefresh',
 ]
 
 CORS_ALLOWED_ORIGINS = [
@@ -162,6 +164,32 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
+
+# AUTHENTICATION_BACKENDS = [
+#     'django.contrib.auth.backends.ModelBackend',
+#     'mozilla_django_oidc.auth.OIDCAuthenticationBackend',
+#     # 'storage.backends.MyOIDCAuthenticationBackend',
+# ]
+
+# OIDC Configuration
+# OIDC_RP_CLIENT_ID = '0oanqpsfn0yo3WI9I5d7'
+# OIDC_RP_CLIENT_ID = '0oans1us7gnfa6vcC5d7'
+# OIDC_RP_CLIENT_ID = '0oanssrjqw0KXnJuH5d7'
+# OIDC_RP_CLIENT_SECRET = '6B5rUhje-6OmVfPRvhQUGUty1DTbHCNJM2iXArkEQp10Ofj4m-mfdcqVAp6IEsgO'
+# OIDC_RP_CLIENT_SECRET = 'pCvz-c1hWbsRG9GDfE6j56beMMzcTmTAPP9XZRnn55_9bo144CN3s-84c8BSd7pJ'
+# OIDC_RP_CLIENT_SECRET = ''
+# OIDC_OP_AUTHORIZATION_ENDPOINT = 'https://dev-24630760.okta.com/oauth2/default/v1/authorize'
+# OIDC_OP_TOKEN_ENDPOINT = 'https://dev-24630760.okta.com/oauth2/default/v1/token'
+# OIDC_OP_USER_ENDPOINT = 'https://dev-24630760.okta.com/oauth2/default/v1/userinfo'
+# OIDC_OP_JWKS_ENDPOINT = 'https://dev-24630760.okta.com/oauth2/default/v1/keys'
+# OIDC_RP_SIGN_ALGO = 'RS256'
+# LOGIN_URL = '/authorization-code/callback'
+# LOGIN_URL = '/oidc/authenticate/'
+# http://localhost:8000/oidc/authenticate/
+# vTmPW3cF5Uv3p24
+
+LOGIN_URL = '/storage/login/'
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/

@@ -15,8 +15,142 @@ from .sql_parser import find_select_from_where
 from .query_load import nested_queryies_load
 import random
 import string
+# from mozilla_django_oidc.views import OIDCAuthenticationCallbackView
+from django.contrib.auth import login
+import jwt
+from jwt import PyJWKClient, ExpiredSignatureError, InvalidTokenError
+from django.contrib.auth.models import User
+from django.conf import settings
 
 wb = None
+
+
+# def validate_token_and_get_user(token):
+#     pass
+#
+#
+# def oidc_login_view(request):
+#     token = request.POST.get('token')
+#     user = validate_token_and_get_user(token)  # ваша функція валідації токена
+#     if user is None:
+#         return JsonResponse({'error': 'Invalid token'}, status=400)
+#     login(request, user)  # створюється сесія
+#     return JsonResponse({'redirect': '/admin/'})
+
+
+# Налаштування Okta
+OKTA_DOMAIN = "https://dev-24630760.okta.com"  # замініть на свій Okta domain
+CLIENT_ID = "0oanssrjqw0KXnJuH5d7"  # замініть на свій Client ID
+JWKS_URL = f"{OKTA_DOMAIN}/oauth2/default/v1/keys"  # Endpoints для отримання ключів
+
+
+def send_roles(request):
+    context = {
+        'clientId': request.session.get('clientId', ''),
+        'id_token': request.session.get('id_token', ''),
+        'access_token': request.session.get('access_token', ''),
+    }
+    return render(request, 'send_roles.html', context)
+
+
+def get_public_key():
+    """
+    Отримує публічний ключ JWKS для перевірки підпису токенів.
+    """
+    jwks_client = PyJWKClient(JWKS_URL)
+    return jwks_client
+
+
+def validate_id_token(id_token):
+    """
+    Перевіряє підпис, термін дії, issuer і аудиторію id_token.
+    """
+    try:
+        # Отримуємо список ключів Okta
+        jwks_client = get_public_key()
+
+        # Отримуємо заголовок токена для визначення ключа
+        header = jwt.get_unverified_header(id_token)
+        signing_key = jwks_client.get_signing_key(header["kid"]).key
+
+        # Декодуємо та перевіряємо токен
+        decoded = jwt.decode(
+            id_token,
+            signing_key,
+            algorithms=["RS256"],
+            audience=CLIENT_ID,  # Має відповідати Client ID
+            issuer=f"{OKTA_DOMAIN}/oauth2/default",  # Має відповідати issuer
+        )
+        return decoded  # Повертаємо декодований токен, якщо він валідний
+
+    except ExpiredSignatureError:
+        return {"error": "Token has expired"}
+    except InvalidTokenError as e:
+        return {"error": str(e)}
+
+
+def login_page(request):
+    """
+    Сторінка, де клієнт запускає аутентифікацію через Okta.
+    """
+    return render(request, 'storage/login.html')
+
+
+@csrf_exempt
+def oidc_login(request):
+    """
+    Приймає POST-запит із access_token та id_token, перевіряє підпис
+    та створює/оновлює користувача в Django.
+    """
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            id_token = data.get('id_token')
+            access_token = data.get('access_token')
+
+            if not id_token:
+                return JsonResponse({'error': 'ID Token is missing'}, status=400)
+
+            # Валідація id_token
+            decoded_token = validate_id_token(id_token)
+
+            if "error" in decoded_token:
+                return JsonResponse({'error': decoded_token["error"]}, status=400)
+
+            # Отримуємо email з токена
+            email = decoded_token.get('email', 'unknown@example.com')
+            username = email  # Використовуємо email як username
+
+            # Отримуємо або створюємо користувача
+            user, created = User.objects.get_or_create(username=username, defaults={'email': email})
+
+            if created:
+                # Робимо користувача staff, якщо потрібно (щоб він мав доступ до admin panel)
+                user.is_staff = True
+                user.save()
+
+            # Зберігаємо токени у сесії
+            request.session['clientId'] = CLIENT_ID
+            request.session['id_token'] = id_token
+            request.session['access_token'] = access_token
+            request.session.modified = True  # Повідомляємо Django, що сесію змінено
+            # request.session.save()  # Примусове збереження сесії
+            print("Session Data:", request.session.items())  # Друкуємо сесію у консоль
+
+            # Логуємо користувача у Django (створюється сесія)
+            login(request, user)
+
+            # request.session.modified = True  # Повідомляємо Django, що сесію змінено
+            # request.session.save()  # Примусове збереження сесії
+
+            # return JsonResponse({'redirect': '/admin/'})
+            return JsonResponse({'redirect': '/'})
+
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+    else:
+        return JsonResponse({'error': 'POST method required'}, status=400)
 
 
 # Create your views here.
@@ -115,8 +249,8 @@ def sanitize_for_import(value):
     else:
         return value
 
-def load2db(self, df):
 
+def load2db(self, df):
     def __sanitize_for_sql(value):
         if isinstance(value, str):
             escaped_value = value.replace("'", "''")
@@ -241,7 +375,8 @@ def import_csv(request):
                     import_result.append((row['source_list'], 'SourceList created'))
                     print(f"Field {source_list.source_list} SourceList created")
 
-                field_list, created = FieldList.objects.get_or_create(field_list_name=row['field_list'], data_source=source_list)
+                field_list, created = FieldList.objects.get_or_create(field_list_name=row['field_list'],
+                                                                      data_source=source_list)
                 if created:
                     import_result.append((row['field_list'], 'FieldList created'))
                     print(f"Field {field_list.field_list_name} FieldList created")
@@ -450,11 +585,13 @@ def import_table_from_excel(workbook_filename, sheet_name: str = '', table_name:
     # self.display_df(df)
     return df
 
+
 def db_management(request: HttpRequest):
     context = {
         "text": "Excel Import!!!"
     }
     return render(request, 'storage/dbmanagement.html', context)
+
 
 @csrf_exempt
 def upload_db_json(request):
@@ -500,6 +637,7 @@ def upload_db_json(request):
         return JsonResponse(context)
 
     return render(request, 'storage/dbmanagement.html', {'message': 'File do not uploaded'})
+
 
 @csrf_exempt
 def download_db_json(request):
@@ -578,3 +716,19 @@ def upload_json(request):
             return JsonResponse({"error": str(e)}, status=500)
 
     return JsonResponse({"error": "Invalid request method."}, status=400)
+
+
+@csrf_exempt
+def sql_matching(request):
+    old_query = "SELECT id, name FROM users WHERE active = 1;"
+    old_version = "Query v 1.0"
+    new_query = "SELECT id, name, email FROM users WHERE active = 1 ORDER BY name;"
+    new_version = "Query v 2.0"
+
+    # return render(request, 'storage/sql_matching.html', {'query1': query1, 'query2': query2})
+    return render(request, 'storage/sql_matching.html', {
+        'old_query': old_query,
+        'new_query': new_query,
+        'old_version': old_version,
+        'new_version': new_version
+    })

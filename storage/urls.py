@@ -1,5 +1,6 @@
 from django.urls import path
 from .views import *
+from django.contrib.auth import views as auth_views
 
 urlpatterns = [
     path("import/", excelImport),
@@ -13,4 +14,8 @@ urlpatterns = [
     path("sql_parsing/", sql_parsing),
     path("parse_sql_to_json/", parse_sql_to_json),
     path("upload_json/", upload_json),
+    path("sql_matching/", sql_matching),
+    # path('login/', auth_views.LoginView.as_view(), name='login'),
+    path('login/', login_page, name='login'),
+    path('oidc-login/', oidc_login, name='oidc_login'),
 ]
