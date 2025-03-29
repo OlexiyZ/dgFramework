@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponse, HttpRequest, JsonResponse, Http404, FileResponse
+import requests
+from django.http import HttpResponse, HttpRequest, JsonResponse, Http404, FileResponse, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
 from openpyxl import load_workbook
 import json
@@ -39,9 +40,12 @@ wb = None
 
 
 # Налаштування Okta
-OKTA_DOMAIN = "https://dev-24630760.okta.com"  # замініть на свій Okta domain
-CLIENT_ID = "0oanssrjqw0KXnJuH5d7"  # замініть на свій Client ID
-JWKS_URL = f"{OKTA_DOMAIN}/oauth2/default/v1/keys"  # Endpoints для отримання ключів
+# OKTA_DOMAIN = "https://dev-24630760.okta.com"  # замініть на свій Okta domain
+OKTA_DOMAIN = "https://dev-04812975.okta.com/"
+# CLIENT_ID = "0oanssrjqw0KXnJuH5d7"  # замініть на свій Client ID
+CLIENT_ID = "0oalk1pa5nk7rvIGq5d7"
+# JWKS_URL = f"{OKTA_DOMAIN}/oauth2/default/v1/keys"  # Endpoints для отримання ключів
+JWKS_URL = f"{OKTA_DOMAIN}/oauth2/v1/keys"
 
 
 def send_roles(request):
@@ -93,7 +97,38 @@ def login_page(request):
     """
     Сторінка, де клієнт запускає аутентифікацію через Okta.
     """
-    return render(request, 'storage/login.html')
+    context = {
+        "issuer": OKTA_DOMAIN,  # + "oauth2",     # "oauth2/default",
+        "client_id": CLIENT_ID
+    }
+    return render(request, 'storage/login.html', context)
+
+
+def get_user_info(token):
+    # Припустимо, що токен та issuer (iss) передаються через GET-параметри або з сесії
+    token = token  # request.GET.get('token')
+    iss = OKTA_DOMAIN  # request.GET.get('iss')
+
+    if not token or not iss:
+        return HttpResponseBadRequest("Token або issuer не надані.")
+
+    # Формуємо URL для запиту
+    url = f"{iss}oauth2/v1/userinfo"
+    headers = {
+        "Authorization": f"Bearer {token}"
+    }
+
+    # Виконуємо GET-запит до OAuth2 сервісу
+    response = requests.get(url, headers=headers)
+
+    if response.status_code == 200:
+        user_info = response.json()
+        return JsonResponse(user_info)
+    else:
+        return JsonResponse(
+            {"error": "Не вдалося отримати інформацію про користувача", "status": response.status_code},
+            status=response.status_code
+        )
 
 
 @csrf_exempt
@@ -112,13 +147,16 @@ def oidc_login(request):
                 return JsonResponse({'error': 'ID Token is missing'}, status=400)
 
             # Валідація id_token
-            decoded_token = validate_id_token(id_token)
+            decoded_token = get_user_info(access_token)
+            # decoded_token = validate_id_token(id_token)
 
             if "error" in decoded_token:
                 return JsonResponse({'error': decoded_token["error"]}, status=400)
 
             # Отримуємо email з токена
-            email = decoded_token.get('email', 'unknown@example.com')
+            json_str = decoded_token.content.decode('utf-8')
+            user_info = json.loads(json_str)
+            email = user_info.get('email', 'unknown@example.com')
             username = email  # Використовуємо email як username
 
             # Отримуємо або створюємо користувача
