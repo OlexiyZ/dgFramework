@@ -41,11 +41,11 @@ wb = None
 
 # Налаштування Okta
 # OKTA_DOMAIN = "https://dev-24630760.okta.com"  # замініть на свій Okta domain
-OKTA_DOMAIN = "https://dev-04812975.okta.com/"
+#!!! OKTA_DOMAIN = "https://dev-04812975.okta.com/"
 # CLIENT_ID = "0oanssrjqw0KXnJuH5d7"  # замініть на свій Client ID
-CLIENT_ID = "0oalk1pa5nk7rvIGq5d7"
+#!!! CLIENT_ID = "0oalk1pa5nk7rvIGq5d7"
 # JWKS_URL = f"{OKTA_DOMAIN}/oauth2/default/v1/keys"  # Endpoints для отримання ключів
-JWKS_URL = f"{OKTA_DOMAIN}/oauth2/v1/keys"
+#!!! JWKS_URL = f"{OKTA_DOMAIN}/oauth2/v1/keys"
 
 
 def send_roles(request):
@@ -57,138 +57,138 @@ def send_roles(request):
     return render(request, 'send_roles.html', context)
 
 
-def get_public_key():
-    """
-    Отримує публічний ключ JWKS для перевірки підпису токенів.
-    """
-    jwks_client = PyJWKClient(JWKS_URL)
-    return jwks_client
+#!!! def get_public_key():
+#     """
+#     Отримує публічний ключ JWKS для перевірки підпису токенів.
+#     """
+#     jwks_client = PyJWKClient(JWKS_URL)
+#     return jwks_client
 
 
-def validate_id_token(id_token):
-    """
-    Перевіряє підпис, термін дії, issuer і аудиторію id_token.
-    """
-    try:
-        # Отримуємо список ключів Okta
-        jwks_client = get_public_key()
-
-        # Отримуємо заголовок токена для визначення ключа
-        header = jwt.get_unverified_header(id_token)
-        signing_key = jwks_client.get_signing_key(header["kid"]).key
-
-        # Декодуємо та перевіряємо токен
-        decoded = jwt.decode(
-            id_token,
-            signing_key,
-            algorithms=["RS256"],
-            audience=CLIENT_ID,  # Має відповідати Client ID
-            issuer=f"{OKTA_DOMAIN}/oauth2/default",  # Має відповідати issuer
-        )
-        return decoded  # Повертаємо декодований токен, якщо він валідний
-
-    except ExpiredSignatureError:
-        return {"error": "Token has expired"}
-    except InvalidTokenError as e:
-        return {"error": str(e)}
-
-
-def login_page(request):
-    """
-    Сторінка, де клієнт запускає аутентифікацію через Okta.
-    """
-    context = {
-        "issuer": OKTA_DOMAIN,  # + "oauth2",     # "oauth2/default",
-        "client_id": CLIENT_ID
-    }
-    return render(request, 'storage/login.html', context)
+#!!! def validate_id_token(id_token):
+#     """
+#     Перевіряє підпис, термін дії, issuer і аудиторію id_token.
+#     """
+#     try:
+#         # Отримуємо список ключів Okta
+#         jwks_client = get_public_key()
+#
+#         # Отримуємо заголовок токена для визначення ключа
+#         header = jwt.get_unverified_header(id_token)
+#         signing_key = jwks_client.get_signing_key(header["kid"]).key
+#
+#         # Декодуємо та перевіряємо токен
+#         decoded = jwt.decode(
+#             id_token,
+#             signing_key,
+#             algorithms=["RS256"],
+#             audience=CLIENT_ID,  # Має відповідати Client ID
+#             issuer=f"{OKTA_DOMAIN}/oauth2/default",  # Має відповідати issuer
+#         )
+#         return decoded  # Повертаємо декодований токен, якщо він валідний
+#
+#     except ExpiredSignatureError:
+#         return {"error": "Token has expired"}
+#     except InvalidTokenError as e:
+#         return {"error": str(e)}
 
 
-def get_user_info(token):
-    # Припустимо, що токен та issuer (iss) передаються через GET-параметри або з сесії
-    token = token  # request.GET.get('token')
-    iss = OKTA_DOMAIN  # request.GET.get('iss')
-
-    if not token or not iss:
-        return HttpResponseBadRequest("Token або issuer не надані.")
-
-    # Формуємо URL для запиту
-    url = f"{iss}oauth2/v1/userinfo"
-    headers = {
-        "Authorization": f"Bearer {token}"
-    }
-
-    # Виконуємо GET-запит до OAuth2 сервісу
-    response = requests.get(url, headers=headers)
-
-    if response.status_code == 200:
-        user_info = response.json()
-        return JsonResponse(user_info)
-    else:
-        return JsonResponse(
-            {"error": "Не вдалося отримати інформацію про користувача", "status": response.status_code},
-            status=response.status_code
-        )
+#!!! def login_page(request):
+#     """
+#     Сторінка, де клієнт запускає аутентифікацію через Okta.
+#     """
+#     context = {
+#         "issuer": OKTA_DOMAIN,  # + "oauth2",     # "oauth2/default",
+#         "client_id": CLIENT_ID
+#     }
+#     return render(request, 'storage/login.html', context)
 
 
-@csrf_exempt
-def oidc_login(request):
-    """
-    Приймає POST-запит із access_token та id_token, перевіряє підпис
-    та створює/оновлює користувача в Django.
-    """
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            id_token = data.get('id_token')
-            access_token = data.get('access_token')
+#!!! def get_user_info(token):
+#     # Припустимо, що токен та issuer (iss) передаються через GET-параметри або з сесії
+#     token = token  # request.GET.get('token')
+#     iss = OKTA_DOMAIN  # request.GET.get('iss')
+#
+#     if not token or not iss:
+#         return HttpResponseBadRequest("Token або issuer не надані.")
+#
+#     # Формуємо URL для запиту
+#     url = f"{iss}oauth2/v1/userinfo"
+#     headers = {
+#         "Authorization": f"Bearer {token}"
+#     }
+#
+#     # Виконуємо GET-запит до OAuth2 сервісу
+#     response = requests.get(url, headers=headers)
+#
+#     if response.status_code == 200:
+#         user_info = response.json()
+#         return JsonResponse(user_info)
+#     else:
+#         return JsonResponse(
+#             {"error": "Не вдалося отримати інформацію про користувача", "status": response.status_code},
+#             status=response.status_code
+#         )
 
-            if not id_token:
-                return JsonResponse({'error': 'ID Token is missing'}, status=400)
 
-            # Валідація id_token
-            decoded_token = get_user_info(access_token)
-            # decoded_token = validate_id_token(id_token)
-
-            if "error" in decoded_token:
-                return JsonResponse({'error': decoded_token["error"]}, status=400)
-
-            # Отримуємо email з токена
-            json_str = decoded_token.content.decode('utf-8')
-            user_info = json.loads(json_str)
-            email = user_info.get('email', 'unknown@example.com')
-            username = email  # Використовуємо email як username
-
-            # Отримуємо або створюємо користувача
-            user, created = User.objects.get_or_create(username=username, defaults={'email': email})
-
-            if created:
-                # Робимо користувача staff, якщо потрібно (щоб він мав доступ до admin panel)
-                user.is_staff = True
-                user.save()
-
-            # Зберігаємо токени у сесії
-            request.session['clientId'] = CLIENT_ID
-            request.session['id_token'] = id_token
-            request.session['access_token'] = access_token
-            request.session.modified = True  # Повідомляємо Django, що сесію змінено
-            # request.session.save()  # Примусове збереження сесії
-            print("Session Data:", request.session.items())  # Друкуємо сесію у консоль
-
-            # Логуємо користувача у Django (створюється сесія)
-            login(request, user)
-
-            # request.session.modified = True  # Повідомляємо Django, що сесію змінено
-            # request.session.save()  # Примусове збереження сесії
-
-            # return JsonResponse({'redirect': '/admin/'})
-            return JsonResponse({'redirect': '/'})
-
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=500)
-
-    else:
-        return JsonResponse({'error': 'POST method required'}, status=400)
+#!!! @csrf_exempt
+# def oidc_login(request):
+#     """
+#     Приймає POST-запит із access_token та id_token, перевіряє підпис
+#     та створює/оновлює користувача в Django.
+#     """
+#     if request.method == 'POST':
+#         try:
+#             data = json.loads(request.body)
+#             id_token = data.get('id_token')
+#             access_token = data.get('access_token')
+#
+#             if not id_token:
+#                 return JsonResponse({'error': 'ID Token is missing'}, status=400)
+#
+#             # Валідація id_token
+#             decoded_token = get_user_info(access_token)
+#             # decoded_token = validate_id_token(id_token)
+#
+#             if "error" in decoded_token:
+#                 return JsonResponse({'error': decoded_token["error"]}, status=400)
+#
+#             # Отримуємо email з токена
+#             json_str = decoded_token.content.decode('utf-8')
+#             user_info = json.loads(json_str)
+#             email = user_info.get('email', 'unknown@example.com')
+#             username = email  # Використовуємо email як username
+#
+#             # Отримуємо або створюємо користувача
+#             user, created = User.objects.get_or_create(username=username, defaults={'email': email})
+#
+#             if created:
+#                 # Робимо користувача staff, якщо потрібно (щоб він мав доступ до admin panel)
+#                 user.is_staff = True
+#                 user.save()
+#
+#             # Зберігаємо токени у сесії
+#             request.session['clientId'] = CLIENT_ID
+#             request.session['id_token'] = id_token
+#             request.session['access_token'] = access_token
+#             request.session.modified = True  # Повідомляємо Django, що сесію змінено
+#             # request.session.save()  # Примусове збереження сесії
+#             print("Session Data:", request.session.items())  # Друкуємо сесію у консоль
+#
+#             # Логуємо користувача у Django (створюється сесія)
+#             login(request, user)
+#
+#             # request.session.modified = True  # Повідомляємо Django, що сесію змінено
+#             # request.session.save()  # Примусове збереження сесії
+#
+#             # return JsonResponse({'redirect': '/admin/'})
+#             return JsonResponse({'redirect': '/'})
+#
+#         except Exception as e:
+#             return JsonResponse({'error': str(e)}, status=500)
+#
+#     else:
+#         return JsonResponse({'error': 'POST method required'}, status=400)
 
 
 # Create your views here.
