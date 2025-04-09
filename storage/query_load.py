@@ -1,7 +1,8 @@
 import json
 import re
 from pathlib import Path
-from .models import Query, SourceList, Source, FieldList, Field, UnionType, SourceSystem, SourceScheme, Report, ReportVersion
+from .models import Query, SourceList, Source, FieldList, Field, UnionType, SourceSystem, SourceScheme, Report, \
+    ReportVersion
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.utils.timezone import now
 
@@ -53,10 +54,21 @@ def process_field_list(field_data):
                     import_result.append((field_source.source_alias, 'DataSource updated'))
                     print(f"Field {field_source.source_alias} DataSource updated")
             else:
-                field_source = Source.objects.get(
+                field_source, created = Source.objects.get_or_create(
                     source_union_list=source_list,
-                    source_alias=field_data['field_source']
-                )
+                    source_alias__iexact=field_data['field_source'],
+                    defaults={
+                        'source_alias': field_data['field_source'],
+                        'source_type': field_data['data_source_type'],
+                        # 'source_alias': field_data['field_source'],
+                        # 'query_name': query_object,
+                    })
+                # field_source = Source.objects.get(
+                #     source_union_list=source_list,
+                #     source_alias__iexact=field_data['field_source']
+                # )
+                if created:
+                    pass
         else:
             # field_source = None
             if not field_data['field_alias']:
@@ -115,7 +127,8 @@ def process_field_list(field_data):
                             'field_alias': field_data['field_alias'],
                             'field_source_type': field_data['field_source_type'],
                             # 'field_source': field_source,
-                            'field_name': field_data['field_name'] if field_data['field_name'] else processed_field_name,
+                            'field_name': field_data['field_name'] if field_data[
+                                'field_name'] else processed_field_name,
                             'field_value': field_data['field_value'],
                             'field_function': field_data['field_function'],
                             'function_field_list': field_data['function_field_list'],
@@ -140,7 +153,8 @@ def process_field_list(field_data):
                             # 'field_alias': field_data['field_alias'],
                             'field_source_type': field_data['field_source_type'],
                             # 'field_source': field_source,
-                            'field_name': field_data['field_name'] if field_data['field_name'] else processed_field_name,
+                            'field_name': field_data['field_name'] if field_data[
+                                'field_name'] else processed_field_name,
                             'field_value': field_data['field_value'],
                             'field_function': field_data['field_function'],
                             'function_field_list': field_data['function_field_list'],
@@ -234,13 +248,14 @@ def process_source(source_data):
         source_alias = source_data['source_alias'] if source_data['source_alias'] else source_data['source_name']
         source, created = Source.objects.update_or_create(
             source_union_list=source_union_list,
-            source_alias=source_alias,
+            source_alias__iexact=source_alias,
             source_type=source_data['source_type'],
 
             defaults={
                 'query_name': query_name,
                 'source_list': source_list,
                 'table_name': table_name,
+                'source_alias': source_alias,
                 'source_system': source_system,  # if source_system else None,
                 'source_scheme': source_scheme,  # if source_scheme else None,
                 'union_type': union_type,
