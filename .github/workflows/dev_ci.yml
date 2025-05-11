@@ -20,7 +20,7 @@ jobs:
           
   Build:
     needs: [Checkout]
-    uses: BankalEtihad/reusable-workflows/.github/workflows/build_and_push.yaml@master
+    uses: BankalEtihad/reusable-workflows/.github/workflows/build_and_push.yaml@data_governance
     with:
       image_name: data-governance
       environment: development
