@@ -16,6 +16,6 @@ urlpatterns = [
     path("upload_json/", upload_json),
     path("sql_matching/", sql_matching),
     # path('login/', auth_views.LoginView.as_view(), name='login'),
-    #!!!    path('login/', login_page, name='login'),
-    #!!!    path('oidc-login/', oidc_login, name='oidc_login'),
+    path('login/', login_page, name='login'),
+    path('oidc-login/', oidc_login, name='oidc_login'),
 ]
