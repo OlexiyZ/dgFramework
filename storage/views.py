@@ -40,12 +40,16 @@ wb = None
 
 
 # Налаштування Okta
+OKTA_DOMAIN = settings.OKTA_DOMAIN
+CLIENT_ID = settings.CLIENT_ID
+JWKS_URL = settings.JWKS_URL
+
 # OKTA_DOMAIN = "https://dev-24630760.okta.com"  # замініть на свій Okta domain
 #! OKTA_DOMAIN = "https://dev-04812975.okta.com/"
 #! BANK_OKTA_DOMAIN ="https://eu-bankaletihad.okta.com"
-#! # CLIENT_ID = "0oanssrjqw0KXnJuH5d7"  # замініть на свій Client ID
+# # CLIENT_ID = "0oanssrjqw0KXnJuH5d7"  # замініть на свій Client ID
 #! CLIENT_ID = "0oalk1pa5nk7rvIGq5d7"
-BANK_CLIENT_ID = "0oanqdcd6k9nLoAp9417"
+#! BANK_CLIENT_ID = "0oanqdcd6k9nLoAp9417"
 # JWKS_URL = f"{OKTA_DOMAIN}/oauth2/default/v1/keys"  # Endpoints для отримання ключів
 #! JWKS_URL = f"{OKTA_DOMAIN}/oauth2/v1/keys"
 
