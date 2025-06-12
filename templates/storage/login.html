@@ -18,7 +18,7 @@
         const oktaAuth = new OktaAuth({
             issuer: 'https://dev-24630760.okta.com/oauth2/default',
             clientId: '0oanssrjqw0KXnJuH5d7',
-            redirectUri: window.location.origin + '/storage/login/'  //'http://localhost:8000/storage/login/'  // повертаємось на цю сторінку після аутентифікації
+            redirectUri: 'https://datagov.baelab.net/storage/login/'   // redirectUri: window.location.origin + '/storage/login/'  //'http://localhost:8000/storage/login/'  // повертаємось на цю сторінку після аутентифікації
             // redirectUri: window.location.origin + 'http://localhost:8000/storage/login/'  // повертаємось на цю сторінку після аутентифікації
         });
         console.log("oktaAuth :", oktaAuth);
