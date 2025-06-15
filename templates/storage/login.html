@@ -16,7 +16,7 @@
         // Налаштування OktaAuth – замініть {yourOktaDomain} і {yourClientId} на свої значення
         console.log("redirectUri: ", window.location.origin + '/storage/login/')
         const oktaAuth = new OktaAuth({
-            issuer: 'https://dev-24630760.okta.com/oauth2/default',
+            issuer: 'https://eu-bankaletihad.okta.com/oauth2/default',
             clientId: '0oanssrjqw0KXnJuH5d7',
             redirectUri: 'https://datagov.baelab.net/storage/login/'   // redirectUri: window.location.origin + '/storage/login/'  //'http://localhost:8000/storage/login/'  // повертаємось на цю сторінку після аутентифікації
             // redirectUri: window.location.origin + 'http://localhost:8000/storage/login/'  // повертаємось на цю сторінку після аутентифікації
