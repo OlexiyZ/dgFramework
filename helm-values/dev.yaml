@@ -1,7 +1,7 @@
 image: 
   repository: data-governance
   registry: 310899098394.dkr.ecr.eu-west-2.amazonaws.com
-  tag: "cecfe6e"
+  tag: "66a003d"
   pullPolicy: Always
 
 
@@ -15,7 +15,7 @@ service:
 initContainers:
 - name: db-migration
   image: 310899098394.dkr.ecr.eu-west-2.amazonaws.com/data-governance
-  tag: "cecfe6e"
+  tag: "66a003d"
   command: ["/bin/sh", "-c", "/app/scripts/init.sh"]
 
 deployment:
