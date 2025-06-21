@@ -9,16 +9,32 @@
 </head>
 <body>
     <h1>Login with Okta</h1>
+    <p>issuer: {{ issuer }}</p>
+    <p>clientId: {{ clientId }}</p>
+    <p>redirectUri: {{ redirectUri }}</p>
     <!-- Кнопка для початку процесу логіну -->
     <button id="login-button">Login with Okta</button>
 
     <script>
         // Налаштування OktaAuth – замініть {yourOktaDomain} і {yourClientId} на свої значення
-        console.log("redirectUri: ", window.location.origin + '/storage/login/')
+        //console.log("redirectUri: ", window.location.origin + '/storage/login/')
+        const issuer = "{{ issuer|escapejs }}";
+        const clientId = "{{ clientId|escapejs }}";
+        const redirectUri = "{{ redirectUri|escapejs }}";
+
+        console.log("issuer: ", issuer);
+        console.log("clientId: ", clientId);
+        console.log("redirectUri: ", redirectUri);
+
         const oktaAuth = new OktaAuth({
-            issuer: 'https://eu-bankaletihad.okta.com/oauth2/default',
-            clientId: '0oanssrjqw0KXnJuH5d7',
-            redirectUri: 'https://datagov.baelab.net/storage/login/'   // redirectUri: window.location.origin + '/storage/login/'  //'http://localhost:8000/storage/login/'  // повертаємось на цю сторінку після аутентифікації
+            // issuer: 'https://eu-bankaletihad.okta.com/oauth2/default',
+            // issuer: 'dev-04812975.okta.com/oauth2/default',
+            issuer: issuer,
+            // clientId: '0oanqdcd6k9nLoAp9417',
+            clientId: clientId,
+            redirectUri: redirectUri
+            // redirectUri: 'https://datagov.baelab.net/storage/login/'
+            // redirectUri: window.location.origin + '/storage/login/'  //'http://localhost:8000/storage/login/'  // повертаємось на цю сторінку після аутентифікації
             // redirectUri: window.location.origin + 'http://localhost:8000/storage/login/'  // повертаємось на цю сторінку після аутентифікації
         });
         console.log("oktaAuth :", oktaAuth);

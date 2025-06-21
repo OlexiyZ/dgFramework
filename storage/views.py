@@ -22,6 +22,7 @@ import jwt
 from jwt import PyJWKClient, ExpiredSignatureError, InvalidTokenError
 from django.contrib.auth.models import User
 from django.conf import settings
+import platform
 
 wb = None
 
@@ -103,9 +104,15 @@ def login_page(request):
     """
     Сторінка, де клієнт запускає аутентифікацію через Okta.
     """
+    if platform.system() == "Windows":
+        redirect_uri = "http://localhost:8000/storage/login/"
+    else:
+        redirect_uri = "https://datagov.baelab.net/storage/login/"
+    issuer = f"{OKTA_DOMAIN}/oauth2/default",
     context = {
-        "issuer": OKTA_DOMAIN,  # + "oauth2",     # "oauth2/default",
-        "client_id": CLIENT_ID
+        "issuer": issuer[0],  # OKTA_DOMAIN,  # + "oauth2",     # "oauth2/default",
+        "clientId": CLIENT_ID,
+        "redirectUri": redirect_uri
     }
     return render(request, 'storage/login.html', context)
 

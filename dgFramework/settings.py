@@ -187,12 +187,13 @@ AUTH_PASSWORD_VALIDATORS = [
 # LOGIN_URL = '/oidc/authenticate/'
 # http://localhost:8000/oidc/authenticate/
 # vTmPW3cF5Uv3p24
+
 if platform.system() == "Windows":
+    OKTA_DOMAIN = "https://dev-04812975.okta.com"
+    CLIENT_ID = "0oalk1pa5nk7rvIGq5d7"
+else:
     OKTA_DOMAIN = "https://eu-bankaletihad.okta.com"
     CLIENT_ID = "0oanqdcd6k9nLoAp9417"
-else:
-    OKTA_DOMAIN = "https://dev-04812975.okta.com/"
-    CLIENT_ID = "0oalk1pa5nk7rvIGq5d7"
 JWKS_URL = f"{OKTA_DOMAIN}/oauth2/v1/keys"
 
 LOGIN_URL = '/storage/login/'
