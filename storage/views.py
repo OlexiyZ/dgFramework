@@ -106,9 +106,10 @@ def login_page(request):
     """
     if platform.system() == "Windows":
         redirect_uri = "http://localhost:8000/storage/login/"
+        issuer = f"{OKTA_DOMAIN}/oauth2/default"
     else:
         redirect_uri = "https://datagov.baelab.net/storage/login/"
-    issuer = f"{OKTA_DOMAIN}/oauth2/default",
+        issuer = f"{OKTA_DOMAIN}/oauth2/v1/authorize"
     context = {
         "issuer": issuer[0],  # OKTA_DOMAIN,  # + "oauth2",     # "oauth2/default",
         "clientId": CLIENT_ID,
