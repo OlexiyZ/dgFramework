@@ -111,7 +111,7 @@ def login_page(request):
         redirect_uri = "https://datagov.baelab.net/storage/login/"
         issuer = f"{OKTA_DOMAIN}/oauth2/v1/authorize"
     context = {
-        "issuer": issuer[0],  # OKTA_DOMAIN,  # + "oauth2",     # "oauth2/default",
+        "issuer": issuer,  # OKTA_DOMAIN,  # + "oauth2",     # "oauth2/default",
         "clientId": CLIENT_ID,
         "redirectUri": redirect_uri
     }
