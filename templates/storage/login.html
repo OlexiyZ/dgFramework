@@ -43,7 +43,8 @@
             try {
                 console.log("login-button");
                 await oktaAuth.token.getWithRedirect({
-                    responseType: ['token', 'id_token'],
+                    // responseType: ['token', 'id_token'],
+                    pkce: true,
                     scopes: ['openid', 'profile', 'email']
                 });
                 console.log("login-button ended successfully");
