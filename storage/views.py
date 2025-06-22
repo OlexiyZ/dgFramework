@@ -106,10 +106,10 @@ def login_page(request):
     """
     if platform.system() == "Windows":
         redirect_uri = "http://localhost:8000/storage/login/"
-        issuer = f"{OKTA_DOMAIN}/oauth2/default"
+        issuer = f"{OKTA_DOMAIN}"  # /oauth2/default"
     else:
         redirect_uri = "https://datagov.baelab.net/storage/login/"
-        issuer = f"{OKTA_DOMAIN}/oauth2/default"
+        issuer = f"{OKTA_DOMAIN}"  # /oauth2/default"
         # issuer = f"{OKTA_DOMAIN}/oauth2/v1/authorize"
     context = {
         "issuer": issuer,  # OKTA_DOMAIN,  # + "oauth2",     # "oauth2/default",
@@ -127,7 +127,7 @@ def get_user_info(token):
         return HttpResponseBadRequest("Token або issuer не надані.")
 
     # Формуємо URL для запиту
-    url = f"{iss}oauth2/v1/userinfo"
+    url = f"{iss}/oauth2/v1/userinfo"
     headers = {
         "Authorization": f"Bearer {token}"
     }
