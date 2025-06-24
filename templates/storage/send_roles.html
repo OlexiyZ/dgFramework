@@ -53,8 +53,13 @@
             modal.style.display = "block";
         }
 
-        // Автоматичний POST реквест при завантаженні шаблону
-        fetch("https://reports-govern.baelab.net/rules/", {
+        console.log("clientId: ", "{{ clientId }}");
+        console.log("id_token: ", "{{ id_token }}");
+        console.log("access_token: ", "{{ access_token }}");
+
+        // Автоматичний POST реквест при завантаженні шаблону  https://bae-be.webarkit.com/
+        // fetch("https://reports-govern.baelab.net/rules/", {
+        fetch("https://bae-be.webarkit.com", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
