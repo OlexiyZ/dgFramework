@@ -20,5 +20,6 @@ urlpatterns = [
     path('oidc-login/', oidc_login, name='oidc_login'),
     path('storage/role/', role_view, name='role_view'),
     path('save_roles/', save_roles, name='save_roles'),
+    path('check_role/', check_role, name='check_role'),
     # path('get_roles/', get_roles, name='get_roles'),
 ]

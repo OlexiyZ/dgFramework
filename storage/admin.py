@@ -69,13 +69,58 @@ class RoleAdmin(admin.ModelAdmin):
     filter_horizontal = ('rule',)
     ordering = ['name']
     # inlines = (RuleInline,)
-    actions = ['send_roles', 'get_roles_from_proxy']
+    actions = ['send_roles', 'get_roles_from_proxy', 'check_role']
     formfield_overrides = {
         models.TextField: {'widget': Textarea(attrs={'rows': 5, 'cols': 100})},
     }
 
     def rule_list(self, obj):
         return ', '.join([rule.name for rule in obj.rule.all()])
+
+
+    @admin.action(description='Check Role on the Proxy')
+    def check_role(self, request, roles: QuerySet):
+        proxy_host = settings.PROXY_HOST
+        username = request.user.username
+
+        try:
+            user = OktaUser.objects.get(username=username)
+            access_token = user.access_token
+        except OktaUser.DoesNotExist:
+            return None
+
+        # rules_to_send = []
+        data = {}
+        # for role in roles:
+        role = roles[0]
+        role_id = role.okta_id
+        # rules = role.rule.all()
+        # for rule in rules:
+        #     data[f"{rule.metadata}"] = f"{rule.value}"
+
+        payload = {
+            "query": """
+                        GetRole($getRoleId: String!) {
+                            getRole(id: $getRoleId) {
+                                name
+                                attrs
+                                id
+                            }
+                        }
+                    """,
+            "variables": {
+                "getRoleId": role_id
+            }
+        }
+
+        context = {
+            'auth_token': access_token,
+            'proxy_host': proxy_host,
+            'payload': json.dumps(payload),  # Перетворюємо payload в JSON рядок
+            'role_id': role_id
+        }
+
+        return render(request, 'storage/check_role.html', context)
 
 
     @admin.action(description='Send Role`s rules to the Proxy')
@@ -124,29 +169,6 @@ class RoleAdmin(admin.ModelAdmin):
 
         return render(request, 'storage/send_roles.html', context)
 
-
-        #     try:
-        #         response = requests.request("POST", url, headers=headers, data=payload)
-        #         # response = requests.post(url, json=data)
-        #         if response.status_code == 200:
-        #             count_updated += 1
-        #         else:
-        #             count_not_updated += 1
-        #     except Exception as e:
-        #         count_not_updated += 1
-        #         # print("Something went wrong:", e)
-        # # count_updated = roles.update()
-        # if count_updated == 0:
-        #     self.message_user(
-        #         request,
-        #         f"{count_updated} Role(s) have been sent to the Proxy. {count_not_updated} was not updated.",
-        #         messages.ERROR
-        #     )
-        # else:
-        #     self.message_user(
-        #         request,
-        #         f"{count_updated} Role(s) have been sent to the Proxy. {count_not_updated} was not updated."
-        #     )
 
     @admin.action(description='Get Roles from Proxy')
     def get_roles_from_proxy(self, request, queryset: QuerySet):
