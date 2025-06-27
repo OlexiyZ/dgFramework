@@ -80,6 +80,24 @@ def send_roles(request):
     return render(request, 'send_roles.html', context)
 
 
+def check_role(request):
+    proxy_host = settings.PROXY_HOST
+    username = request.user.username
+    try:
+        user = OktaUser.objects.get(username=username)
+        access_token = user.access_token
+    except OktaUser.DoesNotExist:
+        return None
+
+    # Контекст для передачі в шаблон
+    context = {
+        'auth_token': access_token,
+        'proxy_host': proxy_host,
+    }
+
+    return render(request, 'check_role.html', context)
+
+
 def get_public_key():
     """
     Отримує публічний ключ JWKS для перевірки підпису токенів.
