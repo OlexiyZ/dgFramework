@@ -191,9 +191,13 @@ AUTH_PASSWORD_VALIDATORS = [
 if platform.system() == "Windows":
     OKTA_DOMAIN = "https://dev-04812975.okta.com"
     CLIENT_ID = "0oalk1pa5nk7rvIGq5d7"
+    PROXY_HOST = "https://bae-be.webarkit.com"
+
 else:
     OKTA_DOMAIN = "https://eu-bankaletihad.okta.com"
     CLIENT_ID = "0oanqdcd6k9nLoAp9417"
+    PROXY_HOST = "https://reports-govern.bankaletihad.com"
+
 JWKS_URL = f"{OKTA_DOMAIN}/oauth2/v1/keys"
 
 LOGIN_URL = '/storage/login/'
