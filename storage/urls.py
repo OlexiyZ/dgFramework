@@ -18,4 +18,7 @@ urlpatterns = [
     # path('login/', auth_views.LoginView.as_view(), name='login'),
     path('login/', login_page, name='login'),
     path('oidc-login/', oidc_login, name='oidc_login'),
+    path('storage/role/', role_view, name='role_view'),
+    path('save_roles/', save_roles, name='save_roles'),
+    # path('get_roles/', get_roles, name='get_roles'),
 ]

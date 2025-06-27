@@ -7,6 +7,14 @@ from django.db.models import UniqueConstraint
 from django.contrib import admin
 
 
+class OktaUser(models.Model):
+    username = models.CharField(max_length=30)
+    access_token = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.username
+
+
 class Rule(models.Model):
     name = models.CharField(max_length=30)
     description = models.TextField(blank=True, null=True)
@@ -28,7 +36,14 @@ class Metadata(models.Model):
 
 
 class Role(models.Model):
+    ROLE_SOURCE = (
+        ('okta', 'Okta'),
+        ('local', 'DGF'),
+    )
+
     name = models.CharField(max_length=30)
+    source = models.CharField(max_length=30, choices=ROLE_SOURCE, default='local')
+    okta_id = models.CharField(max_length=50,blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     rule = models.ManyToManyField(Rule, related_name="roles", blank=True)
 

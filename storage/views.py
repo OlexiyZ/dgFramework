@@ -44,6 +44,8 @@ wb = None
 OKTA_DOMAIN = settings.OKTA_DOMAIN
 CLIENT_ID = settings.CLIENT_ID
 JWKS_URL = settings.JWKS_URL
+PROXY_HOST = settings.PROXY_HOST
+okta_access_token = ""
 
 # OKTA_DOMAIN = "https://dev-24630760.okta.com"  # замініть на свій Okta domain
 #! OKTA_DOMAIN = "https://dev-04812975.okta.com/"
@@ -56,11 +58,25 @@ JWKS_URL = settings.JWKS_URL
 
 
 def send_roles(request):
+    proxy_host = settings.PROXY_HOST
+    username = request.user.username
+    try:
+        user = OktaUser.objects.get(username=username)
+        access_token = user.access_token
+    except OktaUser.DoesNotExist:
+        return None
+
+    # Контекст для передачі в шаблон
     context = {
-        'clientId': request.session.get('clientId', ''),
-        'id_token': request.session.get('id_token', ''),
-        'access_token': request.session.get('access_token', ''),
+        'auth_token': access_token,
+        'proxy_host': proxy_host,
     }
+    # context = {
+    #     'clientId': request.session.get('clientId', ''),
+    #     'id_token': request.session.get('id_token', ''),
+    #     'access_token': request.session.get('access_token', ''),
+    #     'proxy_host': request.session.get('proxy_host', ''),
+    # }
     return render(request, 'send_roles.html', context)
 
 
@@ -151,11 +167,15 @@ def oidc_login(request):
     Приймає POST-запит із access_token та id_token, перевіряє підпис
     та створює/оновлює користувача в Django.
     """
+    global access_token
+
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
             id_token = data.get('id_token')
             access_token = data.get('access_token')
+            # username = request.user.username
+            # print(f"Username: {username}")
 
             if not id_token:
                 return JsonResponse({'error': 'ID Token is missing'}, status=400)
@@ -191,6 +211,17 @@ def oidc_login(request):
 
             # Логуємо користувача у Django (створюється сесія)
             login(request, user)
+
+            username = request.user.username
+            if username and access_token:
+                user, created = OktaUser.objects.update_or_create(
+                    username=username,
+                    defaults={'access_token': access_token}
+                )
+                if created:
+                    print(f"Created new user: {username}")
+                else:
+                    print(f"Updated token for user: {username}")
 
             # request.session.modified = True  # Повідомляємо Django, що сесію змінено
             # request.session.save()  # Примусове збереження сесії
@@ -784,3 +815,86 @@ def sql_matching(request):
         'old_version': old_version,
         'new_version': new_version
     })
+
+
+@csrf_exempt
+def save_roles(request):
+    if request.method == 'POST':
+        try:
+            # Отримуємо дані з тіла запиту
+            data = json.loads(request.body)
+            roles_data = data.get('roles', [])
+            # roles_data = data.get('getRoles', {}).get('edges', [])
+
+            if not roles_data:
+                return JsonResponse({'error': 'No roles provided'}, status=400)
+
+            for role_data in roles_data:
+                node = role_data.get('node', {})
+                if not node:
+                    continue
+
+                # Зберігаємо тільки name та okta_id
+                okta_id = node.get('id')
+                name = node.get('name')
+
+                if not okta_id or not name:
+                    continue
+
+                # Перевіряємо, чи вже існує роль з таким okta_id
+                role, created = Role.objects.update_or_create(
+                    okta_id=okta_id,  # Використовуємо okta_id для пошуку або створення
+                    defaults={
+                        'name': name,  # Встановлюємо name
+                        'source': 'okta',  # Встановлюємо source = 'okta'
+                    }
+                )
+
+            return JsonResponse({'message': 'Roles successfully saved/updated'}, status=200)
+
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+    else:
+        return JsonResponse({'error': 'Invalid HTTP method. Only POST is allowed.'}, status=405)
+
+
+@csrf_exempt  # Дозволяє обробляти POST запити без CSRF токена
+def role_view(request):
+    if request.method == 'POST':
+        # Отримуємо ролі з тіла запиту (JSON)
+        try:
+            data = json.loads(request.body)
+            roles_data = data.get('roles', [])
+
+            # Перевіряємо, чи є дані для ролей
+            if not roles_data:
+                return JsonResponse({'error': 'No roles provided'}, status=400)
+
+            for role_data in roles_data:
+                # Перевіряємо чи вже існує роль з таким окта ID
+                role, created = Role.objects.update_or_create(
+                    okta_id=role_data['node']['id'],  # Використовуємо окта ID для пошуку чи створення
+                    defaults={
+                        'name': role_data['node']['name'],
+                        'source': 'okta',  # Встановлюємо значення source = 'okta'
+                    }
+                )
+                # Оновлюємо або створюємо опис для ролі
+                role.description = role_data['node'].get('description', '')
+                role.save()
+
+            return JsonResponse({'message': 'Roles successfully processed'}, status=200)
+
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+    else:
+        # Якщо метод не POST, можемо просто рендерити шаблон або іншу сторінку
+        return render(request, 'role_storage.html')
