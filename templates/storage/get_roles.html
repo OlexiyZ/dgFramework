@@ -80,23 +80,28 @@ document.addEventListener("DOMContentLoaded", function () {
         redirect: "follow"
     };
 
-    function showModal(message) {
+    function showModal(message, callback) {
         const modal = document.getElementById('resultModal');
         document.getElementById('resultMessage').textContent = message;
         modal.style.display = "block";
-    }
 
-    let redirectAfterClose = false;
+        const closeBtn = document.getElementById('closeBtn');
+        closeBtn.onclick = function () {
+            modal.style.display = "none";
+            if (callback) callback();
+        }
+    }
 
     fetch(proxyHost, requestOptions)
         .then(function (response) {
             if (response.ok) {
-                showModal("Role data received.");
                 return response.json();
             } else {
                 return response.text().then(text => {
-                    showModal(`❌ Error ${response.status}:\n\n${text}`);
-                    // Повертаємо rejected promise, щоб зупинити подальше виконання
+                    showModal(`❌ Error ${response.status}:
+\n${text}`, () => {
+                        window.location.href = "/storage/role/";
+                    });
                     throw new Error(`HTTP ${response.status} - ${text}`);
                 });
             }
@@ -105,22 +110,20 @@ document.addEventListener("DOMContentLoaded", function () {
             const role = data.data?.getRole;
             if (role) {
                 const formatted = JSON.stringify(role, null, 2);
-                showModal("✔️ Successfully received role:\n\n" + formatted);
+                showModal(`✅ Successfully received role:\n\n${formatted}`, () => {
+                    window.location.href = "/storage/role/";
+                });
             } else {
-                showModal("⚠️ No role data received.");
+                showModal(`⚠️ No role data received.`, () => {
+                    window.location.href = "/storage/role/";
+                });
             }
-            redirectAfterClose = true;
         })
         .catch(function (error) {
-            showModal("❌ Error occurred:\n\n" + error.toString());
-            redirectAfterClose = true;
+            showModal(`❌ Error occurred:\n\n${error}`, () => {
+                window.location.href = "/storage/role/";
+            });
         });
-
-    document.getElementById('closeBtn').addEventListener("click", function () {
-        if (redirectAfterClose) {
-            window.location.href = "/storage/role/";
-        }
-    });
 });
 </script>
 
