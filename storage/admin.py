@@ -12,6 +12,7 @@ from django.template.defaultfilters import truncatechars
 from django.shortcuts import render
 from django.conf import settings
 import json
+import platform
 
 
 class DGFAdminSite(AdminSite):
@@ -177,8 +178,8 @@ class RoleAdmin(admin.ModelAdmin):
         proxy_host = settings.PROXY_HOST
         username = request.user.username
         try:
-            if username == "admin":
-                user = OktaUser.objects.get(username="n.abuhassan@bankaletihad.com")
+            if username == "admin" and platform.system() != "Windows":
+                user = OktaUser.objects.get(username="n.hamed@bankaletihad.com")
                 access_token = user.access_token
             else:
                 user = OktaUser.objects.get(username=username)
