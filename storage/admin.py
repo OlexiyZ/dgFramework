@@ -188,9 +188,11 @@ class RoleAdmin(admin.ModelAdmin):
             return None
 
         # Контекст для передачі в шаблон
+        user_name = user.username
         context = {
             'auth_token': access_token,
             'proxy_host': proxy_host,
+            'user_name': user_name,
         }
 
         # Рендеринг сторінки get_roles.html з параметрами
