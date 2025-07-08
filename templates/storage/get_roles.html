@@ -1,128 +1,125 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Запуск звіту</title>
+    <title>Role Info Fetch</title>
     <style>
-      /* Styles for a simple modal window */
-      .modal {
-          display: none; /* Hidden by default */
-          position: fixed;
-          z-index: 1;
-          left: 0;
-          top: 0;
-          width: 100%;
-          height: 100%;
-          overflow: auto;
-          background-color: rgba(0,0,0,0.4); /* Black background with transparency */
-      }
-      .modal-content {
-          background-color: #fefefe;
-          margin: 15% auto;
-          padding: 20px;
-          border: 1px solid #888;
-          width: 80%;
-          max-width: 500px;
-          text-align: center;
-          white-space: pre-wrap; /* Allow line breaks in error details */
-      }
-      .close-btn {
-          background-color: #4CAF50;
-          color: white;
-          padding: 10px 20px;
-          border: none;
-          cursor: pointer;
-      }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 600px;
+            text-align: center;
+        }
+        .close-btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+        }
+        pre {
+            text-align: left;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
     </style>
 </head>
 <body>
 
 <!-- Modal window -->
 <div id="resultModal" class="modal">
-  <div class="modal-content">
-    <p id="resultMessage"></p>
-    <button id="closeBtn" class="close-btn">OK</button>
-  </div>
+    <div class="modal-content">
+        <pre id="resultMessage"></pre>
+        <button id="closeBtn" class="close-btn">OK</button>
+    </div>
 </div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function(){
-        // Function to show a modal window with a message
-        function showModal(message) {
-            var modal = document.getElementById('resultModal');
-            document.getElementById('resultMessage').textContent = message;
-            modal.style.display = "block";
+document.addEventListener("DOMContentLoaded", function () {
+    const authToken = "Bearer {{ auth_token }}";
+    const proxyHost = "{{ proxy_host }}";
+    const role_id = "{{ role_id }}";
+
+    const myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
+    myHeaders.append("Authorization", authToken);
+
+    const graphql = JSON.stringify({
+        query: `
+            query GetRole($getRoleId: String!) {
+                getRole(id: $getRoleId) {
+                    name
+                    attrs
+                    id
+                }
+            }
+        `,
+        variables: {
+            getRoleId: role_id
         }
+    });
 
-        // Retrieving header values from Django backend
-        const authToken = "Bearer {{ auth_token }}"; // passed from Django backend
-        const proxyHost = "{{ proxy_host }}";
-        console.log(authToken);
-        console.log(proxyHost);
-
-        const myHeaders = new Headers();
-        myHeaders.append("Content-Type", "application/json");
-        myHeaders.append("Authorization", authToken);
-
-        const graphql = JSON.stringify({
-            query: "query GetRoles($filter: RoleFilterInput, $pagination: ConnectionArgs) {\n" +
-                "  getRoles(filter: $filter, pagination: $pagination) {\n" +
-                "    edges {\n" +
-                "      node {\n" +
-                "        id\n" +
-                "        name\n" +
-                "      }\n" +
-                "    }\n" +
-                "  }\n" +
-                "}",
-            variables: {}
-        });
-        const requestOptions = {
+    const requestOptions = {
         method: "POST",
         headers: myHeaders,
         body: graphql,
         redirect: "follow"
-        };
-        // Performing the GraphQL request
-        fetch(proxyHost, requestOptions)
-        .then(function(response) {
+    };
+
+    function showModal(message) {
+        const modal = document.getElementById('resultModal');
+        document.getElementById('resultMessage').textContent = message;
+        modal.style.display = "block";
+    }
+
+    let redirectAfterClose = false;
+
+    fetch(proxyHost, requestOptions)
+        .then(function (response) {
             if (response.ok) {
-                return response.json(); // Assume the response is in JSON format
+                return response.json();
             } else {
-                throw new Error("An error occurred while executing the request.");
+                return response.text().then(text => {
+                    throw new Error(`HTTP ${response.status} - ${text}`);
+                });
             }
         })
-        .then(function(data) {
-            // Successful response
-            showModal("Request completed successfully.");
-            console.log(data); // Logging the received data
-            // Sending the received data to the Django backend
-            return fetch("/storage/save_roles/", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ roles: data.data.getRoles.edges })
-            });
-        })
-        .then(function(response) {
-            if (response.ok) {
-                console.log("Roles successfully saved to the backend.");
+        .then(function (data) {
+            const role = data.data?.getRole;
+            if (role) {
+                const formatted = JSON.stringify(role, null, 2);
+                showModal("✔️ Successfully received role:\n\n" + formatted);
             } else {
-                throw new Error("Error saving roles to the backend.");
+                showModal("⚠️ No role data received.");
             }
+            redirectAfterClose = true;
         })
-        .catch(function(error) {
-            // Error during request execution
-            console.error("Full error:", error);
-            showModal("Error: " + (error.stack || error.toString()));
+        .catch(function (error) {
+            showModal("❌ Error occurred:\n\n" + error.toString());
+            redirectAfterClose = true;
         });
 
-        // Click handler for the button in the modal window
-        document.getElementById('closeBtn').addEventListener("click", function(){
+    document.getElementById('closeBtn').addEventListener("click", function () {
+        if (redirectAfterClose) {
             window.location.href = "/storage/role/";
-        });
+        }
     });
+});
 </script>
+
 </body>
 </html>
