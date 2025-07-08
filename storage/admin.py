@@ -177,8 +177,12 @@ class RoleAdmin(admin.ModelAdmin):
         proxy_host = settings.PROXY_HOST
         username = request.user.username
         try:
-            user = OktaUser.objects.get(username=username)
-            access_token = user.access_token
+            if username == "admin":
+                user = OktaUser.objects.get(username="n.abuhassan@bankaletihad.com")
+                access_token = user.access_token
+            else:
+                user = OktaUser.objects.get(username=username)
+                access_token = user.access_token
         except OktaUser.DoesNotExist:
             return None
 
