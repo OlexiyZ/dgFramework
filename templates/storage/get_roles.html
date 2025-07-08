@@ -91,9 +91,12 @@ document.addEventListener("DOMContentLoaded", function () {
     fetch(proxyHost, requestOptions)
         .then(function (response) {
             if (response.ok) {
+                showModal("Role data received.");
                 return response.json();
             } else {
                 return response.text().then(text => {
+                    showModal(`❌ Error ${response.status}:\n\n${text}`);
+                    // Повертаємо rejected promise, щоб зупинити подальше виконання
                     throw new Error(`HTTP ${response.status} - ${text}`);
                 });
             }
