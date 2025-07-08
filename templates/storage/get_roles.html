@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <title>Запуск звіту</title>
     <style>
-      /* Стилі для простого модального вікна */
+      /* Styles for a simple modal window */
       .modal {
-          display: none; /* Приховано за замовчуванням */
+          display: none; /* Hidden by default */
           position: fixed;
           z-index: 1;
           left: 0;
@@ -14,7 +14,7 @@
           width: 100%;
           height: 100%;
           overflow: auto;
-          background-color: rgba(0,0,0,0.4); /* Чорний фон з прозорістю */
+          background-color: rgba(0,0,0,0.4); /* Black background with transparency */
       }
       .modal-content {
           background-color: #fefefe;
@@ -24,6 +24,7 @@
           width: 80%;
           max-width: 500px;
           text-align: center;
+          white-space: pre-wrap; /* Allow line breaks in error details */
       }
       .close-btn {
           background-color: #4CAF50;
@@ -36,7 +37,7 @@
 </head>
 <body>
 
-<!-- Модальне вікно -->
+<!-- Modal window -->
 <div id="resultModal" class="modal">
   <div class="modal-content">
     <p id="resultMessage"></p>
@@ -46,15 +47,15 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function(){
-        // Функція для показу модального вікна з повідомленням
+        // Function to show a modal window with a message
         function showModal(message) {
             var modal = document.getElementById('resultModal');
             document.getElementById('resultMessage').textContent = message;
             modal.style.display = "block";
         }
 
-        // Отримання значень заголовків з Django бекенду
-        const authToken = "Bearer {{ auth_token }}"; // передається з Django бекенду
+        // Retrieving header values from Django backend
+        const authToken = "Bearer {{ auth_token }}"; // passed from Django backend
         const proxyHost = "{{ proxy_host }}";
         console.log(authToken);
         console.log(proxyHost);
@@ -82,20 +83,20 @@
         body: graphql,
         redirect: "follow"
         };
-        // Виконання GraphQL запиту
+        // Performing the GraphQL request
         fetch(proxyHost, requestOptions)
         .then(function(response) {
             if (response.ok) {
-                return response.json(); // Припустимо, що відповідь приходить у форматі JSON
+                return response.json(); // Assume the response is in JSON format
             } else {
-                throw new Error("Сталася помилка при виконанні запиту.");
+                throw new Error("An error occurred while executing the request.");
             }
         })
         .then(function(data) {
-            // Успішна відповідь
-            showModal("Запит виконано успішно.");
-            console.log(data); // Логування отриманих даних
-            // Відправка отриманих даних на бекенд Django
+            // Successful response
+            showModal("Request completed successfully.");
+            console.log(data); // Logging the received data
+            // Sending the received data to the Django backend
             return fetch("/storage/save_roles/", {
                 method: "POST",
                 headers: {
@@ -106,17 +107,18 @@
         })
         .then(function(response) {
             if (response.ok) {
-                console.log("Ролі успішно збережено на бекенді.");
+                console.log("Roles successfully saved to the backend.");
             } else {
-                throw new Error("Помилка при збереженні ролей на бекенді.");
+                throw new Error("Error saving roles to the backend.");
             }
         })
         .catch(function(error) {
-            // Помилка при виконанні запиту
-            showModal("Помилка: " + error.message);
+            // Error during request execution
+            console.error("Full error:", error);
+            showModal("Error: " + (error.stack || error.toString()));
         });
 
-        // Обробник кліку по кнопці в модальному вікні
+        // Click handler for the button in the modal window
         document.getElementById('closeBtn').addEventListener("click", function(){
             window.location.href = "/storage/role/";
         });
