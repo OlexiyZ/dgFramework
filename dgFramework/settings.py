@@ -196,7 +196,8 @@ if platform.system() == "Windows":
 else:
     OKTA_DOMAIN = "https://eu-bankaletihad.okta.com"
     CLIENT_ID = "0oanqdcd6k9nLoAp9417"
-    PROXY_HOST = "https://reports-govern.bankaletihad.com"
+    PROXY_HOST = "https://reports-govern.baelab.net/"
+    # PROXY_HOST = "https://reports-govern.bankaletihad.com"
 
 JWKS_URL = f"{OKTA_DOMAIN}/oauth2/v1/keys"
 
