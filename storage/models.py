@@ -186,6 +186,16 @@ class Report(models.Model):
         return self.report_name
 
 
+class ProxyReport(models.Model):
+    report_id = models.CharField(max_length=255, unique=True)
+    name = models.CharField(max_length=255, unique=True)
+    link = models.TextField(blank=True, unique=True)
+    dgf_report = models.ForeignKey(Report, on_delete=models.SET_NULL, blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+
 class ReportVersion(models.Model):
     report = models.ForeignKey(Report, on_delete=models.CASCADE)
     version = models.CharField(max_length=10)
