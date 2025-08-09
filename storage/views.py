@@ -916,3 +916,42 @@ def role_view(request):
     else:
         # Якщо метод не POST, можемо просто рендерити шаблон або іншу сторінку
         return render(request, 'role_storage.html')
+
+
+@csrf_exempt
+def save_reports(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            reports = data.get('reports', [])
+
+            # Save new reports
+            for report_data in reports:
+                node = report_data.get('node', {})
+                report = ProxyReport(
+                    report_id=node.get('id'),
+                    name=node.get('name'),
+                    link=node.get('link')
+                )
+                report.save()
+
+            return JsonResponse({
+                'status': 'success',
+                'message': f'Successfully saved {len(reports)} reports'
+            })
+
+        except json.JSONDecodeError:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Invalid JSON data'
+            }, status=400)
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'message': str(e)
+            }, status=500)
+
+    return JsonResponse({
+        'status': 'error',
+        'message': 'Only POST method is allowed'
+    }, status=405)

@@ -387,10 +387,12 @@ class ReportAdmin(admin.ModelAdmin):
         'report_name', 'erd', 'report_query_url', 'report_description_short', 'report_url', 'ver',
         'change_description_short', 'change_date', 'changed_by')
     search_fields = ('report_name', 'report_description', 'report_url', 'change_description')
+    list_filter = ('report_name',)
     formfield_overrides = {
         models.TextField: {'widget': Textarea(attrs={'rows': 3, 'cols': 100})},
     }
     inlines = (ReportVersionInline,)
+    # actions = ['get_reports_from_proxy']
 
     def ver(self, report: Report):
         if report.version != None:
@@ -495,6 +497,46 @@ class SourceAdmin(admin.ModelAdmin):
     source_union_list_url.short_description = "SOURCE UNION LIST"
 
 
+class ProxyReportAdmin(admin.ModelAdmin):
+    list_display = ('name', 'report_id', 'link', 'dgf_report_link', 'description')
+    search_fields = ('report_id','name', 'link', 'dgf_report', 'description')
+    actions = ['get_reports_from_proxy']
+
+    def dgf_report_link(self, report: ProxyReport):
+        if report.dgf_report != None:
+            return format_html(
+                f"<a href=\"/storage/report/?report_name={str(report.dgf_report)} \"target=\"_blank\">{report.dgf_report}</a>")
+        else:
+            return "-"
+
+    @admin.action(description='Get Reports from Proxy')
+    def get_reports_from_proxy(self, request, queryset: QuerySet):
+        # Отримання параметрів із сесії
+        # auth_token = request.session.get('auth_token', '')
+        proxy_host = settings.PROXY_HOST
+        username = request.user.username
+        try:
+            if username == "admin" and platform.system() != "Windows":
+                user = OktaUser.objects.get(username="n.hamed@bankaletihad.com")
+                access_token = user.access_token
+            else:
+                user = OktaUser.objects.get(username=username)
+                access_token = user.access_token
+        except OktaUser.DoesNotExist:
+            return None
+
+        # Контекст для передачі в шаблон
+        user_name = user.username
+        context = {
+            'auth_token': access_token,
+            'proxy_host': proxy_host,
+            'user_name': user_name,
+        }
+
+        # Рендеринг сторінки get_roles.html з параметрами
+        return render(request, 'storage/get_reports.html', context)
+
+
 admin.site.register(UnionType)
 admin.site.register(SourceSystem)
 admin.site.register(SourceScheme)
@@ -508,6 +550,8 @@ admin.site.register(ReportVersion, ReportVersionAdmin)
 admin.site.register(Metadata, MetadataAdmin)
 admin.site.register(Role, RoleAdmin)
 admin.site.register(Rule, RuleAdmin)
+admin.site.register(ProxyReport, ProxyReportAdmin)
+admin.site.register(OktaUser)
 
 dgf_admin.register(SourceList, SourceListAdmin)
 dgf_admin.register(Source, SourceAdmin)
@@ -519,3 +563,5 @@ dgf_admin.register(ReportVersion, ReportVersionAdmin)
 dgf_admin.register(Metadata, MetadataAdmin)
 dgf_admin.register(Role, RoleAdmin)
 dgf_admin.register(Rule, RuleAdmin)
+dgf_admin.register(ProxyReport, ProxyReportAdmin)
+dgf_admin.register(OktaUser)

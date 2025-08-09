@@ -21,5 +21,5 @@ urlpatterns = [
     path('storage/role/', role_view, name='role_view'),
     path('save_roles/', save_roles, name='save_roles'),
     path('check_role/', check_role, name='check_role'),
-    # path('get_roles/', get_roles, name='get_roles'),
+    path('save_reports/', save_reports, name='save_reports'),  # new line
 ]
