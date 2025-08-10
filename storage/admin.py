@@ -218,6 +218,7 @@ class FieldAdmin(admin.ModelAdmin):
     formfield_overrides = {
         models.TextField: {'widget': Textarea(attrs={'rows': 3, 'cols': 100})},
     }
+    # actions = ['make_query']
 
     def field_erd(self, field: Field):
         return format_html(
@@ -233,13 +234,23 @@ class FieldAdmin(admin.ModelAdmin):
     def source_list_url(self, field: Field):
         if field.source_list != None:
             return format_html(
-                f"<a href=\"/admin/storage/source/{str(field.source_list.id)}/ \"target=\"_blank\">{field.source_list}</a>")
+                # f"<a href=\"/admin/storage/source/{str(field.source_list.id)}/ \"target=\"_blank\">{field.source_list}</a>")
+                f"<a href=\"/admin/storage/source/?source_union_list__id__exact={str(field.source_list.id)} \"target=\"_blank\">{field.source_list}</a>")
         else:
             return "-"
 
     def field_list_url(self, field: Field):
         return format_html(
-            f"<a href=\"/admin/storage/source/{str(field.field_list.id)}/ \"target=\"_blank\">{field.field_list}</a>")
+            # f"<a href=\"/admin/storage/source/{str(field.field_list.id)}/ \"target=\"_blank\">{field.field_list}</a>")
+            f"<a href=\"/admin/storage/field/?field_list__id__exact={str(field.field_list.id)} \"target=\"_blank\">{field.field_list}</a>")
+
+    # @admin.action(description='Make a Query')
+    # def make_query(self, request, fields: QuerySet):
+    #     field_set = []
+    #     for field in fields:
+    #         field_set.append(field.field_name)
+    #
+    #     return
 
 
 class FieldsInline(admin.TabularInline):
@@ -342,6 +353,7 @@ class QueryAdmin(admin.ModelAdmin):
     formfield_overrides = {
         models.TextField: {'widget': Textarea(attrs={'rows': 5, 'cols': 100})},
     }
+    actions = ['make_query']
 
     def erd(self, query: Query):
         return format_html(
@@ -374,6 +386,22 @@ class QueryAdmin(admin.ModelAdmin):
     source_list_url.short_description = "SOURCE LIST"
     query_conditions_short.short_description = "QUERY CONDITION"
 
+    @admin.action(description='Make a Query')
+    def make_query(self, request, query: QuerySet):
+        field_list_id = query[0].field_list_id
+        query_body = query[0].query_body
+        query_body = query_body.replace(";", "")
+        query_description = query[0].query_description
+        fields = Field.objects.filter(field_list_id=field_list_id)
+        field_set = []
+        for field in fields:
+            field_set.append((field.field_name, field.field_description if field.field_description else ""))  # if field.field_description else ""
+
+        return render(request, 'storage/sql_create.html', {
+            'field_set': field_set,
+            'query_description': query_description,
+            'query_body': query_body
+        })
 
 class ReportVersionInline(admin.TabularInline):
     model = ReportVersion

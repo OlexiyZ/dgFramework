@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SQL Builder</title>
+  {{ bootstrap_link|safe }}
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/sql/sql.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sql-formatter@13.0.0/dist/sql-formatter.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+    .wrap { display:flex; flex-direction:column; gap:16px; padding: 16px; }
+    .grid { display:flex; gap:20px; }
+    .left { flex: 0 0 40%; max-width: 560px; min-width: 320px; }
+    .right { flex: 1 1 auto; min-width: 0; }
+    .CodeMirror { height: 520px; border: 1px solid #ccc; font-size: 14px; }
+    button, input[type="text"], select { padding: 10px 14px; font-size: 14px; cursor: pointer; border: 1px solid #ccc; border-radius: 6px; background:#fff; }
+    button { background-color: #007bff; color: #fff; border-color:#007bff; }
+    button:hover { background-color: #0056b3; border-color:#0056b3; }
+    .form-check { display:flex; align-items:flex-start; gap:10px; margin-bottom: 8px; }
+    .form-check-label { display:flex; align-items:center; flex-wrap:wrap; gap:8px; }
+    .field-name { font-weight: 600; }
+    .field-desc { color:#666; font-size: 12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width: 60%; }
+    .controls { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    .toolbar { display:flex; align-items:center; justify-content:flex-end; gap:8px; margin-bottom:8px; }
+    .muted { color:#6c757d; font-size:12px; }
+    .sep { flex:1; }
+  </style>
+</head>
+<body>
+<header>
+  {{ nav_bar|safe }}
+</header>
+
+<div class="wrap">
+  <div class="controls">
+    <h5 style="margin:0;">{{ query_description }}</h5>
+    <span class="sep"></span>
+    <label class="muted"><input type="checkbox" id="includeComments" checked> Add comments above columns</label>
+    <button id="buildBtn" type="button">Build SQL</button>
+  </div>
+
+  <div class="grid">
+    <!-- LEFT: поля -->
+    <div class="left">
+      <form id="fieldForm">
+        <div class="form-check" style="margin-bottom: 12px;">
+          <input class="form-check-input" type="checkbox" id="selectAll">
+          <label class="form-check-label" for="selectAll"><strong>Select All</strong></label>
+        </div>
+        {% for field_name, field_desc in field_set %}
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="f{{ forloop.counter }}" value="{{ field_name }}" data-desc="{{ field_desc }}">
+          <label class="form-check-label" for="f{{ forloop.counter }}">
+            <span class="field-name">{{ field_name }}</span>
+            {% if field_desc %}
+              <span class="field-desc">— {{ field_desc }}</span>
+            {% endif %}
+          </label>
+        </div>
+        {% endfor %}
+      </form>
+    </div>
+
+    <!-- RIGHT: редактор -->
+    <div class="right">
+      <div class="toolbar">
+        <label for="dialectSelectRight" class="muted">Dialect:</label>
+        <select id="dialectSelectRight" title="SQL dialect">
+          <option value="auto" selected>Auto (Detect)</option>
+          <option value="sql">Generic SQL</option>
+          <option value="plsql">Oracle PL/SQL</option>
+          <option value="postgresql">PostgreSQL</option>
+          <option value="tsql">Microsoft SQL Server</option>
+          <option value="mysql">MySQL</option>
+          <option value="redshift">Amazon Redshift</option>
+          <option value="snowflake">Snowflake</option>
+        </select>
+        <button id="formatBtn2" type="button">Format</button>
+      </div>
+      <textarea id="sqlEditor"></textarea>
+    </div>
+  </div>
+</div>
+
+<script>
+  var editor = CodeMirror.fromTextArea(document.getElementById('sqlEditor'), {
+    mode: 'text/x-sql',
+    lineNumbers: true,
+    theme: 'default',
+    indentWithTabs: true,
+    smartIndent: true,
+    matchBrackets: true,
+    autofocus: true
+  });
+
+  var baseQuery = `{{ query_body|escapejs }}`;
+  var includeCommentsEl = document.getElementById('includeComments');
+  var dialectSelectRight = document.getElementById('dialectSelectRight');
+  var fieldForm = document.getElementById('fieldForm');
+  var selectAllEl = document.getElementById('selectAll');
+
+  function debounce(fn, wait){ var t; return function(){ clearTimeout(t); var ctx=this, args=arguments; t=setTimeout(function(){ fn.apply(ctx,args); }, wait); }; }
+
+  function codeMirrorModeFor(language) {
+    switch(language){
+      case 'plsql': return 'text/x-plsql';
+      case 'postgresql': return 'text/x-pgsql';
+      case 'tsql': return 'text/x-mssql';
+      case 'mysql': return 'text/x-mysql';
+      case 'redshift': return 'text/x-pgsql';
+      case 'snowflake': return 'text/x-sql';
+      default: return 'text/x-sql';
+    }
+  }
+
+  function detectDialect(sql) {
+    var s = (sql || '').toLowerCase();
+    if (/nvl\(|decode\(| from dual|connect by|start with| rownum|sysdate|systimestamp| merge into| minus /.test(s)) return 'plsql';
+    if (/::| returning | ilike | generate_series\(| now\(\)| jsonb| on conflict| distinct on /.test(s)) return 'postgresql';
+    if (/ top | newid\(\)| getdate\(\)| datediff\(| datename\(| nvarchar| nolock| go\n|sys\.objects/.test(s)) return 'tsql';
+    if (/`| unix_timestamp\(| ifnull\(| limit | auto_increment| now\(\)/.test(s)) return 'mysql';
+    return 'sql';
+  }
+
+  function currentLanguageForFormat(sql) {
+    var chosen = dialectSelectRight.value;
+    return chosen === 'auto' ? detectDialect(sql) : chosen;
+  }
+
+  function setEditorModeByLanguage(language) {
+    editor.setOption('mode', codeMirrorModeFor(language));
+  }
+
+  function formatSQL(sql) {
+    try {
+      if (window.sqlFormatter && typeof window.sqlFormatter.format === 'function') {
+        var lang = currentLanguageForFormat(sql);
+        return window.sqlFormatter.format(sql, { language: lang });
+      }
+    } catch (e) {}
+    return sql;
+  }
+
+  function buildSQL() {
+    var boxes = Array.from(document.querySelectorAll('#fieldForm input[type="checkbox"]:checked'))
+      .filter(function(cb) { return cb.id !== 'selectAll'; });
+    var columns;
+
+    if (!boxes.length) {
+      columns = '*';
+    } else {
+      var withComments = includeCommentsEl.checked;
+      columns = boxes.map(function(cb){
+        var name = cb.value;
+        var desc = (cb.dataset.desc || '').trim();
+        var piece;
+        if (withComments && desc) {
+          piece = '-- ' + desc + '\n  ' + name;
+        } else {
+          piece = name;
+        }
+        return piece;
+      }).join(',\n');
+    }
+
+    var sql = 'SELECT\n' + columns + '\nFROM (\n' + baseQuery + '\n) t';
+    var formatted = formatSQL(sql);
+    editor.setValue(formatted);
+    setEditorModeByLanguage(currentLanguageForFormat(formatted));
+    editor.focus();
+  }
+
+  document.getElementById('buildBtn').addEventListener('click', buildSQL);
+
+  // Select All logic
+  function getItemCheckboxes(){
+    return Array.from(fieldForm.querySelectorAll('input[type="checkbox"]'))
+      .filter(function(cb){ return cb.id !== 'selectAll'; });
+  }
+
+  function updateSelectAllState(){
+    var items = getItemCheckboxes();
+    if (!selectAllEl) return;
+    if (items.length === 0){
+      selectAllEl.checked = false;
+      selectAllEl.indeterminate = false;
+      return;
+    }
+    var checkedCount = items.filter(function(cb){ return cb.checked; }).length;
+    selectAllEl.checked = checkedCount === items.length;
+    selectAllEl.indeterminate = checkedCount > 0 && checkedCount < items.length;
+  }
+
+  if (selectAllEl){
+    selectAllEl.addEventListener('change', function(){
+      var items = getItemCheckboxes();
+      var desired = !!selectAllEl.checked;
+      items.forEach(function(cb){ cb.checked = desired; });
+      selectAllEl.indeterminate = false;
+    });
+  }
+
+  fieldForm.addEventListener('change', function(e){
+    if (e.target && e.target.type === 'checkbox' && e.target.id !== 'selectAll'){
+      updateSelectAllState();
+    }
+  });
+
+  // Initialize select-all state on load
+  updateSelectAllState();
+
+  document.getElementById('formatBtn2').addEventListener('click', function(){
+    var f = formatSQL(editor.getValue());
+    editor.setValue(f);
+    setEditorModeByLanguage(currentLanguageForFormat(f));
+  });
+
+  dialectSelectRight.addEventListener('change', function(){
+    setEditorModeByLanguage(currentLanguageForFormat(editor.getValue()));
+  });
+
+  editor.on('change', debounce(function(){
+    if (dialectSelectRight.value === 'auto') {
+      setEditorModeByLanguage(detectDialect(editor.getValue()));
+    }
+  }, 250));
+
+  editor.addKeyMap({
+    'Shift-Ctrl-F': function(cm){ var f = formatSQL(cm.getValue()); cm.setValue(f); setEditorModeByLanguage(currentLanguageForFormat(f)); },
+    'Shift-Cmd-F': function(cm){ var f = formatSQL(cm.getValue()); cm.setValue(f); setEditorModeByLanguage(currentLanguageForFormat(f)); }
+  });
+
+  setEditorModeByLanguage('sql');
+</script>
+</body>
+</html>
