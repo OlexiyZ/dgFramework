@@ -8,7 +8,7 @@ from django.contrib import admin
 
 
 class OktaUser(models.Model):
-    username = models.CharField(max_length=30)
+    username = models.CharField(max_length=255)
     access_token = models.TextField(blank=True, null=True)
 
     def __str__(self):
@@ -16,9 +16,9 @@ class OktaUser(models.Model):
 
 
 class Rule(models.Model):
-    name = models.CharField(max_length=30)
+    name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
-    value = models.CharField(max_length=30)
+    value = models.CharField(max_length=255)
     metadata = models.ForeignKey("Metadata", on_delete=models.CASCADE)
 
     def __str__(self):
@@ -26,7 +26,7 @@ class Rule(models.Model):
 
 
 class Metadata(models.Model):
-    name = models.CharField(max_length=30)
+    name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     default_rule = models.ForeignKey(Rule, on_delete=models.SET_NULL, default=None, related_name="default_metadata",
                                      blank=True, null=True)
@@ -41,9 +41,9 @@ class Role(models.Model):
         ('local', 'DGF'),
     )
 
-    name = models.CharField(max_length=30)
-    source = models.CharField(max_length=30, choices=ROLE_SOURCE, default='local')
-    okta_id = models.CharField(max_length=50,blank=True, null=True)
+    name = models.CharField(max_length=255)
+    source = models.CharField(max_length=255, choices=ROLE_SOURCE, default='local')
+    okta_id = models.CharField(max_length=255,blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     rule = models.ManyToManyField(Rule, related_name="roles", blank=True)
 
@@ -61,14 +61,14 @@ class UnionType(models.Model):
 
 
 class SourceSystem(models.Model):
-    source_system_name = models.CharField(max_length=30, unique=True)
+    source_system_name = models.CharField(max_length=255, unique=True)
 
     def __str__(self):
         return self.source_system_name
 
 
 class SourceScheme(models.Model):
-    source_scheme_name = models.CharField(max_length=30, unique=True)
+    source_scheme_name = models.CharField(max_length=255, unique=True)
     source_system = models.ForeignKey(SourceSystem, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
@@ -93,12 +93,12 @@ class Source(models.Model):
 
     source_union_list = models.ForeignKey(SourceList, on_delete=models.CASCADE,
                                           related_name='source_list_names')
-    source_alias = models.CharField(max_length=30)
+    source_alias = models.CharField(max_length=255)
     source_type = models.CharField(max_length=30, choices=SOURCE_TYPES, default='tbd')
     query_name = models.ForeignKey("Query", on_delete=models.SET_NULL, null=True, blank=True)
     source_list = models.ForeignKey(SourceList, on_delete=models.SET_NULL, null=True, blank=True,
                                     related_name='source_names')
-    table_name = models.CharField(max_length=30, blank=True, null=True)
+    table_name = models.CharField(max_length=255, blank=True, null=True)
     source_system = models.ForeignKey(SourceSystem, on_delete=models.SET_NULL, null=True, blank=True)
     source_scheme = models.ForeignKey(SourceScheme, on_delete=models.SET_NULL, null=True, blank=True)
     union_type = models.ForeignKey(UnionType, on_delete=models.SET_NULL, null=True, blank=True)
@@ -130,16 +130,17 @@ class Field(models.Model):
 
     field_list = models.ForeignKey(FieldList, on_delete=models.CASCADE)
     source_list = models.ForeignKey(SourceList, on_delete=models.CASCADE, blank=True, null=True)
-    field_alias = models.CharField(max_length=30, blank=True, null=True)
-    field_source_type = models.CharField(max_length=30, choices=FIELD_SOURCE_TYPES, default='tbd')
+    field_alias = models.CharField(max_length=255, blank=True, null=True)
+    field_source_type = models.CharField(max_length=255, choices=FIELD_SOURCE_TYPES, default='tbd')
     field_source = models.ForeignKey(Source, on_delete=models.CASCADE, blank=True, null=True)
-    field_name = models.CharField(max_length=30, blank=True, null=True)
-    field_value = models.CharField(max_length=30, blank=True, null=True)
+    field_name = models.CharField(max_length=255, blank=True, null=True)
+    field_value = models.CharField(max_length=255, blank=True, null=True)
     field_function = models.TextField(max_length=255, blank=True, null=True)
     function_field_list = models.CharField(max_length=255, blank=True, null=True)
     field_description = models.TextField(blank=True, null=True)
     field_query_body = models.TextField(blank=True, null=True)
     metadata = models.ForeignKey(Metadata, on_delete=models.SET_NULL, blank=True, null=True)
+    placeholder = models.CharField(max_length=255, blank=True, null=True)
 
     # class Meta:
     #     constraints = [
@@ -159,7 +160,7 @@ class Query(models.Model):
     field_list = models.ForeignKey(FieldList, on_delete=models.CASCADE, blank=True, null=True)
     source_list = models.ForeignKey(SourceList, on_delete=models.CASCADE, blank=True, null=True)
     query_conditions = models.TextField(blank=True, null=True)
-    query_alias = models.CharField(max_length=30, blank=True, null=True)
+    query_alias = models.CharField(max_length=255, blank=True, null=True)
     query_description = models.TextField(blank=True, null=True)
     query_body = models.TextField(blank=True, null=True)
     query_json = models.TextField(blank=True, null=True)
@@ -170,7 +171,7 @@ class Query(models.Model):
 
 class Report(models.Model):
     # report_id = models.TextField(unique=True, max_length=30)
-    report_name = models.CharField(max_length=50, unique=True)
+    report_name = models.CharField(max_length=255, unique=True)
     report_query = models.ForeignKey(Query, on_delete=models.SET_NULL, blank=True, null=True, related_name='reports')
     # field_list = models.ForeignKey(FieldList, on_delete=models.CASCADE, blank=True, null=True)
     # source_list = models.ForeignKey(SourceList, on_delete=models.CASCADE, blank=True, null=True)
@@ -199,7 +200,7 @@ class ProxyReport(models.Model):
 
 class ReportVersion(models.Model):
     report = models.ForeignKey(Report, on_delete=models.CASCADE)
-    version = models.CharField(max_length=10)
+    version = models.CharField(max_length=30)
     report_query = models.ForeignKey(Query, on_delete=models.SET_NULL, blank=True, null=True)
     version_description = models.TextField(blank=True, null=True)
     script = models.TextField(blank=True, null=True)

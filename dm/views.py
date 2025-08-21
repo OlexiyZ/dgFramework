@@ -417,7 +417,8 @@ def linearization(source_type, source_name, fields2content):
         # f_fields = []
         for field in fields:
             field_name = {}
-            field_display_name = f"{field.field_source}.{field}" if field.field_source else field
+            # field_display_name = f"{field.field_source}.{field}" if field.field_source else field
+            field_display_name = field
             # field_name["content"] = f"<a href=\"/storage/field/?id={field.id} \"target=\"_blank\">{field}</a>"
             field_name["content"] = f"<a href=\"/storage/field/?id={field.id} \"target=\"_blank\">{field_display_name}</a>"
             if field.field_source_type in ('data_source', 'tbd'):
