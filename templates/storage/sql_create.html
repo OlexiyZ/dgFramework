@@ -416,7 +416,7 @@
 
   document.getElementById('buildBtn').addEventListener('click', buildSQL);
 
-  // Initialize Select All behavior for all frames (primary and additional)
+  // Initialize Select All behavior for all frames (primary and additional).
   Array.from(document.querySelectorAll('#fieldForm, form[id^="fieldForm_"]')).forEach(function(formEl){
     var selectAllLocal = formEl.querySelector('input[type="checkbox"][id^="selectAll"]');
 
