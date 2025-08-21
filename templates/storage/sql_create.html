@@ -53,8 +53,8 @@
 
   <div class="grid">
     <!-- LEFT: поля -->
-    <div class="frames">
-      <div class="frame">
+      <div class="frames">
+        <div class="frame" data-query-body="{{ current_query_body|escape }}">
         <div class="frame-header"><h5 style="margin:0 0 8px 0;"><span class="frame-index">1</span>. {{ current_query_description }}</h5></div>
         <div class="frame-body">
           <form id="fieldForm">
@@ -95,7 +95,7 @@
           <option value="UNION">UNION</option>
         </select>
       </div>
-      <div class="frame">
+      <div class="frame" data-query-body="{{ q.query_body|escape }}">
         <div class="frame-header"><h5 style="margin:0 0 8px 0;"><span class="frame-index">{{ idx }}</span>. {{ q.query_description }}</h5></div>
         <div class="frame-body">
           <form id="fieldForm_{{ idx }}">
@@ -155,8 +155,8 @@
 
   <div class="grid">
     <!-- LEFT: поля -->
-    <div class="frames">
-      <div class="frame">
+      <div class="frames">
+        <div class="frame" data-query-body="{{ query_body|escape }}">
         <div class="frame-header"><h5 style="margin:0 0 8px 0;"><span class="frame-index">1</span>. {{ query_description }}</h5></div>
         <div class="frame-body">
           <form id="fieldForm">
@@ -240,13 +240,6 @@
     return 'sql';
   }
 
-  {% if query_set %}
-  {% with current_query_body=query_set.0.query_body %}
-  var baseQuery = `{{ current_query_body|escapejs }}`;
-  {% endwith %}
-  {% else %}
-  var baseQuery = `{{ query_body|escapejs }}`;
-  {% endif %}
   var includeCommentsEl = document.getElementById('includeComments');
   var dialectSelectRight = document.getElementById('dialectSelectRight');
 
@@ -268,21 +261,26 @@
     } catch (e) {}
     return sql;
   }
-  function getPrimaryForm(){
+  function getPrimaryFrame(){
     var container = document.querySelector('.frames');
     if (container){
       var frames = Array.from(container.querySelectorAll('.frame'));
       if (frames.length > 0) {
-        // Find frame with smallest index
-        var frameWithSmallestIndex = frames.reduce(function(prev, current) {
+        return frames.reduce(function(prev, current){
           var prevIndex = parseInt(prev.querySelector('.frame-index').textContent);
           var currentIndex = parseInt(current.querySelector('.frame-index').textContent);
           return (currentIndex < prevIndex) ? current : prev;
         });
-
-        var formEl = frameWithSmallestIndex.querySelector('form');
-        if (formEl) return formEl;
       }
+    }
+    return document.querySelector('.frame');
+  }
+
+  function getPrimaryForm(){
+    var frameEl = getPrimaryFrame();
+    if (frameEl){
+      var formEl = frameEl.querySelector('form');
+      if (formEl) return formEl;
     }
     return document.getElementById('fieldForm');
   }
@@ -385,6 +383,8 @@
 
   function buildSQL() {
     var primaryForm = getPrimaryForm();
+    var primaryFrame = primaryForm ? primaryForm.closest('.frame') : getPrimaryFrame();
+    var baseQuery = primaryFrame ? (primaryFrame.dataset.queryBody || '') : '';
     var boxes = Array.from(primaryForm.querySelectorAll('input[type="checkbox"]:checked'))
       .filter(function(cb) { return !/^selectAll/.test(cb.id); });
     var columns;
