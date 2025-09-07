@@ -8,11 +8,6 @@ from django.utils.translation import gettext_lazy as _
 from django.forms import Textarea
 from django.db.models import QuerySet
 import requests
-from django.template.defaultfilters import truncatechars
-from django.shortcuts import render
-from django.conf import settings
-import json
-import platform
 
 
 class DGFAdminSite(AdminSite):
@@ -29,11 +24,11 @@ dgf_admin = DGFAdminSite(name='dgf_admin')
 
 class RulesInline(admin.TabularInline):
     model = Rule
-    extra = 0
+    extra = 1
     list_display = ('name', 'rule_link', 'value', 'description', 'metadata')
     readonly_fields = ('name', 'rule_link', 'value', 'description', 'metadata')
     formfield_overrides = {
-        models.TextField: {'widget': Textarea(attrs={'rows': 5, 'cols': 100})},
+        models.TextField: {'widget': Textarea(attrs={'rows': 3})},
     }
 
     def rule_link(self, rule: Rule):
@@ -47,7 +42,7 @@ class MetadataAdmin(admin.ModelAdmin):
     ordering = ['name']
     inlines = (RulesInline,)
     formfield_overrides = {
-        models.TextField: {'widget': Textarea(attrs={'rows': 5, 'cols': 100})},
+        models.TextField: {'widget': Textarea(attrs={'rows': 3})},
     }
 
     def metadata_rules(self, metadata: Metadata):
@@ -64,139 +59,58 @@ class MetadataAdmin(admin.ModelAdmin):
 
 # @admin.register(Role)
 class RoleAdmin(admin.ModelAdmin):
-    list_display = ('name', 'rule_list', 'source', 'description')
+    list_display = ('name', 'rule_list', 'description')
     # list_filter = ('name',)
     search_fields = ('name',)
     filter_horizontal = ('rule',)
     ordering = ['name']
     # inlines = (RuleInline,)
-    actions = ['send_roles', 'get_roles_from_proxy', 'check_role']
+    actions = ['send_role']
     formfield_overrides = {
-        models.TextField: {'widget': Textarea(attrs={'rows': 5, 'cols': 100})},
+        models.TextField: {'widget': Textarea(attrs={'rows': 3})},
     }
 
     def rule_list(self, obj):
         return ', '.join([rule.name for rule in obj.rule.all()])
 
-
-    @admin.action(description='Check Role on the Proxy')
-    def check_role(self, request, roles: QuerySet):
-        proxy_host = settings.PROXY_HOST
-        username = request.user.username
-
-        try:
-            user = OktaUser.objects.get(username=username)
-            access_token = user.access_token
-        except OktaUser.DoesNotExist:
-            return None
-
-        # rules_to_send = []
-        data = {}
-        # for role in roles:
-        role = roles[0]
-        role_id = role.okta_id
-        # rules = role.rule.all()
-        # for rule in rules:
-        #     data[f"{rule.metadata}"] = f"{rule.value}"
-
-        payload = {
-            "query": """
-                        GetRole($getRoleId: String!) {
-                            getRole(id: $getRoleId) {
-                                name
-                                attrs
-                                id
-                            }
-                        }
-                    """,
-            "variables": {
-                "getRoleId": role_id
-            }
-        }
-
-        context = {
-            'auth_token': access_token,
-            'proxy_host': proxy_host,
-            'payload': json.dumps(payload),  # Перетворюємо payload в JSON рядок
-            'role_id': role_id
-        }
-
-        return render(request, 'storage/check_role.html', context)
-
-
     @admin.action(description='Send Role`s rules to the Proxy')
-    def send_roles(self, request, roles: QuerySet):
-        proxy_host = settings.PROXY_HOST
-        username = request.user.username
-
-        try:
-            user = OktaUser.objects.get(username=username)
-            access_token = user.access_token
-        except OktaUser.DoesNotExist:
-            return None
-
-        rules_to_send = []
-        data = {}
-        # for role in roles:
-        role = roles[0]
-        role_patch_id = role.okta_id
-        rules = role.rule.all()
-        for rule in rules:
-            data[f"{rule.metadata}"] = f"{rule.value}"
-
-        payload = {
-            "query": """
-                        mutation RolePatch($input: PatchRoleInput!, $rolePatchId: String!) {
-                            rolePatch(input: $input, id: $rolePatchId) {
-                                attrs
-                                id
-                            }
-                        }
-                    """,
-            "variables": {
-                "input": {
-                    "attrs": data  # Перетворюємо на JSON
-                },
-                "rolePatchId": role_patch_id
+    def send_role(self, request, roles: QuerySet):
+        url = 'http://proxy.test.url'
+        count_updated = 0
+        count_not_updated = 0
+        for role in roles:
+            rules = role.rule.all()
+            rules_string = ''
+            var_counter = 1
+            for rule in rules:
+                rules_string = rules_string + f"&var{var_counter}=dashboard.variables['{rule.metadata}']&val{var_counter}='{rule.value}'"
+                var_counter += 1
+            # print(rules_string)
+            data = {
+                'role': role.name,
+                'rules': rules_string
             }
-        }
-
-        context = {
-            'auth_token': access_token,
-            'proxy_host': proxy_host,
-            'payload': json.dumps(payload),  # Перетворюємо payload в JSON рядок
-            'role_patch_id': role_patch_id
-        }
-
-        return render(request, 'storage/send_roles.html', context)
-
-
-    @admin.action(description='Get Roles from Proxy')
-    def get_roles_from_proxy(self, request, queryset: QuerySet):
-        # Отримання параметрів із сесії
-        # auth_token = request.session.get('auth_token', '')
-        proxy_host = settings.PROXY_HOST
-        username = request.user.username
-        try:
-            if username == "admin" and platform.system() != "Windows":
-                user = OktaUser.objects.get(username="n.hamed@bankaletihad.com")
-                access_token = user.access_token
-            else:
-                user = OktaUser.objects.get(username=username)
-                access_token = user.access_token
-        except OktaUser.DoesNotExist:
-            return None
-
-        # Контекст для передачі в шаблон
-        user_name = user.username
-        context = {
-            'auth_token': access_token,
-            'proxy_host': proxy_host,
-            'user_name': user_name,
-        }
-
-        # Рендеринг сторінки get_roles.html з параметрами
-        return render(request, 'storage/get_roles.html', context)
+            try:
+                response = requests.post(url, json=data)
+                if response.status_code == 200:
+                    count_updated += 1
+                else:
+                    count_not_updated += 1
+            except Exception as e:
+                count_not_updated += 1
+                # print("Something went wrong:", e)
+        # count_updated = roles.update()
+        if count_updated == 0:
+            self.message_user(
+                request,
+                f"{count_updated} Role(s) have been sent to the Proxy. {count_not_updated} was not updated.",
+                messages.ERROR
+            )
+        else:
+            self.message_user(
+                request,
+                f"{count_updated} Role(s) have been sent to the Proxy. {count_not_updated} was not updated."
+            )
 
 
 class RuleAdmin(admin.ModelAdmin):
@@ -204,21 +118,20 @@ class RuleAdmin(admin.ModelAdmin):
     list_filter = ('metadata',)
     search_fields = ('name',)
     formfield_overrides = {
-        models.TextField: {'widget': Textarea(attrs={'rows': 5, 'cols': 100})},
+        models.TextField: {'widget': Textarea(attrs={'rows': 3})},
     }
 
 
 class FieldAdmin(admin.ModelAdmin):
     list_display = (
-        'field_alias', 'field_erd', 'field_source_type', 'field_source_url', 'field_name', 'metadata', 'placeholder',
-        'field_value', 'field_function', 'function_field_list', 'field_list_url', 'source_list_url', 'field_description')
-    list_filter = ('metadata', 'field_list', 'source_list')
+        'field_alias', 'field_erd', 'field_source_type', 'field_source_url', 'field_name', 'metadata', 'field_value',
+        'field_function', 'function_field_list', 'field_list_url', 'source_list_url', 'field_description')
+    list_filter = ('metadata', 'field_list', 'source_list', 'id')
     search_fields = ('field_alias', 'field_name', 'field_description')
     list_editable = ['metadata']
     formfield_overrides = {
-        models.TextField: {'widget': Textarea(attrs={'rows': 3, 'cols': 100})},
+        models.TextField: {'widget': Textarea(attrs={'rows': 3})},
     }
-    # actions = ['make_query']
 
     def field_erd(self, field: Field):
         return format_html(
@@ -234,38 +147,25 @@ class FieldAdmin(admin.ModelAdmin):
     def source_list_url(self, field: Field):
         if field.source_list != None:
             return format_html(
-                # f"<a href=\"/admin/storage/source/{str(field.source_list.id)}/ \"target=\"_blank\">{field.source_list}</a>")
-                f"<a href=\"/admin/storage/source/?source_union_list__id__exact={str(field.source_list.id)} \"target=\"_blank\">{field.source_list}</a>")
+                f"<a href=\"/admin/storage/source/{str(field.source_list.id)}/ \"target=\"_blank\">{field.source_list}</a>")
         else:
             return "-"
 
     def field_list_url(self, field: Field):
         return format_html(
-            # f"<a href=\"/admin/storage/source/{str(field.field_list.id)}/ \"target=\"_blank\">{field.field_list}</a>")
-            f"<a href=\"/admin/storage/field/?field_list__id__exact={str(field.field_list.id)} \"target=\"_blank\">{field.field_list}</a>")
-
-    # @admin.action(description='Make a Query')
-    # def make_query(self, request, fields: QuerySet):
-    #     field_set = []
-    #     for field in fields:
-    #         field_set.append(field.field_name)
-    #
-    #     return
+            f"<a href=\"/admin/storage/source/{str(field.field_list.id)}/ \"target=\"_blank\">{field.field_list}</a>")
 
 
 class FieldsInline(admin.TabularInline):
     model = Field
-    extra = 0
-    # list_display = [
-    #     'field_link', 'field_erd', 'field_source_type', 'field_source', 'field_name', 'metadata', 'field_value',
-    #     'field_function', 'function_field_list', 'field_list', 'source_list', 'field_description']
+    extra = 1
+    list_display = [
+        'field_link', 'field_erd', 'field_source_type', 'field_source', 'field_name', 'metadata', 'field_value',
+        'field_function', 'function_field_list', 'field_list', 'source_list', 'field_description']
     readonly_fields = [
         'field_link', 'field_alias', 'field_erd', 'field_source_type', 'field_source', 'field_name', 'metadata',
         'field_value',
         'field_function', 'function_field_list', 'field_list', 'source_list', 'field_description']
-    formfield_overrides = {
-        models.TextField: {'widget': Textarea(attrs={'rows': 3, 'cols': 50})},
-    }
 
     def field_erd(self, field: Field):
         return format_html(
@@ -296,16 +196,15 @@ class FieldListAdmin(admin.ModelAdmin):
 
 class SourcesInline(admin.TabularInline):
     model = Source
-    extra = 0
+    extra = 1
     fk_name = 'source_union_list'
     list_display = (
         'source_alias', 'source_union_list_url', 'source_type', 'query_name', 'source_list_url', 'table_name', 'source_system',
         'source_scheme', 'union_type', 'union_condition', 'source_description')
-    readonly_fields = [field.name for field in Source._meta.fields]
-    # readonly_fields = (
-    #     'source_alias', 'source_union_list_url', 'source_type', 'query_name', 'source_list', 'table_name',
-    #     'source_system',
-    #     'source_scheme', 'union_type', 'union_condition', 'source_description')
+    readonly_fields = (
+        'source_alias', 'source_union_list_url', 'source_type', 'query_name', 'source_list', 'table_name',
+        'source_system',
+        'source_scheme', 'union_type', 'union_condition', 'source_description')
     # list_filter = ('source_union_list', 'source_type', 'table_name', 'source_system', 'source_scheme')
     # search_fields = ('source_alias', 'source_description')
 
@@ -331,7 +230,6 @@ class SourcesInline(admin.TabularInline):
 class SourceListAdmin(admin.ModelAdmin):
     list_display = ('source_list', 'datasource_url', 'source_list_description')
     search_fields = ('source_list', 'source_list_description')
-    list_filter = ('source_list',)
     inlines = (SourcesInline,)
     formfield_overrides = {
         models.TextField: {'widget': Textarea(attrs={'rows': 3})},
@@ -348,13 +246,11 @@ class QueryAdmin(admin.ModelAdmin):
     # fields = (
     #     'query_name', 'erd', 'field_list_url', 'source_list_url', 'query_conditions', 'query_alias', 'query_description')
     list_display = (
-        'query_name', 'erd', 'field_list_url', 'source_list_url', 'query_conditions_short', 'query_alias', 'query_description_short')
-    list_filter = ('reports__report_name',)
+        'query_name', 'erd', 'field_list_url', 'source_list_url', 'query_conditions', 'query_alias', 'query_description')
     search_fields = ('query_name', 'query_alias', 'query_description')
     formfield_overrides = {
-        models.TextField: {'widget': Textarea(attrs={'rows': 5, 'cols': 100})},
+        models.TextField: {'widget': Textarea(attrs={'rows': 3})},
     }
-    actions = ['make_query']
 
     def erd(self, query: Query):
         return format_html(
@@ -376,134 +272,38 @@ class QueryAdmin(admin.ModelAdmin):
         else:
             return "-"
 
-    def query_conditions_short(self, obj: Query):
-        return format_html("<span title='{}'>{}</span>", obj.query_conditions, truncatechars(obj.query_conditions, 50))
-
-    def query_description_short(self, obj: Query):
-        return format_html("<span title='{}'>{}</span>", obj.query_description, truncatechars(obj.query_description, 50))
-
-
     field_list_url.short_description = "FIELD LIST"
     source_list_url.short_description = "SOURCE LIST"
-    query_conditions_short.short_description = "QUERY CONDITION"
-
-    @admin.action(description='Make a Query')
-    def make_query(self, request, queries: QuerySet):
-        query_set = []
-        for query in queries:
-            field_list_id = query.field_list_id
-            query_body = query.query_body
-            query_body = query_body.replace(";", "")
-            query_description = query.query_description
-            fields = Field.objects.filter(field_list_id=field_list_id)
-            field_set = []
-            for field in fields:
-                field_set.append((field.field_name if field.field_name else field.field_alias,
-                                  field.field_description if field.field_description else "",
-                                  field.placeholder if field.placeholder else ""))  # if field.field_description else ""
-            query_set.append({'field_set': field_set,
-            'query_description': query_description,
-            'query_body': query_body})
-
-        return render(request, 'storage/sql_create.html', {
-            'query_set': query_set
-            # 'field_set': field_set,
-            # 'query_description': query_description,
-            # 'query_body': query_body
-        })
-
-class ReportVersionInline(admin.TabularInline):
-    model = ReportVersion
-    extra = 0
-    fields = ['version', 'report_query']
-    readonly_fields = [field.name for field in ReportVersion._meta.fields]
-
 
 class ReportAdmin(admin.ModelAdmin):
     list_display = (
-        'report_name', 'erd', 'report_query_url', 'report_description_short', 'report_url', 'ver',
-        'change_description_short', 'change_date', 'changed_by')
+        'report_name', 'erd', 'field_list_url', 'source_list_url', 'report_description', 'report_url', 'version',
+        'change_description', 'change_date', 'changed_by')
     search_fields = ('report_name', 'report_description', 'report_url', 'change_description')
-    list_filter = ('report_name',)
     formfield_overrides = {
-        models.TextField: {'widget': Textarea(attrs={'rows': 3, 'cols': 100})},
+        models.TextField: {'widget': Textarea(attrs={'rows': 3})},
     }
-    inlines = (ReportVersionInline,)
-    # actions = ['get_reports_from_proxy']
-
-    def ver(self, report: Report):
-        if report.version != None:
-            return format_html(
-                f"<a href=\"/admin/storage/reportversion/?report__id__exact={str(report.id)} \"target=\"_blank\">{report.version}</a>")
-        else:
-            return "-"
-
-    def report_query_url(self, report: Report):
-        if report.report_query != None:
-            return format_html(
-                f"<a href=\"/admin/storage/query/?id={str(report.report_query.id)} \"target=\"_blank\">{report.report_query}</a>")
-        else:
-            return "-"
 
     def erd(self, report: Report):
-        if report.report_query:
+        return format_html(
+            f"<a href=\"/dm/diagram/query/{str(report.id)}/\" target=\"_blank\">ERD</a>")
+
+    def field_list_url(self, report: Report):
+        if report.field_list != None:
             return format_html(
-                f"<a href=\"/dm/diagram/query/{str(report.report_query.id)}/\" target=\"_blank\">ERD</a>")
+                f"<a href=\"/admin/storage/field/?field_list__id__exact={str(report.field_list.id)} \"target=\"_blank\">{report.field_list}</a>")
         else:
             return "-"
 
-    def change_description_short(self, obj: Report):
-        return format_html("<span title='{}'>{}</span>", obj.change_description, truncatechars(obj.change_description, 50))
-    change_description_short.short_description = "CHANGE DESCRIPTION"
+    def source_list_url(self, report: Report):
+        if report.source_list != None:
+            return format_html(
+                f"<a href=\"/admin/storage/source/?source_union_list__id__exact={str(report.source_list.id)} \"target=\"_blank\">{report.source_list}</a>")
+        else:
+            return "-"
 
-    def report_description_short(self, obj: Report):
-        return format_html("<span title='{}'>{}</span>", obj.report_description, truncatechars(obj.report_description, 50))
-    report_description_short.short_description = "REPORT DESCRIPTION"
-
-
-class ReportVersionAdmin(admin.ModelAdmin):
-    list_display = (
-        'report', 'version', 'report_query', 'version_description_short', 'script_short')
-    search_fields = ('report', 'report_query')
-    list_filter = ['report']
-    actions = ['versions_compare']
-    formfield_overrides = {
-        models.TextField: {'widget': Textarea(attrs={'rows': 5, 'cols': 100})},
-    }
-
-    def version_description_short(self, obj: ReportVersion):
-        return format_html("<span title='{}'>{}</span>", obj.version_description, truncatechars(obj.version_description, 50))
-
-    version_description_short.short_description = "VERSION DESCRIPTION"
-
-    def script_short(self, obj: ReportVersion):
-        return format_html("<span title='{}'>{}</span>", obj.script, truncatechars(obj.script, 50))
-
-    script_short.short_description = "SCRIPT"
-
-    @admin.action(description='Compare versions (select only two versions)')
-    def versions_compare(self, request, queries: QuerySet):
-        # selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
-        selected = queries
-        if len(selected) != 2:
-            self.message_user(request, 'Please select exactly two versions to compare.')
-            return
-
-        new_object = selected[0]
-        old_object = selected[1]
-        # report_version_1 = ReportVersion.objects.get(id=selected[0])
-        new_query = new_object.script
-        new_version = str(new_object)
-        # report_version_2 = ReportVersion.objects.get(id=selected[1])
-        old_query = old_object.script
-        old_version = str(old_object)
-
-        return render(request, 'storage/sql_matching.html', {
-            'old_query': old_query,
-            'new_query': new_query,
-            'old_version': old_version,
-            'new_version': new_version
-        })
+    field_list_url.short_description = "FIELD LIST"
+    source_list_url.short_description = "SOURCE LIST"
 
 class SourceAdmin(admin.ModelAdmin):
     list_display = (
@@ -512,7 +312,7 @@ class SourceAdmin(admin.ModelAdmin):
     list_filter = ('source_union_list', 'source_type', 'table_name', 'source_system', 'source_scheme')
     search_fields = ('source_alias', 'source_description')
     formfield_overrides = {
-        models.TextField: {'widget': Textarea(attrs={'rows': 5, 'cols': 100})},
+        models.TextField: {'widget': Textarea(attrs={'rows': 3})},
     }
 
 
@@ -534,46 +334,6 @@ class SourceAdmin(admin.ModelAdmin):
     source_union_list_url.short_description = "SOURCE UNION LIST"
 
 
-class ProxyReportAdmin(admin.ModelAdmin):
-    list_display = ('name', 'report_id', 'link', 'dgf_report_link', 'description')
-    search_fields = ('report_id','name', 'link', 'dgf_report', 'description')
-    actions = ['get_reports_from_proxy']
-
-    def dgf_report_link(self, report: ProxyReport):
-        if report.dgf_report != None:
-            return format_html(
-                f"<a href=\"/storage/report/?report_name={str(report.dgf_report)} \"target=\"_blank\">{report.dgf_report}</a>")
-        else:
-            return "-"
-
-    @admin.action(description='Get Reports from Proxy')
-    def get_reports_from_proxy(self, request, queryset: QuerySet):
-        # Отримання параметрів із сесії
-        # auth_token = request.session.get('auth_token', '')
-        proxy_host = settings.PROXY_HOST
-        username = request.user.username
-        try:
-            if username == "admin" and platform.system() != "Windows":
-                user = OktaUser.objects.get(username="n.hamed@bankaletihad.com")
-                access_token = user.access_token
-            else:
-                user = OktaUser.objects.get(username=username)
-                access_token = user.access_token
-        except OktaUser.DoesNotExist:
-            return None
-
-        # Контекст для передачі в шаблон
-        user_name = user.username
-        context = {
-            'auth_token': access_token,
-            'proxy_host': proxy_host,
-            'user_name': user_name,
-        }
-
-        # Рендеринг сторінки get_roles.html з параметрами
-        return render(request, 'storage/get_reports.html', context)
-
-
 admin.site.register(UnionType)
 admin.site.register(SourceSystem)
 admin.site.register(SourceScheme)
@@ -583,12 +343,9 @@ admin.site.register(FieldList, FieldListAdmin)
 admin.site.register(Field, FieldAdmin)
 admin.site.register(Query, QueryAdmin)
 admin.site.register(Report, ReportAdmin)
-admin.site.register(ReportVersion, ReportVersionAdmin)
 admin.site.register(Metadata, MetadataAdmin)
 admin.site.register(Role, RoleAdmin)
 admin.site.register(Rule, RuleAdmin)
-admin.site.register(ProxyReport, ProxyReportAdmin)
-admin.site.register(OktaUser)
 
 dgf_admin.register(SourceList, SourceListAdmin)
 dgf_admin.register(Source, SourceAdmin)
@@ -596,9 +353,6 @@ dgf_admin.register(FieldList, FieldListAdmin)
 dgf_admin.register(Field, FieldAdmin)
 dgf_admin.register(Query, QueryAdmin)
 dgf_admin.register(Report, ReportAdmin)
-dgf_admin.register(ReportVersion, ReportVersionAdmin)
 dgf_admin.register(Metadata, MetadataAdmin)
 dgf_admin.register(Role, RoleAdmin)
 dgf_admin.register(Rule, RuleAdmin)
-dgf_admin.register(ProxyReport, ProxyReportAdmin)
-dgf_admin.register(OktaUser)
