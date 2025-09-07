@@ -1,0 +1,407 @@
+2024-11-07 13:08:58 [WARNING] - Not Found: /favicon.ico
+2024-11-07 13:08:59 [WARNING] - Not Found: /favicon.ico
+2024-11-07 13:09:00 [WARNING] - Not Found: /favicon.ico
+2024-11-07 13:09:12 [WARNING] - Not Found: /favicon.ico
+2024-11-07 13:11:04 [WARNING] - Not Found: /favicon.ico
+2024-11-07 13:11:05 [WARNING] - Not Found: /favicon.ico
+2024-11-07 13:11:06 [WARNING] - Not Found: /favicon.ico
+2024-11-07 13:17:30 [WARNING] - Not Found: /favicon.ico
+2024-11-07 13:17:31 [WARNING] - Not Found: /favicon.ico
+2024-12-29 16:27:34 [INFO] - D:\DEV\DICEUS\dgFramework\dgFramework\settings.py changed, reloading.
+2025-07-21 09:36:52 [WARNING] - Not Found: /favicon.ico
+2025-07-21 09:37:11 [DEBUG] - Starting new HTTPS connection (1): dev-04812975.okta.com:443
+2025-07-21 09:37:12 [DEBUG] - https://dev-04812975.okta.com:443 "GET /oauth2/v1/userinfo HTTP/1.1" 200 None
+2025-07-21 09:37:34 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 09:37:48 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 10:01:04 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 10:01:18 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 10:01:40 [DEBUG] - Starting new HTTPS connection (1): dev-04812975.okta.com:443
+2025-07-21 10:01:41 [DEBUG] - https://dev-04812975.okta.com:443 "GET /oauth2/v1/userinfo HTTP/1.1" 200 None
+2025-07-21 10:01:42 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 10:01:52 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 10:02:21 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 10:08:49 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 10:08:55 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 10:09:00 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 10:41:05 [INFO] - D:\DEV\DICEUS\dgFramework\storage\admin.py changed, reloading.
+2025-07-21 10:48:09 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 11:00:11 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 11:00:21 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 11:00:23 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 11:00:29 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 11:00:39 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 11:00:44 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 11:01:00 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 11:01:02 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 11:01:09 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 11:01:15 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 11:01:55 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 11:01:57 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 11:02:09 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 11:02:12 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 11:02:18 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 11:02:20 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 11:02:56 [DEBUG] - Starting new HTTPS connection (1): dev-04812975.okta.com:443
+2025-07-21 11:02:57 [DEBUG] - https://dev-04812975.okta.com:443 "GET /oauth2/v1/userinfo HTTP/1.1" 200 None
+2025-07-21 11:02:57 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 11:03:00 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 11:03:06 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 11:03:10 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 11:03:26 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 11:03:28 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 11:04:54 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 15:23:37 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 15:23:45 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 15:23:54 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 15:24:13 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 15:24:19 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 15:24:38 [DEBUG] - Starting new HTTPS connection (1): dev-04812975.okta.com:443
+2025-07-21 15:24:39 [DEBUG] - https://dev-04812975.okta.com:443 "GET /oauth2/v1/userinfo HTTP/1.1" 200 None
+2025-07-21 15:24:39 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 15:24:42 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 15:24:50 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 15:24:55 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 15:25:03 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 15:27:25 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 15:27:30 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 15:44:03 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 15:44:08 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 15:44:17 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 15:51:41 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 15:51:42 [WARNING] - Not Found: /favicon.ico
+2025-07-21 15:51:59 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 15:52:34 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 15:52:49 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 15:52:54 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 15:52:57 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 15:52:59 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 15:53:10 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 15:53:13 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 15:56:30 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 15:56:37 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 15:56:45 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-21 15:57:05 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-26 17:36:53 [WARNING] - Not Found: /favicon.ico
+2025-07-26 17:40:13 [DEBUG] - Starting new HTTPS connection (1): dev-04812975.okta.com:443
+2025-07-26 17:40:14 [DEBUG] - https://dev-04812975.okta.com:443 "GET /oauth2/v1/userinfo HTTP/1.1" 200 None
+2025-07-26 18:03:34 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-26 18:29:12 [INFO] - D:\DEV\DICEUS\dgFramework\storage\urls.py changed, reloading.
+2025-07-26 20:07:12 [INFO] - D:\DEV\DICEUS\dgFramework\storage\admin.py changed, reloading.
+2025-07-26 20:11:02 [ERROR] - Internal Server Error: /admin/storage/proxyreport/add/
+Traceback (most recent call last):
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\contrib\admin\options.py", line 718, in wrapper
+    return self.admin_site.admin_view(view)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\utils\decorators.py", line 188, in _view_wrapper
+    result = _process_exception(request, e)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\utils\decorators.py", line 186, in _view_wrapper
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\views\decorators\cache.py", line 80, in _view_wrapper
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\contrib\admin\sites.py", line 241, in inner
+    return view(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\contrib\admin\options.py", line 1959, in add_view
+    return self.changeform_view(request, None, form_url, extra_context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\utils\decorators.py", line 48, in _wrapper
+    return bound_method(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\utils\decorators.py", line 188, in _view_wrapper
+    result = _process_exception(request, e)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\utils\decorators.py", line 186, in _view_wrapper
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\contrib\admin\options.py", line 1818, in changeform_view
+    return self._changeform_view(request, object_id, form_url, extra_context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\contrib\admin\options.py", line 1875, in _changeform_view
+    self.log_addition(request, new_object, change_message)
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\contrib\admin\options.py", line 952, in log_addition
+    return LogEntry.objects.log_actions(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\contrib\admin\models.py", line 80, in log_actions
+    log_entry_list = [
+                     ^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\contrib\admin\models.py", line 87, in <listcomp>
+    object_repr=str(obj)[:200],
+                ^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\storage\models.py", line 196, in __str__
+    return self.report_name
+           ^^^^^^^^^^^^^^^^
+AttributeError: 'ProxyReport' object has no attribute 'report_name'
+2025-07-26 20:11:48 [INFO] - D:\DEV\DICEUS\dgFramework\storage\models.py changed, reloading.
+2025-07-26 20:20:06 [INFO] - D:\DEV\DICEUS\dgFramework\storage\admin.py changed, reloading.
+2025-07-26 20:23:04 [DEBUG] - Starting new HTTPS connection (1): dev-04812975.okta.com:443
+2025-07-26 20:23:05 [DEBUG] - https://dev-04812975.okta.com:443 "GET /oauth2/v1/userinfo HTTP/1.1" 200 None
+2025-07-26 20:23:05 [DEBUG] - Starting new HTTPS connection (1): dev-04812975.okta.com:443
+2025-07-26 20:23:06 [DEBUG] - https://dev-04812975.okta.com:443 "GET /oauth2/v1/userinfo HTTP/1.1" 200 None
+2025-07-26 20:24:49 [DEBUG] - Starting new HTTPS connection (1): dev-04812975.okta.com:443
+2025-07-26 20:24:50 [DEBUG] - https://dev-04812975.okta.com:443 "GET /oauth2/v1/userinfo HTTP/1.1" 200 None
+2025-07-26 20:25:10 [DEBUG] - Using proactor: IocpProactor
+2025-07-26 20:25:38 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-26 20:35:29 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-27 10:52:24 [WARNING] - Not Found: /favicon.ico
+2025-07-27 10:52:55 [DEBUG] - Starting new HTTPS connection (1): dev-04812975.okta.com:443
+2025-07-27 10:52:56 [DEBUG] - https://dev-04812975.okta.com:443 "GET /oauth2/v1/userinfo HTTP/1.1" 200 None
+2025-07-27 10:53:11 [WARNING] - Forbidden (CSRF token missing.): /storage/save_reports/
+2025-07-27 10:53:14 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-27 10:56:04 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-27 10:56:49 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-27 10:56:50 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-27 10:57:34 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-27 10:57:35 [WARNING] - Forbidden (CSRF token missing.): /storage/save_reports/
+2025-07-27 10:57:38 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-27 10:58:10 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-27 11:02:57 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-27 11:02:58 [WARNING] - Forbidden (CSRF token missing.): /storage/save_reports/
+2025-07-27 11:04:16 [WARNING] - Not Found: /storage/save_reports/
+2025-07-27 11:09:19 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-27 11:10:11 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-27 11:10:15 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-27 11:10:16 [WARNING] - Not Found: /storage/save_reports/
+2025-07-27 11:11:12 [INFO] - D:\DEV\DICEUS\dgFramework\storage\urls.py changed, reloading.
+2025-07-27 11:11:40 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-27 11:11:46 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-27 11:12:00 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-27 11:12:01 [ERROR] - Internal Server Error: /storage/save_reports/
+2025-07-27 11:12:28 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-27 11:13:10 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-27 11:13:15 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-27 11:13:17 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-27 11:13:29 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-27 11:13:31 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-27 11:15:57 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-27 11:16:23 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-27 11:16:25 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-27 11:28:55 [INFO] - D:\DEV\DICEUS\dgFramework\storage\views.py changed, reloading.
+2025-07-27 12:30:41 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-27 12:31:16 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-27 12:31:27 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-27 12:31:39 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-27 12:32:00 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-27 12:33:26 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-27 12:33:31 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-27 12:33:44 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-27 12:33:55 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-27 12:33:58 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-27 12:34:18 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-27 12:34:45 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-27 12:35:55 [INFO] - D:\DEV\DICEUS\dgFramework\storage\admin.py changed, reloading.
+2025-07-27 12:36:41 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-27 12:37:27 [INFO] - D:\DEV\DICEUS\dgFramework\storage\models.py changed, reloading.
+2025-07-27 12:39:22 [INFO] - D:\DEV\DICEUS\dgFramework\storage\admin.py changed, reloading.
+2025-07-27 12:39:28 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-07-27 12:42:58 [INFO] - D:\DEV\DICEUS\dgFramework\storage\admin.py changed, reloading.
+2025-07-27 12:45:52 [INFO] - D:\DEV\DICEUS\dgFramework\storage\admin.py changed, reloading.
+2025-07-27 12:47:22 [INFO] - D:\DEV\DICEUS\dgFramework\storage\admin.py changed, reloading.
+2025-07-27 12:47:51 [INFO] - D:\DEV\DICEUS\dgFramework\storage\admin.py changed, reloading.
+2025-07-27 12:48:28 [INFO] - D:\DEV\DICEUS\dgFramework\storage\admin.py changed, reloading.
+2025-07-27 12:48:45 [ERROR] - Internal Server Error: /storage/proxyreport/
+Traceback (most recent call last):
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\db\models\options.py", line 676, in get_field
+    return self.fields_map[field_name]
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^
+KeyError: 'dgf_report_link'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\contrib\admin\utils.py", line 290, in lookup_field
+    f = _get_non_gfk_field(opts, name)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\contrib\admin\utils.py", line 330, in _get_non_gfk_field
+    field = opts.get_field(name)
+            ^^^^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\db\models\options.py", line 678, in get_field
+    raise FieldDoesNotExist(
+django.core.exceptions.FieldDoesNotExist: ProxyReport has no field named 'dgf_report_link'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\core\handlers\base.py", line 220, in _get_response
+    response = response.render()
+               ^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\template\response.py", line 114, in render
+    self.content = self.rendered_content
+                   ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\template\response.py", line 92, in rendered_content
+    return template.render(context, self._request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\template\base.py", line 1008, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\template\base.py", line 1008, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\template\base.py", line 1008, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\template\loader_tags.py", line 65, in render
+    result = block.nodelist.render(context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\template\base.py", line 1008, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\template\loader_tags.py", line 65, in render
+    result = block.nodelist.render(context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\template\base.py", line 1008, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\contrib\admin\templatetags\base.py", line 45, in render
+    return super().render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\template\library.py", line 258, in render
+    _dict = self.func(*resolved_args, **resolved_kwargs)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\contrib\admin\templatetags\admin_list.py", line 346, in result_list
+    "results": list(results(cl)),
+               ^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\contrib\admin\templatetags\admin_list.py", line 322, in results
+    yield ResultList(None, items_for_result(cl, res, None))
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\contrib\admin\templatetags\admin_list.py", line 313, in __init__
+    super().__init__(*items)
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\contrib\admin\templatetags\admin_list.py", line 218, in items_for_result
+    f, attr, value = lookup_field(field_name, result, cl.model_admin)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\venv\Lib\site-packages\django\contrib\admin\utils.py", line 299, in lookup_field
+    value = attr(obj)
+            ^^^^^^^^^
+  File "D:\DEV\DICEUS\dgFramework\storage\admin.py", line 508, in dgf_report_link
+    f"<a href=\"/storage/report/?report_name={str(report.name)} \"target=\"_blank\">{report.version}</a>")
+                                                                                     ^^^^^^^^^^^^^^
+AttributeError: 'ProxyReport' object has no attribute 'version'
+2025-07-27 12:49:10 [INFO] - D:\DEV\DICEUS\dgFramework\storage\admin.py changed, reloading.
+2025-07-27 12:50:58 [INFO] - D:\DEV\DICEUS\dgFramework\storage\admin.py changed, reloading.
+2025-07-27 13:50:00 [DEBUG] - Starting new HTTPS connection (1): dev-04812975.okta.com:443
+2025-07-27 13:50:01 [DEBUG] - https://dev-04812975.okta.com:443 "GET /oauth2/v1/userinfo HTTP/1.1" 200 None
+2025-07-27 13:50:32 [ERROR] - Internal Server Error: /storage/save_reports/
+2025-08-07 10:41:14 [WARNING] - Forbidden (CSRF token from POST incorrect.): /storage/proxyreport/
+2025-08-07 10:42:09 [DEBUG] - Starting new HTTPS connection (1): dev-04812975.okta.com:443
+2025-08-07 10:42:10 [DEBUG] - https://dev-04812975.okta.com:443 "GET /oauth2/v1/userinfo HTTP/1.1" 200 None
+2025-08-07 10:44:12 [ERROR] - Internal Server Error: /storage/save_reports/
+2025-08-07 10:48:10 [ERROR] - Internal Server Error: /storage/save_reports/
+2025-08-07 10:48:45 [ERROR] - Internal Server Error: /storage/save_reports/
+2025-08-07 10:48:55 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-08-07 10:50:34 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-08-07 10:50:48 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-08-07 10:50:50 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-08-07 10:51:12 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-08-07 10:51:19 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-08-07 10:51:23 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-08-07 10:51:27 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-08-07 10:52:07 [ERROR] - Internal Server Error: /storage/save_reports/
+2025-08-07 10:52:07 [ERROR] - Internal Server Error: /storage/save_reports/
+2025-08-07 10:52:22 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-08-07 10:52:55 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-08-07 10:52:57 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-08-07 10:53:05 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-08-07 10:56:09 [ERROR] - Internal Server Error: /storage/save_reports/
+2025-08-07 10:56:17 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-08-07 10:57:08 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-08-07 10:57:10 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-08-07 10:57:18 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-08-07 10:57:45 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-08-07 10:57:53 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-08-07 10:58:05 [ERROR] - Internal Server Error: /storage/save_reports/
+2025-08-07 11:45:47 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-08-07 11:45:56 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-08-07 11:45:58 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-08-07 11:46:05 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-08-07 11:46:13 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-08-07 11:46:32 [WARNING] - Forbidden (CSRF token from POST incorrect.): /logout/
+2025-08-09 10:45:14 [DEBUG] - Starting new HTTPS connection (1): dev-04812975.okta.com:443
+2025-08-09 10:45:15 [DEBUG] - https://dev-04812975.okta.com:443 "GET /oauth2/v1/userinfo HTTP/1.1" 200 None
+2025-08-09 10:45:16 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-08-09 10:45:19 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-08-09 10:45:29 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-08-09 10:45:32 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-08-09 10:46:52 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-08-09 10:46:55 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-08-09 10:46:59 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-08-09 10:47:04 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-08-09 10:47:08 [ERROR] - Internal Server Error: /storage/save_reports/
+2025-08-09 10:47:09 [ERROR] - Internal Server Error: /storage/save_reports/
+2025-08-09 10:47:11 [ERROR] - Internal Server Error: /storage/save_reports/
+2025-08-09 10:47:15 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-08-09 10:47:24 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-08-09 10:47:26 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-08-09 10:47:51 [INFO] - D:\DEV\DICEUS\dgFramework\storage\models.py changed, reloading.
+2025-08-09 10:51:29 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-08-09 10:51:32 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-08-09 10:51:35 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-08-09 10:51:38 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-08-09 10:51:52 [ERROR] - Internal Server Error: /storage/save_reports/
+2025-08-09 10:51:58 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-08-09 10:58:50 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-08-09 10:59:10 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-08-09 10:59:16 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-08-09 11:00:21 [WARNING] - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-08-09 11:00:43 [INFO] - D:\DEV\DICEUS\dgFramework\storage\models.py changed, reloading.
