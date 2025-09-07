@@ -25,13 +25,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-o!46yfbflocr&c9s3z8(azkfzrilj*z+c79g^5@!7xhu!(5s($')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# if platform.system() == "Windows":
-#     DEBUG = True
-# else:
+# if platform.system() == "Linux":
 #     DEBUG = False
+# else:
+#     DEBUG = True
 
-# DEBUG = False
-DEBUG = True
+DEBUG = False
+# DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 
@@ -46,8 +46,6 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "storage",
     "dm",
-    'corsheaders',
-    # 'mozilla_django_oidc',
     # "import",
 ]
 
@@ -59,22 +57,6 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    'whitenoise.middleware.WhiteNoiseMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    # 'mozilla_django_oidc.middleware.SessionRefresh',
-]
-
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8000",
-    "http://0.0.0.0:8000",
-    os.getenv('HOST', 'http://0.0.0.0:8000'),
-]
-
-CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:8000",
-    "http://0.0.0.0:8000",
-    os.getenv('HOST', 'http://0.0.0.0:8000'),
 ]
 
 ROOT_URLCONF = "dgFramework.urls"
@@ -100,52 +82,34 @@ WSGI_APPLICATION = "dgFramework.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-if platform.system() == "Windows":
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql_psycopg2",
-            "NAME": "dg_bae",
-            "USER": "postgres",
-            "PASSWORD": "postgres",
-            "HOST": "localhost",
-            "PORT": "5432"
-        }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': os.environ.get('DB_NAME', 'dg_bae'),  # Your database name
+        'USER': os.environ.get('DB_USER', 'postgres'),  # Your database user
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'postgres'),  # Your database password
+        'HOST': os.environ.get('DB_HOST', 'localhost'),  # Your database endpoint
+        'PORT': os.environ.get('DB_PORT', '5432'),  # Default PostgreSQL port
     }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql_psycopg2',
-            'NAME': os.environ.get('DB_NAME', 'dg_bae'),  # Your database name
-            'USER': os.environ.get('DB_USER', 'postgres'),  # Your database user
-            'PASSWORD': os.environ.get('DB_PASSWORD', 'postgres'),  # Your database password
-            'HOST': os.environ.get('DB_HOST', 'localhost'),  # Your database endpoint
-            'PORT': os.environ.get('DB_PORT', '5432'),  # Default PostgreSQL port
-        }
-    }
+}
 
 # DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-#         'NAME': os.getenv('DB_NAME', 'dg_bae'),  # Your database name
-#         'USER': os.getenv('DB_USER', 'postgres'),  # Your database user
-#         'PASSWORD': os.getenv('DB_PASSWORD', 'postgres'),  # Your database password
-#         'HOST': os.getenv('DB_HOST', 'localhost'),  # Your database endpoint
-#         'PORT': os.getenv('DB_PORT', '5432'),  # Default PostgreSQL port
-#     }
-# }
-
-
-# DATABASES = {
-#         "default": {
-#             "ENGINE": "django.db.backends.postgresql_psycopg2",
-#             "NAME": "dg_bae",
-#             "USER": "postgres",
-#             "PASSWORD": "postgres",
-#             "HOST": "localhost",
-#             "PORT": "5432"
+#         'default': {
+#             'ENGINE': 'django.db.backends.sqlite3',
+#             'NAME': BASE_DIR / 'db.sqlite3',
 #         }
 #     }
 
+ # DATABASES = {
+ #        "default": {
+ #            "ENGINE": "django.db.backends.postgresql_psycopg2",
+ #            "NAME": "dg_bae",
+ #            "USER": "postgres",
+ #            "PASSWORD": "postgres",
+ #            "HOST": "localhost",
+ #            "PORT": "5432"
+ #        }
+ #    }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -164,44 +128,6 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
-
-# AUTHENTICATION_BACKENDS = [
-#     'django.contrib.auth.backends.ModelBackend',
-#     'mozilla_django_oidc.auth.OIDCAuthenticationBackend',
-#     # 'storage.backends.MyOIDCAuthenticationBackend',
-# ]
-
-# OIDC Configuration
-# OIDC_RP_CLIENT_ID = '0oanqpsfn0yo3WI9I5d7'
-# OIDC_RP_CLIENT_ID = '0oans1us7gnfa6vcC5d7'
-# OIDC_RP_CLIENT_ID = '0oanssrjqw0KXnJuH5d7'
-# OIDC_RP_CLIENT_SECRET = '6B5rUhje-6OmVfPRvhQUGUty1DTbHCNJM2iXArkEQp10Ofj4m-mfdcqVAp6IEsgO'
-# OIDC_RP_CLIENT_SECRET = 'pCvz-c1hWbsRG9GDfE6j56beMMzcTmTAPP9XZRnn55_9bo144CN3s-84c8BSd7pJ'
-# OIDC_RP_CLIENT_SECRET = ''
-# OIDC_OP_AUTHORIZATION_ENDPOINT = 'https://dev-24630760.okta.com/oauth2/default/v1/authorize'
-# OIDC_OP_TOKEN_ENDPOINT = 'https://dev-24630760.okta.com/oauth2/default/v1/token'
-# OIDC_OP_USER_ENDPOINT = 'https://dev-24630760.okta.com/oauth2/default/v1/userinfo'
-# OIDC_OP_JWKS_ENDPOINT = 'https://dev-24630760.okta.com/oauth2/default/v1/keys'
-# OIDC_RP_SIGN_ALGO = 'RS256'
-# LOGIN_URL = '/authorization-code/callback'
-# LOGIN_URL = '/oidc/authenticate/'
-# http://localhost:8000/oidc/authenticate/
-# vTmPW3cF5Uv3p24
-
-if platform.system() == "Windows":
-    OKTA_DOMAIN = "https://dev-04812975.okta.com"
-    CLIENT_ID = "0oalk1pa5nk7rvIGq5d7"
-    PROXY_HOST = "https://bae-be.webarkit.com"
-
-else:
-    OKTA_DOMAIN = "https://eu-bankaletihad.okta.com"
-    CLIENT_ID = "0oanqdcd6k9nLoAp9417"
-    PROXY_HOST = "https://reports-govern.baelab.net/"
-    # PROXY_HOST = "https://reports-govern.bankaletihad.com"
-
-JWKS_URL = f"{OKTA_DOMAIN}/oauth2/v1/keys"
-
-LOGIN_URL = '/storage/login/'
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/

@@ -19,14 +19,12 @@ from django.urls import path, include
 from .settings import DEBUG, MEDIA_ROOT, MEDIA_URL
 from django.conf.urls.static import static
 from storage.admin import dgf_admin
-# from storage.views import MyOIDCAuthenticationCallbackView
 
 urlpatterns = [
-    # path('storage/login/', auth_views.LoginView.as_view(template_name='/templates/storage/login.html')),
     path("admin/", admin.site.urls),
     path("storage/", include('storage.urls')),
     path("dm/", include('dm.urls')),
-    path("", dgf_admin.urls),
+    path("", dgf_admin.urls)
 ]
 
 if DEBUG:
