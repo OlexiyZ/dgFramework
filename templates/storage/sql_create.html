@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SQL Builder</title>
+  {{ bootstrap_link|safe }}
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/sql/sql.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sql-formatter@13.0.0/dist/sql-formatter.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+    .wrap { display:flex; flex-direction:column; gap:16px; padding: 16px; }
+    .grid { display:flex; gap:20px; flex-direction: column; }
+    .left { flex: 1 1 auto; max-width: 100%; min-width: 0; }
+    .right { flex: 1 1 auto; min-width: 0; }
+    .frames { display:flex; gap:20px; flex-wrap:wrap; align-items:flex-start; }
+    .join-selector { margin: 0 10px; align-self: center; }
+    .join-selector select { min-width: 120px; }
+    .frame { flex: 1 1 360px; min-width: 320px; max-width: 560px; border: 1px solid #ddd; border-radius: 6px; padding: 12px; background: #fff; display:flex; flex-direction:column; }
+    .frame-header { height: 96px; overflow:auto; }
+    .frame-body { margin-top: 8px; }
+    .frame-index { color: #007bff; font-weight: bold; margin-right: 8px; }
+    .CodeMirror { height: 520px; border: 1px solid #ccc; font-size: 14px; }
+    button, input[type="text"], select { padding: 10px 14px; font-size: 14px; cursor: pointer; border: 1px solid #ccc; border-radius: 6px; background:#fff; }
+    button { background-color: #007bff; color: #fff; border-color:#007bff; }
+    button:hover { background-color: #0056b3; border-color:#0056b3; }
+    .form-check { display:flex; align-items:flex-start; gap:10px; margin-bottom: 8px; }
+    .form-check-label { display:flex; align-items:center; flex-wrap:wrap; gap:8px; }
+    .form-check-label input[type="text"][data-placeholder] { padding: 0px 6px; font-size: 12px; line-height: 1.2; height: 20px; }
+    .field-name { font-weight: 600; display:inline-flex; align-items:center; height:22px; line-height:22px; }
+    .field-desc { color:#666; font-size: 12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width: 60%; }
+    .controls { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    .toolbar { display:flex; align-items:center; justify-content:flex-end; gap:8px; margin-bottom:8px; }
+    .muted { color:#6c757d; font-size:12px; }
+    .sep { flex:1; }
+  </style>
+</head>
+<body>
+<header>
+  {{ nav_bar|safe }}
+</header>
+
+{% if query_set %}
+{% with current_query_description=query_set.0.query_description current_field_set=query_set.0.field_set current_query_body=query_set.0.query_body %}
+<div class="wrap">
+  <div class="controls">
+    <span class="sep"></span>
+    <label class="muted"><input type="checkbox" id="includeComments" checked> Add comments above columns</label>
+    <button id="buildBtn" type="button">Build SQL</button>
+  </div>
+
+  <div class="grid">
+    <!-- LEFT: поля -->
+      <div class="frames">
+        <div class="frame" data-query-body="{{ current_query_body|escape }}">
+        <div class="frame-header"><h5 style="margin:0 0 8px 0;"><span class="frame-index">1</span>. {{ current_query_description }}</h5></div>
+        <div class="frame-body">
+          <form id="fieldForm">
+            <div class="form-check" style="margin-bottom: 12px;">
+              <input class="form-check-input" type="checkbox" id="selectAll">
+              <label class="form-check-label" for="selectAll"><strong>Select All</strong></label>
+            </div>
+            {% for field_name, field_desc, placeholder in current_field_set %}
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="f{{ forloop.counter }}" value="{{ field_name }}" data-desc="{{ field_desc }}">
+              <label class="form-check-label" for="f{{ forloop.counter }}">
+                <span class="field-name">{{ field_name }}</span>
+                {% if placeholder %}
+                  <input type="text" id="t{{ forloop.counter }}" name="t{{ forloop.counter }}" maxlength="255" size="10" data-placeholder="{{ placeholder }}" placeholder="{{ placeholder }}">
+                {% endif %}
+                {% if field_desc %}
+                  <span class="field-desc">— {{ field_desc }}</span>
+                {% endif %}
+              </label>
+            </div>
+            {% endfor %}
+          </form>
+        </div>
+      </div>
+      {% for q in query_set|slice:"1:" %}
+      {% with idx=forloop.counter0|add:"1" %}
+      <div class="join-selector">
+        <select id="join_{{ idx }}" name="join_{{ idx }}">
+          <option value="">Select join...</option>
+          <option value="UNION">Unique Combined Results(UNION)</option>
+          <option value="UNION ALL">All Combined Results(UNION ALL)</option>
+          <option value="INTERSECT">Common Results Only(INTERSECT)</option>
+          <option value="MINUS">Exclusive Results(MINUS)</option>
+          <option value="">----------------------------------------</option>
+          <option value="INNER JOIN">Matching Records Only(INNER JOIN)</option>
+          <option value="LEFT JOIN">All from Left, Matches from Right(LEFT JOIN)</option>
+          <option value="RIGHT JOIN">All from Right, Matches from Left(RIGHT JOIN)</option>
+          <option value="FULL JOIN">All Records from Both(FULL JOIN)</option>
+          <option value="">----------------------------------------</option>
+          <option value="CROSS JOIN">All Possible Combinations(CROSS JOIN)</option>
+          <option value="OUTER JOIN">Include All, Even Without Matches (OUTER JOIN)</option>
+          <option value="NATURAL JOIN">Auto-Match by Same Columns(NATURAL JOIN)</option>
+          <option value="SELF JOIN">Table with Itself(SELF JOIN)</option>
+        </select>
+      </div>
+      <div class="frame" data-query-body="{{ q.query_body|escape }}">
+        <div class="frame-header"><h5 style="margin:0 0 8px 0;"><span class="frame-index">{{ idx }}</span>. {{ q.query_description }}</h5></div>
+        <div class="frame-body">
+          <form id="fieldForm_{{ idx }}">
+            <div class="form-check" style="margin-bottom: 12px;">
+              <input class="form-check-input" type="checkbox" id="selectAll_{{ idx }}">
+              <label class="form-check-label" for="selectAll_{{ idx }}"><strong>Select All</strong></label>
+            </div>
+            {% for field_name, field_desc, placeholder in q.field_set %}
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="f{{ idx }}_{{ forloop.counter }}" value="{{ field_name }}" data-desc="{{ field_desc }}">
+              <label class="form-check-label" for="f{{ idx }}_{{ forloop.counter }}">
+                <span class="field-name">{{ field_name }}</span>
+                {% if placeholder %}
+                  <input type="text" id="t{{ idx }}_{{ forloop.counter }}" name="t{{ idx }}_{{ forloop.counter }}" maxlength="255" size="10" data-placeholder="{{ placeholder }}" placeholder="{{ placeholder }}">
+                {% endif %}
+                {% if field_desc %}
+                  <span class="field-desc">— {{ field_desc }}</span>
+                {% endif %}
+              </label>
+            </div>
+            {% endfor %}
+          </form>
+        </div>
+      </div>
+      {% endwith %}
+      {% endfor %}
+    </div>
+
+    <!-- RIGHT: редактор -->
+    <div class="right">
+      <div class="toolbar">
+        <label for="dialectSelectRight" class="muted">Dialect:</label>
+        <select id="dialectSelectRight" title="SQL dialect">
+          <option value="auto" selected>Auto (Detect)</option>
+          <option value="sql">Generic SQL</option>
+          <option value="plsql">Oracle PL/SQL</option>
+          <option value="postgresql">PostgreSQL</option>
+          <option value="tsql">Microsoft SQL Server</option>
+          <option value="mysql">MySQL</option>
+          <option value="redshift">Amazon Redshift</option>
+          <option value="snowflake">Snowflake</option>
+        </select>
+        <button id="formatBtn2" type="button">Format</button>
+      </div>
+      <textarea id="sqlEditor"></textarea>
+    </div>
+  </div>
+</div>
+{% endwith %}
+{% else %}
+<div class="wrap">
+  <div class="controls">
+    <span class="sep"></span>
+    <label class="muted"><input type="checkbox" id="includeComments" checked> Add comments above columns</label>
+    <button id="buildBtn" type="button">Build SQL</button>
+  </div>
+
+  <div class="grid">
+    <!-- LEFT: поля -->
+      <div class="frames">
+        <div class="frame" data-query-body="{{ query_body|escape }}">
+        <div class="frame-header"><h5 style="margin:0 0 8px 0;"><span class="frame-index">1</span>. {{ query_description }}</h5></div>
+        <div class="frame-body">
+          <form id="fieldForm">
+            <div class="form-check" style="margin-bottom: 12px;">
+              <input class="form-check-input" type="checkbox" id="selectAll">
+              <label class="form-check-label" for="selectAll"><strong>Select All</strong></label>
+            </div>
+            {% for field_name, field_desc, placeholder in field_set %}
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="f{{ forloop.counter }}" value="{{ field_name }}" data-desc="{{ field_desc }}">
+              <label class="form-check-label" for="f{{ forloop.counter }}">
+                <span class="field-name">{{ field_name }}</span>
+                {% if placeholder %}
+                  <input type="text" id="t{{ forloop.counter }}" name="t{{ forloop.counter }}" maxlength="255" size="10" data-placeholder="{{ placeholder }}" placeholder="{{ placeholder }}">
+                {% endif %}
+                {% if field_desc %}
+                  <span class="field-desc">— {{ field_desc }}</span>
+                {% endif %}
+              </label>
+            </div>
+            {% endfor %}
+          </form>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: редактор -->
+    <div class="right">
+      <div class="toolbar">
+        <label for="dialectSelectRight" class="muted">Dialect:</label>
+        <select id="dialectSelectRight" title="SQL dialect">
+          <option value="auto" selected>Auto (Detect)</option>
+          <option value="sql">Generic SQL</option>
+          <option value="plsql">Oracle PL/SQL</option>
+          <option value="postgresql">PostgreSQL</option>
+          <option value="tsql">Microsoft SQL Server</option>
+          <option value="mysql">MySQL</option>
+          <option value="redshift">Amazon Redshift</option>
+          <option value="snowflake">Snowflake</option>
+        </select>
+        <button id="formatBtn2" type="button">Format</button>
+      </div>
+      <textarea id="sqlEditor"></textarea>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<script>
+  var editor = CodeMirror.fromTextArea(document.getElementById('sqlEditor'), {
+    mode: 'text/x-sql',
+    lineNumbers: true,
+    theme: 'default',
+    indentWithTabs: true,
+    smartIndent: true,
+    matchBrackets: true,
+    autofocus: true
+  });
+
+  function debounce(fn, wait){ var t; return function(){ clearTimeout(t); var ctx=this, args=arguments; t=setTimeout(function(){ fn.apply(ctx,args); }, wait); }; }
+
+  function codeMirrorModeFor(language) {
+    switch(language){
+      case 'plsql': return 'text/x-plsql';
+      case 'postgresql': return 'text/x-pgsql';
+      case 'tsql': return 'text/x-mssql';
+      case 'mysql': return 'text/x-mysql';
+      case 'redshift': return 'text/x-pgsql';
+      case 'snowflake': return 'text/x-sql';
+      default: return 'text/x-sql';
+    }
+  }
+
+  function detectDialect(sql) {
+    var s = (sql || '').toLowerCase();
+    if (/nvl\(|decode\(| from dual|connect by|start with| rownum|sysdate|systimestamp| merge into| minus /.test(s)) return 'plsql';
+    if (/::| returning | ilike | generate_series\(| now\(\)| jsonb| on conflict| distinct on /.test(s)) return 'postgresql';
+    if (/ top | newid\(\)| getdate\(\)| datediff\(| datename\(| nvarchar| nolock| go\n|sys\.objects/.test(s)) return 'tsql';
+    if (/`| unix_timestamp\(| ifnull\(| limit | auto_increment| now\(\)/.test(s)) return 'mysql';
+    return 'sql';
+  }
+
+  var includeCommentsEl = document.getElementById('includeComments');
+  var dialectSelectRight = document.getElementById('dialectSelectRight');
+
+  function currentLanguageForFormat(sql) {
+    var chosen = dialectSelectRight.value;
+    return chosen === 'auto' ? detectDialect(sql) : chosen;
+  }
+
+  function setEditorModeByLanguage(language) {
+    editor.setOption('mode', codeMirrorModeFor(language));
+  }
+
+  function formatSQL(sql) {
+    try {
+      if (window.sqlFormatter && typeof window.sqlFormatter.format === 'function') {
+        var lang = currentLanguageForFormat(sql);
+        return window.sqlFormatter.format(sql, { language: lang });
+      }
+    } catch (e) {}
+    return sql;
+  }
+  function getPrimaryFrame(){
+    var container = document.querySelector('.frames');
+    if (container){
+      var frames = Array.from(container.querySelectorAll('.frame'));
+      if (frames.length > 0) {
+        return frames.reduce(function(prev, current){
+          var prevIndex = parseInt(prev.querySelector('.frame-index').textContent);
+          var currentIndex = parseInt(current.querySelector('.frame-index').textContent);
+          return (currentIndex < prevIndex) ? current : prev;
+        });
+      }
+    }
+    return document.querySelector('.frame');
+  }
+
+  function getPrimaryForm(){
+    var frameEl = getPrimaryFrame();
+    if (frameEl){
+      var formEl = frameEl.querySelector('form');
+      if (formEl) return formEl;
+    }
+    return document.getElementById('fieldForm');
+  }
+
+  function applyPlaceholdersFromForm(formEl, sql) {
+    try {
+      var inputs = Array.from(formEl.querySelectorAll('input[type="text"][data-placeholder]'));
+      inputs.forEach(function(input){
+        var token = input.dataset.placeholder;
+        var value = (input.value || '').trim();
+        if (!token || value === '') return;
+        sql = sql.split(token).join(value);
+      });
+      return sql;
+    } catch (e) {
+      return sql;
+    }
+  }
+
+  function enableFramesDragAndDrop(){
+    var container = document.querySelector('.frames');
+    if (!container) return;
+    Array.from(container.querySelectorAll('.frame')).forEach(function(f){ f.setAttribute('draggable', 'true'); });
+    var dragged = null;
+    container.addEventListener('dragstart', function(e){
+      var f = e.target.closest('.frame');
+      if (!f) return;
+      dragged = f;
+      f.classList.add('dragging');
+    });
+    container.addEventListener('dragover', function(e){
+      e.preventDefault();
+      var target = e.target.closest('.frame');
+      if (!dragged || !target || target === dragged) return;
+
+      // Get all frames and join-selectors in current order
+      var elements = Array.from(container.children);
+      var draggedIndex = elements.indexOf(dragged);
+      var targetIndex = elements.indexOf(target);
+
+      // Remove dragged element temporarily
+      container.removeChild(dragged);
+
+      // Insert at new position
+      if (draggedIndex < targetIndex) {
+        container.insertBefore(dragged, target.nextSibling);
+      } else {
+        container.insertBefore(dragged, target);
+      }
+
+       // Ensure join-selectors are between frames
+       reorderJoinSelectors();
+       // Update field highlighting after reordering
+       highlightUniqueFields();
+     });
+    container.addEventListener('drop', function(e){ e.preventDefault(); });
+    container.addEventListener('dragend', function(){ if (dragged) dragged.classList.remove('dragging'); dragged = null; });
+  }
+
+  function reorderJoinSelectors(){
+    var container = document.querySelector('.frames');
+    if (!container) return;
+
+    var elements = Array.from(container.children);
+    var frames = elements.filter(el => el.classList.contains('frame'));
+    var joinSelectors = elements.filter(el => el.classList.contains('join-selector'));
+
+    // Clear container
+    while (container.firstChild) {
+      container.removeChild(container.firstChild);
+    }
+
+    // Rebuild with frames and join-selectors in correct order
+    frames.forEach(function(frame, index) {
+      // Update frame index
+      var indexSpan = frame.querySelector('.frame-index');
+      if (indexSpan) {
+        indexSpan.textContent = (index + 1).toString();
+      }
+
+      container.appendChild(frame);
+
+      // Add join-selector after frame (except for the last frame)
+      if (index < frames.length - 1 && joinSelectors[index]) {
+        container.appendChild(joinSelectors[index]);
+      }
+    });
+  }
+
+  function initializeFrameIndices(){
+    var container = document.querySelector('.frames');
+    if (!container) return;
+
+    var frames = Array.from(container.querySelectorAll('.frame'));
+    frames.forEach(function(frame, index) {
+      var indexSpan = frame.querySelector('.frame-index');
+      if (indexSpan) {
+        indexSpan.textContent = (index + 1).toString();
+      }
+    });
+  }
+
+  function buildSQL() {
+    var container = document.querySelector('.frames');
+    if (!container) return;
+    
+    var frames = Array.from(container.querySelectorAll('.frame'));
+    var joinSelectors = Array.from(container.querySelectorAll('.join-selector select'));
+    
+    if (frames.length === 0) return;
+    
+    var queryParts = [];
+    
+    // Process each frame in order
+    frames.forEach(function(frame, index) {
+      var form = frame.querySelector('form');
+      if (!form) return;
+      
+      var boxes = Array.from(form.querySelectorAll('input[type="checkbox"]:checked'))
+        .filter(function(cb) { return !/^selectAll/.test(cb.id) && !cb.disabled; });
+      
+      // Skip frames with no fields selected
+      if (!boxes.length) {
+        console.log('Skipping frame', index + 1, '- no fields selected');
+        return;
+      }
+      
+      var withComments = includeCommentsEl.checked;
+      var columns = boxes.map(function(cb){
+        var name = cb.value;
+        var desc = (cb.dataset.desc || '').trim();
+        var piece;
+        if (withComments && desc) {
+          piece = '-- ' + desc + '\n  ' + name;
+        } else {
+          piece = name;
+        }
+        return piece;
+      }).join(',\n');
+      
+      var baseQuery = frame.dataset.queryBody || '';
+      var effectiveBaseQuery = applyPlaceholdersFromForm(form, baseQuery);
+      var frameQuery = 'SELECT\n' + columns + '\nFROM (\n' + effectiveBaseQuery + '\n) t' + (index + 1);
+      
+      queryParts.push(frameQuery);
+    });
+    
+    // Check if any frames have selected fields
+    if (queryParts.length === 0) {
+      console.log('No frames with selected fields found');
+      editor.setValue('-- No fields selected in any frame');
+      editor.focus();
+      return;
+    }
+    
+    // Combine queries with join operators
+    var finalSQL = queryParts[0];
+    for (var i = 1; i < queryParts.length; i++) {
+      var joinOperator = '';
+      if (joinSelectors[i - 1]) {
+        var selectedJoin = joinSelectors[i - 1].value;
+        if (selectedJoin) {
+          joinOperator = '\n' + selectedJoin + '\n';
+        } else {
+          joinOperator = '\nUNION\n';
+        }
+      } else {
+        joinOperator = '\nUNION\n';
+      }
+      finalSQL += joinOperator + queryParts[i];
+    }
+    
+    var formatted = formatSQL(finalSQL);
+    editor.setValue(formatted);
+    setEditorModeByLanguage(currentLanguageForFormat(formatted));
+    editor.focus();
+  }
+
+  document.getElementById('buildBtn').addEventListener('click', buildSQL);
+
+  // Initialize Select All behavior for all frames (primary and additional).
+  Array.from(document.querySelectorAll('#fieldForm, form[id^="fieldForm_"]')).forEach(function(formEl){
+    var selectAllLocal = formEl.querySelector('input[type="checkbox"][id^="selectAll"]');
+
+    function getItemCheckboxesLocal(){
+      return Array.from(formEl.querySelectorAll('input[type="checkbox"]'))
+        .filter(function(cb){ return !(cb.id || '').startsWith('selectAll') && !cb.disabled; });
+    }
+
+    function updateSelectAllStateLocal(){
+      var items = getItemCheckboxesLocal();
+      if (!selectAllLocal) return;
+      if (items.length === 0){
+        selectAllLocal.checked = false;
+        selectAllLocal.indeterminate = false;
+        return;
+      }
+      var checkedCount = items.filter(function(cb){ return cb.checked; }).length;
+      selectAllLocal.checked = checkedCount === items.length;
+      selectAllLocal.indeterminate = checkedCount > 0 && checkedCount < items.length;
+    }
+
+    if (selectAllLocal){
+      selectAllLocal.addEventListener('change', function(){
+        var items = getItemCheckboxesLocal();
+        var desired = !!selectAllLocal.checked;
+        items.forEach(function(cb){ cb.checked = desired; });
+        selectAllLocal.indeterminate = false;
+      });
+    }
+
+    formEl.addEventListener('change', function(e){
+      if (e.target && e.target.type === 'checkbox' && !/^selectAll/.test(e.target.id || '')){
+        updateSelectAllStateLocal();
+      }
+    });
+
+    // Initialize state for this form
+    updateSelectAllStateLocal();
+  });
+
+  // Initialize Select All behavior for additional frames (fieldForm_1, fieldForm_2, ...)
+  Array.from(document.querySelectorAll('form[id^="fieldForm_"]')).forEach(function(formEl){
+    var idx = formEl.id.split('_')[1];
+    var selectAllLocal = document.getElementById('selectAll_' + idx);
+
+    function getItemCheckboxesLocal(){
+      return Array.from(formEl.querySelectorAll('input[type="checkbox"]'))
+        .filter(function(cb){ return cb.id !== ('selectAll_' + idx) && !cb.disabled; });
+    }
+
+    function updateSelectAllStateLocal(){
+      var items = getItemCheckboxesLocal();
+      if (!selectAllLocal) return;
+      if (items.length === 0){
+        selectAllLocal.checked = false;
+        selectAllLocal.indeterminate = false;
+        return;
+      }
+      var checkedCount = items.filter(function(cb){ return cb.checked; }).length;
+      selectAllLocal.checked = checkedCount === items.length;
+      selectAllLocal.indeterminate = checkedCount > 0 && checkedCount < items.length;
+    }
+
+    if (selectAllLocal){
+      selectAllLocal.addEventListener('change', function(){
+        var items = getItemCheckboxesLocal();
+        var desired = !!selectAllLocal.checked;
+        items.forEach(function(cb){ cb.checked = desired; });
+        selectAllLocal.indeterminate = false;
+      });
+    }
+
+    formEl.addEventListener('change', function(e){
+      if (e.target && e.target.type === 'checkbox' && e.target.id !== ('selectAll_' + idx)){
+        updateSelectAllStateLocal();
+      }
+    });
+
+    // Initialize state for this form
+    updateSelectAllStateLocal();
+  });
+
+  document.getElementById('formatBtn2').addEventListener('click', function(){
+    var f = formatSQL(editor.getValue());
+    editor.setValue(f);
+    setEditorModeByLanguage(currentLanguageForFormat(f));
+  });
+
+  dialectSelectRight.addEventListener('change', function(){
+    setEditorModeByLanguage(currentLanguageForFormat(editor.getValue()));
+  });
+
+  editor.on('change', debounce(function(){
+    if (dialectSelectRight.value === 'auto') {
+      setEditorModeByLanguage(detectDialect(editor.getValue()));
+    }
+  }, 250));
+
+  editor.addKeyMap({
+    'Shift-Ctrl-F': function(cm){ var f = formatSQL(cm.getValue()); cm.setValue(f); setEditorModeByLanguage(currentLanguageForFormat(f)); },
+    'Shift-Cmd-F': function(cm){ var f = formatSQL(cm.getValue()); cm.setValue(f); setEditorModeByLanguage(currentLanguageForFormat(f)); }
+  });
+
+  function highlightUniqueFields() {
+    var forms = document.querySelectorAll('#fieldForm, form[id^="fieldForm_"]');
+    var totalFrames = forms.length;
+    
+    console.log('Total frames:', totalFrames);
+    
+    // Collect all field names from all frames (case-insensitive)
+    var allFieldNames = new Set();
+    forms.forEach(function(form) {
+      var checkboxes = form.querySelectorAll('input[type="checkbox"][value]');
+      checkboxes.forEach(function(checkbox) {
+        if (!checkbox.id.startsWith('selectAll')) {
+          allFieldNames.add(checkbox.value.toLowerCase());
+        }
+      });
+    });
+    
+    // Count occurrences of each field name
+    var fieldCounts = {};
+    forms.forEach(function(form) {
+      var checkboxes = form.querySelectorAll('input[type="checkbox"][value]');
+      checkboxes.forEach(function(checkbox) {
+        if (!checkbox.id.startsWith('selectAll')) {
+          var fieldName = checkbox.value.toLowerCase();
+          fieldCounts[fieldName] = (fieldCounts[fieldName] || 0) + 1;
+        }
+      });
+    });
+    
+    console.log('Field counts:', fieldCounts);
+    
+    // Highlight fields that don't appear in ALL frames
+    forms.forEach(function(form) {
+      var checkboxes = form.querySelectorAll('input[type="checkbox"][value]');
+      checkboxes.forEach(function(checkbox) {
+        if (!checkbox.id.startsWith('selectAll')) {
+          var fieldName = checkbox.value.toLowerCase();
+          
+          // Find the parent form-check div first
+          var formCheckDiv = checkbox.closest('.form-check');
+          var fieldNameSpan = null;
+          
+          if (formCheckDiv) {
+            fieldNameSpan = formCheckDiv.querySelector('.field-name');
+          }
+          
+          if (fieldNameSpan) {
+            // Highlight red if field doesn't appear in ALL frames
+            if (fieldCounts[fieldName] < totalFrames) {
+              fieldNameSpan.style.color = '#dc3545'; // Bootstrap red color
+              fieldNameSpan.style.fontWeight = 'bold';
+              // Disable checkbox for unique fields
+              checkbox.disabled = true;
+              checkbox.style.opacity = '0.5';
+              console.log('Highlighting field:', fieldName, 'count:', fieldCounts[fieldName], 'total:', totalFrames);
+            } else {
+              fieldNameSpan.style.color = ''; // Reset to default
+              fieldNameSpan.style.fontWeight = '';
+              // Enable checkbox for common fields
+              checkbox.disabled = false;
+              checkbox.style.opacity = '';
+            }
+          } else {
+            console.log('Could not find field-name span for:', fieldName, 'formCheckDiv:', formCheckDiv);
+            console.log('Checkbox parent:', checkbox.parentElement);
+            console.log('Checkbox parent classes:', checkbox.parentElement ? checkbox.parentElement.className : 'no parent');
+          }
+        }
+      });
+    });
+  }
+
+  function sortFieldsAlphabetically() {
+    var forms = document.querySelectorAll('#fieldForm, form[id^="fieldForm_"]');
+    forms.forEach(function(form) {
+      var formChecks = Array.from(form.querySelectorAll('.form-check'));
+      var selectAllCheck = formChecks.shift(); // Remove Select All checkbox
+      
+      // Sort by field name (value attribute of checkbox)
+      formChecks.sort(function(a, b) {
+        var fieldA = a.querySelector('input[type="checkbox"]').value.toLowerCase();
+        var fieldB = b.querySelector('input[type="checkbox"]').value.toLowerCase();
+        return fieldA.localeCompare(fieldB);
+      });
+      
+      // Clear form and re-append sorted elements
+      form.innerHTML = '';
+      form.appendChild(selectAllCheck);
+      formChecks.forEach(function(check) {
+        form.appendChild(check);
+      });
+    });
+    
+    // Wait a bit for DOM to update, then apply highlighting
+    setTimeout(function() {
+      highlightUniqueFields();
+    }, 10);
+  }
+
+  enableFramesDragAndDrop();
+  setEditorModeByLanguage('sql');
+  initializeFrameIndices();
+  sortFieldsAlphabetically();
+</script>
+</body>
+</html>

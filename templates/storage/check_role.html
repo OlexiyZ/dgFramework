@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Report Execution</title>
+    <style>
+      .modal {
+          display: none;
+          position: fixed;
+          z-index: 1;
+          left: 0;
+          top: 0;
+          width: 100%;
+          height: 100%;
+          overflow: auto;
+          background-color: rgba(0,0,0,0.4);
+      }
+      .modal-content {
+          background-color: #fefefe;
+          margin: 15% auto;
+          padding: 20px;
+          border: 1px solid #888;
+          width: 80%;
+          max-width: 500px;
+          text-align: center;
+      }
+      .close-btn {
+          background-color: #4CAF50;
+          color: white;
+          padding: 10px 20px;
+          border: none;
+          cursor: pointer;
+      }
+    </style>
+</head>
+<body>
+
+<!-- General message modal -->
+<div id="resultModal" class="modal">
+  <div class="modal-content">
+    <p id="resultMessage"></p>
+    <button id="closeBtn" class="close-btn">OK</button>
+  </div>
+</div>
+
+<!-- Success modal -->
+<div id="successModal" class="modal">
+  <div class="modal-content">
+    <pre id="successMessage"></pre>
+    <button id="successCloseBtn" class="close-btn">OK</button>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function(){
+    function showModal(message) {
+        var modal = document.getElementById('resultModal');
+        document.getElementById('resultMessage').textContent = message;
+        modal.style.display = "block";
+    }
+
+    function showSuccessModal(message) {
+        var modal = document.getElementById('successModal');
+        document.getElementById('successMessage').textContent = message;
+        modal.style.display = "block";
+    }
+
+    const authToken = "Bearer {{ auth_token }}";
+    const proxyHost = "{{ proxy_host }}";
+    const role_id = "{{ role_id }}";
+    const data = JSON.parse('{{ payload|escapejs }}');
+
+    let attrs = "";
+    if (data && data.variables && data.variables.input && data.variables.input.attrs) {
+        attrs = data.variables.input.attrs;
+    } else {
+        attrs = "Error: 'attrs' data is missing.";
+    }
+
+    const attrsText = JSON.stringify(attrs, null, 2);
+    console.log("Initial Data:\n", attrsText);
+
+    const myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
+    myHeaders.append("Authorization", authToken);
+
+    const graphql = JSON.stringify({
+        query: `
+            query GetRole($getRoleId: String!) {
+              getRole(id: $getRoleId) {
+                name
+                attrs
+                id
+              }
+            }
+        `,
+        variables: {
+            getRoleId: role_id
+        }
+    });
+
+    console.log("Sending GraphQL request to:", proxyHost);
+    console.log("GraphQL Payload:\n", graphql);
+
+    const requestOptions = {
+        method: "POST",
+        headers: myHeaders,
+        body: graphql,
+        redirect: "follow"
+    };
+
+    fetch(proxyHost, requestOptions)
+    .then(function(response) {
+        console.log("Fetch response status:", response.status);
+        if (response.ok) {
+            return response.json();
+        } else {
+            throw new Error("An error occurred while executing the request.");
+        }
+    })
+    .then(function(data) {
+        console.log("Received response data:\n", data);
+        const roleData = data?.data?.getRole;
+        if (roleData) {
+            const message = `Received Role from GraphQL:\n\nName: ${roleData.name}\nID: ${roleData.id}\nAttrs:\n${JSON.stringify(roleData.attrs, null, 2)}`;
+            showSuccessModal(message);
+        } else {
+            showModal("No role data found in the response.");
+        }
+    })
+    .catch(function(error) {
+        console.error("Error occurred:\n", error);
+        showModal("Error: " + error.message);
+    });
+
+    document.getElementById('closeBtn').addEventListener("click", function(){
+        document.getElementById('resultModal').style.display = "none";
+    });
+
+    document.getElementById('successCloseBtn').addEventListener("click", function(){
+        document.getElementById('successModal').style.display = "none";
+        window.location.href = "/storage/role/";
+    });
+});
+</script>
+
+</body>
+</html>

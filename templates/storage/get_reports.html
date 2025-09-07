@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Role Info Fetch</title>
+    <style>
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 600px;
+            text-align: center;
+        }
+        .close-btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+        }
+        pre {
+            text-align: left;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Modal window -->
+<div id="resultModal" class="modal">
+    <div class="modal-content">
+        <pre id="resultMessage"></pre>
+        <button id="closeBtn" class="close-btn">OK</button>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const authToken = "Bearer {{ auth_token }}";
+    const proxyHost = "{{ proxy_host }}";
+    const role_id = "{{ role_id }}";
+
+    const myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
+    myHeaders.append("Authorization", authToken);
+
+    const graphql = JSON.stringify({
+       query: `
+           query GetReports($pagination: ConnectionArgs) {
+             getReports(pagination: $pagination) {
+               total
+               edges {
+                 node {
+                   id
+                   link
+                   name
+                   roles {
+                     total
+                   }
+                 }
+               }
+             }
+           }
+       `,
+       variables: {
+           "pagination": {
+               "limit": null,
+               "offset": null
+           }
+       }
+    });
+
+    const requestOptions = {
+        method: "POST",
+        headers: myHeaders,
+        body: graphql,
+        redirect: "follow"
+    };
+
+    function showModal(message, callback) {
+        const modal = document.getElementById('resultModal');
+        document.getElementById('resultMessage').textContent = message;
+        modal.style.display = "block";
+
+        const closeBtn = document.getElementById('closeBtn');
+        closeBtn.onclick = function () {
+            modal.style.display = "none";
+            window.location.href = "/storage/proxyreport/";
+        }
+    }
+
+    fetch(proxyHost, requestOptions)
+        .then(function (response) {
+            if (response.ok) {
+                return response.json();
+            } else {
+                return response.text().then(text => {
+                    showModal(`❌ Error ${response.status}:
+\n${text}`, () => {
+                        window.location.href = "/storage/proxyreport/";
+                    });
+                    throw new Error(`HTTP ${response.status} - ${text}`);
+                });
+            }
+        })
+        .then(function(data) {
+            // Successful response
+            showModal("Request completed successfully.");
+            console.log(data); // Logging the received data
+            // Sending the received data to the Django backend
+            return fetch("/storage/save_reports/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    // "X-CSRFToken": getCookie('csrftoken')
+                },
+                body: JSON.stringify({reports: data.data.getReports.edges})
+            });
+        })
+        .then(function(response) {
+            if (response.ok) {
+                console.log("Reports successfully saved to the backend.");
+            } else {
+                throw new Error("Error saving reports to the backend.");
+                window.location.href = "/storage/proxyreport/";
+            }
+        })
+        .catch(function (error) {
+            showModal(`❌ Error occurred:\n\n${error}`, () => {
+                window.location.href = "/storage/proxyreport/";
+            });
+        });
+});
+
+// Add a helper function to get the CSRF cookie value
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+</script>
+
+</body>
+</html>

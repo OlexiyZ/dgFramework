@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Report Execution</title>
+    <style>
+      /* Styles for a simple modal window */
+      .modal {
+          display: none; /* Hidden by default */
+          position: fixed;
+          z-index: 1;
+          left: 0;
+          top: 0;
+          width: 100%;
+          height: 100%;
+          overflow: auto;
+          background-color: rgba(0,0,0,0.4); /* Black background with transparency */
+      }
+      .modal-content {
+          background-color: #fefefe;
+          margin: 15% auto;
+          padding: 20px;
+          border: 1px solid #888;
+          width: 80%;
+          max-width: 500px;
+          text-align: center;
+      }
+      .close-btn {
+          background-color: #4CAF50;
+          color: white;
+          padding: 10px 20px;
+          border: none;
+          cursor: pointer;
+      }
+    </style>
+</head>
+<body>
+
+<!-- Modal window -->
+<div id="resultModal" class="modal">
+  <div class="modal-content">
+    <p id="resultMessage"></p>
+    <button id="closeBtn" class="close-btn">OK</button>
+  </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function(){
+        // Function to show the modal window with a message
+        function showModal(message) {
+            var modal = document.getElementById('resultModal');
+            document.getElementById('resultMessage').textContent = message;
+            modal.style.display = "block";
+        }
+
+        console.log("proxy_host: ", "{{ proxy_host }}");
+        console.log("auth_token: ", "{{ auth_token }}");
+
+        // Passing JSON through context
+        const authToken = "Bearer {{ auth_token }}"; // passed from the Django backend
+        const proxyHost = "{{ proxy_host }}";
+        const role_patch_id = "{{ role_patch_id }}";
+
+        // Here we use escapejs to avoid errors in JavaScript
+        const data = JSON.parse('{{ payload|escapejs }}');
+
+        const myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+        myHeaders.append("Authorization", authToken);
+
+        const graphql = JSON.stringify({
+            query: "mutation RolePatch($input: PatchRoleInput!, $rolePatchId: String!) {\n" +
+                "  rolePatch(input: $input, id: $rolePatchId) {" +
+                "    attrs\n" +
+                "    id\n" +
+                "  }\n" +
+                "}",
+             variables: {
+                "input": { "attrs": data.variables.input.attrs }, // Now passing data to GraphQL
+                "rolePatchId": role_patch_id
+            }
+        });
+
+        const requestOptions = {
+            method: "POST",
+            headers: myHeaders,
+            body: graphql,
+            redirect: "follow"
+        };
+
+        // Automatic POST request when the template is loaded
+        fetch(proxyHost, requestOptions)
+        .then(function(response) {
+            if (response.ok) {
+                return response.json(); // Assuming the response comes in JSON format
+            } else {
+                throw new Error("An error occurred while executing the request.");
+            }
+        })
+        .then(function(data) {
+            // Successful response
+            showModal("Request executed successfully.");
+            console.log(data); // Logging received data
+        })
+        .catch(function(error) {
+            // Error while executing the request
+            showModal("Error: " + error.message);
+            console.log(error); // Logging received data
+        });
+
+        // Event handler for the button click in the modal window
+        document.getElementById('closeBtn').addEventListener("click", function(){
+            window.location.href = "/storage/role/";
+        });
+    });
+</script>
+</body>
+</html>
