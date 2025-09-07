@@ -391,28 +391,28 @@
   function buildSQL() {
     var container = document.querySelector('.frames');
     if (!container) return;
-    
+
     var frames = Array.from(container.querySelectorAll('.frame'));
     var joinSelectors = Array.from(container.querySelectorAll('.join-selector select'));
-    
+
     if (frames.length === 0) return;
-    
+
     var queryParts = [];
-    
+
     // Process each frame in order
     frames.forEach(function(frame, index) {
       var form = frame.querySelector('form');
       if (!form) return;
-      
+
       var boxes = Array.from(form.querySelectorAll('input[type="checkbox"]:checked'))
         .filter(function(cb) { return !/^selectAll/.test(cb.id) && !cb.disabled; });
-      
+
       // Skip frames with no fields selected
       if (!boxes.length) {
         console.log('Skipping frame', index + 1, '- no fields selected');
         return;
       }
-      
+
       var withComments = includeCommentsEl.checked;
       var columns = boxes.map(function(cb){
         var name = cb.value;
@@ -425,14 +425,14 @@
         }
         return piece;
       }).join(',\n');
-      
+
       var baseQuery = frame.dataset.queryBody || '';
       var effectiveBaseQuery = applyPlaceholdersFromForm(form, baseQuery);
       var frameQuery = 'SELECT\n' + columns + '\nFROM (\n' + effectiveBaseQuery + '\n) t' + (index + 1);
-      
+
       queryParts.push(frameQuery);
     });
-    
+
     // Check if any frames have selected fields
     if (queryParts.length === 0) {
       console.log('No frames with selected fields found');
@@ -440,7 +440,7 @@
       editor.focus();
       return;
     }
-    
+
     // Combine queries with join operators
     var finalSQL = queryParts[0];
     for (var i = 1; i < queryParts.length; i++) {
@@ -457,7 +457,7 @@
       }
       finalSQL += joinOperator + queryParts[i];
     }
-    
+
     var formatted = formatSQL(finalSQL);
     editor.setValue(formatted);
     setEditorModeByLanguage(currentLanguageForFormat(formatted));
@@ -573,9 +573,9 @@
   function highlightUniqueFields() {
     var forms = document.querySelectorAll('#fieldForm, form[id^="fieldForm_"]');
     var totalFrames = forms.length;
-    
+
     console.log('Total frames:', totalFrames);
-    
+
     // Collect all field names from all frames (case-insensitive)
     var allFieldNames = new Set();
     forms.forEach(function(form) {
@@ -586,7 +586,7 @@
         }
       });
     });
-    
+
     // Count occurrences of each field name
     var fieldCounts = {};
     forms.forEach(function(form) {
@@ -598,24 +598,24 @@
         }
       });
     });
-    
+
     console.log('Field counts:', fieldCounts);
-    
+
     // Highlight fields that don't appear in ALL frames
     forms.forEach(function(form) {
       var checkboxes = form.querySelectorAll('input[type="checkbox"][value]');
       checkboxes.forEach(function(checkbox) {
         if (!checkbox.id.startsWith('selectAll')) {
           var fieldName = checkbox.value.toLowerCase();
-          
+
           // Find the parent form-check div first
           var formCheckDiv = checkbox.closest('.form-check');
           var fieldNameSpan = null;
-          
+
           if (formCheckDiv) {
             fieldNameSpan = formCheckDiv.querySelector('.field-name');
           }
-          
+
           if (fieldNameSpan) {
             // Highlight red if field doesn't appear in ALL frames
             if (fieldCounts[fieldName] < totalFrames) {
@@ -647,14 +647,14 @@
     forms.forEach(function(form) {
       var formChecks = Array.from(form.querySelectorAll('.form-check'));
       var selectAllCheck = formChecks.shift(); // Remove Select All checkbox
-      
+
       // Sort by field name (value attribute of checkbox)
       formChecks.sort(function(a, b) {
         var fieldA = a.querySelector('input[type="checkbox"]').value.toLowerCase();
         var fieldB = b.querySelector('input[type="checkbox"]').value.toLowerCase();
         return fieldA.localeCompare(fieldB);
       });
-      
+
       // Clear form and re-append sorted elements
       form.innerHTML = '';
       form.appendChild(selectAllCheck);
@@ -662,7 +662,7 @@
         form.appendChild(check);
       });
     });
-    
+
     // Wait a bit for DOM to update, then apply highlighting
     setTimeout(function() {
       highlightUniqueFields();
