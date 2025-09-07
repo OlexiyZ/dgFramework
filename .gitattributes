@@ -1,0 +1,6 @@
+helm-values/** merge=ours
+docker-compose.yaml merge=ours
+Dockerfile merge=ours
+Dockerfile.dockerfile merge=ours
+dm/dgf.log merge=ours
+.github/** merge=ours
