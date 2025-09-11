@@ -3,4 +3,5 @@ docker-compose.yaml merge=ours
 Dockerfile merge=ours
 Dockerfile.dockerfile merge=ours
 dm/dgf.log merge=ours
+backups/** merge=ours
 .gith
