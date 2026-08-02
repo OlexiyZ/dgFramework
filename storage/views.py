@@ -5,7 +5,7 @@ from django.views.decorators.csrf import csrf_exempt
 from openpyxl import load_workbook
 import json
 import pandas as pd
-import psycopg2
+from django.db import connection
 from django.core.files.storage import FileSystemStorage
 import os
 from .models import *
@@ -370,28 +370,13 @@ def load2db(self, df):
         else:
             return value
 
-    # Establish a connection to the PostgreSQL database:
-    dbname = "dg_bae"
-    user = "postgres"
-    password = "postgres"
-    host = "localhost"
-    port = "5432"
-
-    connection = psycopg2.connect(
-        dbname=dbname,
-        user=user,
-        password=password,
-        host=host,
-        port=port
-    )
-
-    connection.autocommit = True
-    cursor = connection.cursor()
-
+    # Reuse the connection Django already configured from DATABASES, so the
+    # credentials live in the environment rather than in this file.
     try:
-        # Populate rows
-        for _, row in df.iterrows():
-            query = f"""INSERT INTO storage_field (
+        with connection.cursor() as cursor:
+            # Populate rows
+            for _, row in df.iterrows():
+                query = f"""INSERT INTO storage_field (
                     field_list_id, 
                     source_list_id, 
                     field_alias, 
@@ -427,14 +412,12 @@ def load2db(self, df):
                         '{row['field_description']}'
                     );"""
 
-            cursor.execute(query)
-            # connection.commit()
+                cursor.execute(query)
         print("Data inserted successfully")
     except Exception as e:
+        # The connection is owned by Django and must not be closed here; the
+        # cursor is released by the `with` block on the way out.
         print(f"Error inserting data: {e}")
-
-        cursor.close()
-        connection.close()
 
 
 @csrf_exempt

@@ -150,7 +150,15 @@ Fallback небезпечніший за сам хардкод: якщо env-з�
 
 ---
 
-### [ ] SEC-03 · Прибрати окреме psycopg2-підключення з хардкодженими креденшлами
+### [x] SEC-03 · Прибрати окреме psycopg2-підключення з хардкодженими креденшлами
+
+> **Статус:** виконано. `load2db()` тепер працює через `django.db.connection`,
+> імпорт `psycopg2` з `views.py` прибрано (пакет лишається в залежностях — його
+> використовує сам бекенд Django).
+>
+> **Побічно виправлено:** з'єднання і курсор закривалися лише в гілці `except`,
+> тобто при успішному імпорті текли. Тепер курсор звільняє `with`-блок, а
+> з'єднанням керує Django. Параметризація самого запиту — окремо в SEC-05.
 
 **EN title:** Replace the standalone psycopg2 connection with the Django database connection
 **EN description:** `storage/views.py` opens its own PostgreSQL connection with the database name, user and password written directly in the source. Use `django.db.connection` so credentials come from `settings.DATABASES` only.
