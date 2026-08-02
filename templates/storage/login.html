@@ -73,7 +73,8 @@
                     const response = await fetch('/storage/oidc-login/', {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json'
+                            'Content-Type': 'application/json',
+                            ...csrfHeader()
                         },
                         body: JSON.stringify({
                             access_token: accessToken,
@@ -100,5 +101,6 @@
             handleAuthentication();
         }
     </script>
+{% include "storage/_csrf.html" %}
 </body>
 </html>

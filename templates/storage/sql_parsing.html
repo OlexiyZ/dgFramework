@@ -157,7 +157,8 @@
         const response = await fetch('/storage/parse_sql_to_json/', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            ...csrfHeader()
           },
           body: JSON.stringify(requestBody)
         });
@@ -186,7 +187,8 @@
         const response = await fetch('/storage/upload_json/', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            ...csrfHeader()
           },
           body: JSON.stringify({
             json: jsonContent,
@@ -208,5 +210,6 @@
       }
     });
   </script>
+{% include "storage/_csrf.html" %}
 </body>
 </html>

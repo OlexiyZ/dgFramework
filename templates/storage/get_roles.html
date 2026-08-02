@@ -112,7 +112,8 @@ document.addEventListener("DOMContentLoaded", function () {
             return fetch("/storage/save_roles/", {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    ...csrfHeader()
                 },
                 body: JSON.stringify({ roles: data.data.getRoles.edges })
             });
@@ -132,5 +133,6 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>
 
+{% include "storage/_csrf.html" %}
 </body>
 </html>

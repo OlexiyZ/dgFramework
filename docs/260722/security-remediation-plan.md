@@ -263,7 +263,44 @@ query = f"""INSERT INTO storage_field (...) VALUES (
 
 ---
 
-### [ ] SEC-06 · Аудит 15 входжень `@csrf_exempt`
+### [x] SEC-06 · Аудит 15 входжень `@csrf_exempt`
+
+> **Статус:** виконано. Знято **всі 12** активних декораторів (ще 2 пішли разом
+> з `views_dg.py` у SEC-04). Жоден ендпоінт не виявився зовнішньою інтеграцією —
+> усі викликаються з наших власних шаблонів, тож `csrf_exempt` не був потрібен
+> ніде. OIDC через `mozilla-django-oidc` вмикати не довелося.
+>
+> **Результат аудиту:**
+>
+> | В'юха | Викликач | Метод | Дія |
+> |---|---|---|---|
+> | `oidc_login` | `login.html` | POST | заголовок `X-CSRFToken` |
+> | `upload_file` | `excelimport.html` | POST | заголовок |
+> | `import_excel` | `excelimport.html` (jQuery) | POST | заголовок |
+> | `import_csv` | `excelimport.html` (jQuery) | POST | заголовок |
+> | `upload_db_json` | `dbmanagement.html` | POST | заголовок |
+> | `parse_sql_to_json` | `sql_parsing.html` | POST | заголовок |
+> | `upload_json` | `sql_parsing.html` | POST | заголовок |
+> | `save_roles` | `get_roles.html` | POST | заголовок |
+> | `save_reports` | `get_reports.html` | POST | заголовок |
+> | `download_db_json` | `dbmanagement.html` | GET | нічого не потрібно |
+> | `sql_matching` | — | GET | нічого не потрібно |
+> | `role_view` | тільки GET-переходи | POST-гілка мертва | нічого не потрібно |
+>
+> **Пастка, яку знайшов по дорозі:** `import_excel` і `import_csv` слали
+> `csrfmiddlewaretoken` **у тілі JSON**. Django читає токен лише з `request.POST`
+> (form-encoded) або з заголовка `X-CSRFToken`, тож при `contentType:
+> 'application/json'` він ігнорувався повністю. Просте зняття декоратора зламало б
+> обидва імпорти — токен переведено в заголовок.
+>
+> **Спільний хелпер:** `templates/storage/_csrf.html` — рендерить `{% csrf_token %}`
+> (щоб Django виставив куку) і дає `csrfHeader()` для `fetch`. Підключений у шести
+> шаблонах через `{% include %}`.
+>
+> **⚠️ Що перевірити руками:** POST-гілка `role_view` дублює `save_roles` і не має
+> викликача в шаблонах. Якщо на `/storage/storage/role/` ходить щось поза репозиторієм,
+> воно отримає 403 — тоді цю гілку треба або видалити як мертву, або дати їй
+> автентифікацію.
 
 **EN title:** Audit and remove unnecessary `@csrf_exempt` decorators
 **EN description:** Fourteen active `@csrf_exempt` decorators disable CSRF protection across the storage views — Sonar reports only five of them. Classify each endpoint by its caller, restore CSRF protection for the ones used by our own frontend, add authentication to the ones exposed to external integrations, and document whatever remains exempt.

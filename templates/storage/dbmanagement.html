@@ -65,6 +65,7 @@
             // Use the fetch API to send the file to the server
             fetch('/storage/upload_db_json/', {
                 method: 'POST',
+                headers: {...csrfHeader()},
                 body: formData,
             })
             .then(response => response.json())
@@ -164,5 +165,6 @@
 <h3>Import response:</h3>
     <p id="importResponseMessage"></p>
 
+{% include "storage/_csrf.html" %}
 </body>
 </html>

@@ -1,0 +1,28 @@
+{% comment %}
+Include once per page that sends POST requests with fetch() or XHR.
+
+Rendering {% csrf_token %} makes Django set the csrftoken cookie, and
+csrfHeader() turns it into the header CsrfViewMiddleware expects:
+
+    fetch(url, {method: 'POST', headers: {...csrfHeader()}, body: ...})
+{% endcomment %}
+{% csrf_token %}
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            for (const rawCookie of document.cookie.split(';')) {
+                const cookie = rawCookie.trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function csrfHeader() {
+        return {'X-CSRFToken': getCookie('csrftoken')};
+    }
+</script>

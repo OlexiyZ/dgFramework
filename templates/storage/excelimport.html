@@ -22,6 +22,7 @@
             // Используем fetch API для отправки файла на сервер
             fetch('/storage/upload_file/', { // Укажите здесь URL вашего серверного скрипта для обработки загрузки '/upload-path'
                 method: 'POST',
+                headers: {...csrfHeader()},
                 body: formData,
             })
             .then(response => response.json()) //.json()) // предполагается, что сервер возвращает JSON
@@ -118,11 +119,13 @@
             url: '/storage/import_excel/',
             type: 'POST',
             contentType: 'application/json',
+            // The body is JSON, so Django cannot read csrfmiddlewaretoken from
+            // it - the token has to travel in the header.
+            headers: {...csrfHeader()},
             data: JSON.stringify({
                 'sheet': $('#firstSelect').val(),
                 'table': $('#secondSelect').val(),
-                'file_path': shtml['file_path'],
-                'csrfmiddlewaretoken':$('input[name="csrfmiddlewaretoken"]').val()
+                'file_path': shtml['file_path']
             }),
             dataType: 'json',
             success: function(response) {
@@ -144,11 +147,11 @@
             url: '/storage/import_csv/',
             type: 'POST',
             contentType: 'application/json',
+            headers: {...csrfHeader()},
             data: JSON.stringify({
                 'sheet': window.sheet,
                 'table': window.table,
-                'file_path': window.file_path,
-                'csrfmiddlewaretoken':$('input[name="csrfmiddlewaretoken"]').val()
+                'file_path': window.file_path
             }),
             dataType: 'json',
             success: function(response) {
@@ -207,5 +210,6 @@
 
 </script>
 
+{% include "storage/_csrf.html" %}
 </body>
 </html>

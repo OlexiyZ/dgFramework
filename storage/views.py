@@ -1,7 +1,6 @@
 from django.shortcuts import render, redirect
 import requests
 from django.http import HttpResponse, HttpRequest, JsonResponse, Http404, FileResponse, HttpResponseBadRequest
-from django.views.decorators.csrf import csrf_exempt
 from openpyxl import load_workbook
 import json
 import pandas as pd
@@ -179,7 +178,6 @@ def get_user_info(token):
         )
 
 
-@csrf_exempt
 def oidc_login(request):
     """
     Приймає POST-запит із access_token та id_token, перевіряє підпис
@@ -255,7 +253,6 @@ def oidc_login(request):
 
 
 # Create your views here.
-# @csrf_exempt
 def excelImport(request: HttpRequest):
     context = {
         "text": "Excel Import!!!"
@@ -263,7 +260,6 @@ def excelImport(request: HttpRequest):
     return render(request, 'storage/excelimport.html', context)
 
 
-@csrf_exempt
 # @require_POST
 def upload_file(request):
     global wb
@@ -419,7 +415,6 @@ def load2db(self, df):
         print(f"Error inserting data: {e}")
 
 
-@csrf_exempt
 def import_excel(request):
     body_unicode = request.body.decode('utf-8')
     body_data = json.loads(body_unicode)
@@ -438,7 +433,6 @@ def import_excel(request):
     # return redirect('import_csv.html', context)
 
 
-@csrf_exempt
 def import_csv(request):
     body_unicode = request.body.decode('utf-8')
     body_data = json.loads(body_unicode)
@@ -671,7 +665,6 @@ def db_management(request: HttpRequest):
     return render(request, 'storage/dbmanagement.html', context)
 
 
-@csrf_exempt
 def upload_db_json(request):
     # context = {'message': 'Файл успешно загружен'}
     context = {}
@@ -717,7 +710,6 @@ def upload_db_json(request):
     return render(request, 'storage/dbmanagement.html', {'message': 'File do not uploaded'})
 
 
-@csrf_exempt
 def download_db_json(request):
     current_date = datetime.now().strftime("%Y-%m-%d")
     output_file = f"dgf_storage_{current_date}.json"
@@ -748,7 +740,6 @@ def sql_parsing(request: HttpRequest):
     return render(request, 'storage/sql_parsing.html', context)
 
 
-@csrf_exempt
 def parse_sql_to_json(request):
     if request.method == 'POST':
         try:
@@ -775,7 +766,6 @@ def parse_sql_to_json(request):
     return JsonResponse({"error": "Invalid request method."}, status=400)
 
 
-@csrf_exempt
 def upload_json(request):
     if request.method == 'POST':
         try:
@@ -796,7 +786,6 @@ def upload_json(request):
     return JsonResponse({"error": "Invalid request method."}, status=400)
 
 
-@csrf_exempt
 def sql_matching(request):
     old_query = "SELECT id, name FROM users WHERE active = 1;"
     old_version = "Query v 1.0"
@@ -812,7 +801,6 @@ def sql_matching(request):
     })
 
 
-@csrf_exempt
 def save_roles(request):
     if request.method == 'POST':
         try:
@@ -857,7 +845,6 @@ def save_roles(request):
         return JsonResponse({'error': 'Invalid HTTP method. Only POST is allowed.'}, status=405)
 
 
-@csrf_exempt  # Дозволяє обробляти POST запити без CSRF токена
 def role_view(request):
     if request.method == 'POST':
         # Отримуємо ролі з тіла запиту (JSON)
@@ -895,7 +882,6 @@ def role_view(request):
         return render(request, 'role_storage.html')
 
 
-@csrf_exempt
 def save_reports(request):
     if request.method == 'POST':
         try:
