@@ -36,7 +36,10 @@
 
 ## P0 — критичне, робити зараз
 
-### [ ] SEC-01 · Ротація секретів і вилучення `.env` з git
+### [~] SEC-01 · Ротація секретів і вилучення `.env` з git
+
+> **Статус:** код-частину виконано. Ротація креденшлів у Vault та в БД потребує
+> доступу до інфраструктури — див. «Залишилось вручну» в кінці таски.
 
 **EN title:** Rotate leaked credentials and untrack `.env`
 **EN description:** The `.env` file is tracked by git despite being listed in `.gitignore`, exposing the Django secret key, the database password and the superuser password in repository history. Rotate every affected credential, remove the file from version control and replace it with a value-less `.env.example` template.
@@ -81,6 +84,19 @@ $ git log --oneline -- .env
 Якщо репозиторій приватний і секрети ротовані — не обов'язково, issue закриється й без цього.
 
 **Definition of Done:** `git ls-files .env` порожній · `.env.example` у репо · всі старі секрети недійсні · застосунок стартує на новому наборі
+
+**Зроблено:**
+- [x] `.env` вилучено з індексу git, файл залишився на диску
+- [x] Додано `.env.example` без значень
+- [x] Локальний `DJANGO_SECRET_KEY` перевипущено (50 символів)
+- [x] Видалено з `settings.py` два `OIDC_RP_CLIENT_SECRET` від Okta і пароль `vTmPW3cF5Uv3p24`, що лежали в коментарях (Sonar їх не бачив)
+
+**Залишилось вручну (потрібен доступ до інфраструктури):**
+- [ ] Змінити пароль користувача БД і оновити `DB_PASSWORD` у Vault (`secret/data/data-governance`)
+- [ ] Перевипустити `DJANGO_SECRET_KEY` у Vault — локальна ротація на прод не впливає
+- [ ] Замінити `DJANGO_SUPERUSER_PASSWORD` (поточний — 5 символів) у Vault і в самому обліковому записі
+- [ ] Відкликати обидва скомпрометовані Okta client secret в адмінці Okta (`eu-bankaletihad.okta.com`, `dev-24630760.okta.com`) — вони в історії git і чинні, доки їх не відкликати
+- [ ] Вирішити щодо очищення історії git (`git filter-repo --path .env --invert-paths`) — потребує force push і переклонування у всіх
 
 ---
 

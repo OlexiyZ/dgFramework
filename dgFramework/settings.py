@@ -171,22 +171,16 @@ AUTH_PASSWORD_VALIDATORS = [
 #     # 'storage.backends.MyOIDCAuthenticationBackend',
 # ]
 
-# OIDC Configuration
-# OIDC_RP_CLIENT_ID = '0oanqpsfn0yo3WI9I5d7'
-# OIDC_RP_CLIENT_ID = '0oans1us7gnfa6vcC5d7'
-# OIDC_RP_CLIENT_ID = '0oanssrjqw0KXnJuH5d7'
-# OIDC_RP_CLIENT_SECRET = '6B5rUhje-6OmVfPRvhQUGUty1DTbHCNJM2iXArkEQp10Ofj4m-mfdcqVAp6IEsgO'
-# OIDC_RP_CLIENT_SECRET = 'pCvz-c1hWbsRG9GDfE6j56beMMzcTmTAPP9XZRnn55_9bo144CN3s-84c8BSd7pJ'
-# OIDC_RP_CLIENT_SECRET = ''
-# OIDC_OP_AUTHORIZATION_ENDPOINT = 'https://dev-24630760.okta.com/oauth2/default/v1/authorize'
-# OIDC_OP_TOKEN_ENDPOINT = 'https://dev-24630760.okta.com/oauth2/default/v1/token'
-# OIDC_OP_USER_ENDPOINT = 'https://dev-24630760.okta.com/oauth2/default/v1/userinfo'
-# OIDC_OP_JWKS_ENDPOINT = 'https://dev-24630760.okta.com/oauth2/default/v1/keys'
+# OIDC Configuration (mozilla-django-oidc), currently disabled.
+# Credentials must be read from the environment — never inlined here.
+# OIDC_RP_CLIENT_ID = os.environ['OIDC_RP_CLIENT_ID']
+# OIDC_RP_CLIENT_SECRET = os.environ['OIDC_RP_CLIENT_SECRET']
+# OIDC_OP_AUTHORIZATION_ENDPOINT = f'{OKTA_DOMAIN}/oauth2/default/v1/authorize'
+# OIDC_OP_TOKEN_ENDPOINT = f'{OKTA_DOMAIN}/oauth2/default/v1/token'
+# OIDC_OP_USER_ENDPOINT = f'{OKTA_DOMAIN}/oauth2/default/v1/userinfo'
+# OIDC_OP_JWKS_ENDPOINT = f'{OKTA_DOMAIN}/oauth2/default/v1/keys'
 # OIDC_RP_SIGN_ALGO = 'RS256'
-# LOGIN_URL = '/authorization-code/callback'
 # LOGIN_URL = '/oidc/authenticate/'
-# http://localhost:8000/oidc/authenticate/
-# vTmPW3cF5Uv3p24
 
 if platform.system() == "Windows":
     OKTA_DOMAIN = "https://dev-04812975.okta.com"
