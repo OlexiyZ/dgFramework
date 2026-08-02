@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <title>Source</title>
-    {{ bootstrap_link|safe }}
+    {% include "dm/_bootstrap.html" %}
 </head>
 <body>
 <header>
-    {{ nav_bar|safe }}
+    {% include "dm/_nav_bar.html" %}
 </header>
     <h4>Source view/edit!</h4>
     {{ form }}

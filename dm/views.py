@@ -20,46 +20,9 @@ logging.basicConfig(
 # logging.debug(f"Start")
 # FormSourceList
 
-nav_bar = '''
-    <nav class="navbar navbar-expand-lg bg-body-tertiary">
-      <div class="container-fluid">
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-            <li class="nav-item">
-              <a class="nav-link active" aria-current="page" href="/dm/reports/">Reports</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link active" aria-current="page" href="/dm/queries/">Queries</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link active" aria-current="page" href="/dm/field_lists/">Field Lists</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link active" aria-current="page" href="/dm/fields/">Fields</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link active" aria-current="page" href="/dm/source_lists/">Source Lists</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link active" aria-current="page" href="/dm/sources/">Sources</a>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </nav>
-'''
-
-bootstrap_link = '''<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">'''
-
 
 def main(request):
-    context = {
-        'nav_bar': nav_bar
-    }
-    return render(request, 'dm/main.html', context)
+    return render(request, 'dm/main.html')
 
 
 def fields(request):
@@ -68,7 +31,6 @@ def fields(request):
     context = {
         'fields': all_fields,
         'field_lists': all_field_lists,
-        'nav_bar': nav_bar
     }
     return render(request, 'dm/fields.html', context)
 
@@ -107,7 +69,6 @@ def field_list_item(request, fields_list_id):
         'fields': filtered_fields,
         'field_lists': all_field_lists,
         'current_field_list': field_list,
-        'nav_bar': nav_bar
     }
     return render(request, 'dm/fields.html', context)
 
@@ -125,8 +86,6 @@ def field_item(request, field_source_id, field_id):
         'field_source': field_source,
         'field_lists': None,
         'current_field_list': None,
-        'nav_bar': nav_bar,
-        'bootstrap_link': bootstrap_link
     }
     return render(request, 'dm/fields.html', context)
 
@@ -135,7 +94,6 @@ def field_lists(request):
     all_field_lists = FieldList.objects.all()
     context = {
         'field_lists': all_field_lists,
-        'nav_bar': nav_bar
     }
     return render(request, 'dm/field_lists.html', context)
 
@@ -155,16 +113,12 @@ def field_list(request, field_list_id):
         'form': form,
         'edit': False,
         # 'add': True,
-        'nav_bar': nav_bar,
-        'bootstrap_link': bootstrap_link
     }
     return render(request, 'dm/field_list.html', context)
 
 
 def field_list_edit(request, field_list_id):
     context = {
-        'nav_bar': nav_bar,
-        'bootstrap_link': bootstrap_link
     }
 
     if field_list_id != 'new':
@@ -203,8 +157,6 @@ def field(request, field_id):
         'form': form,
         'edit': False,
         # 'add': True,
-        'nav_bar': nav_bar,
-        'bootstrap_link': bootstrap_link,
         'field_id': field.id,
         'field_source_id': field.field_source_id
     }
@@ -213,8 +165,6 @@ def field(request, field_id):
 
 def field_edit(request, field_id):
     context = {
-        'nav_bar': nav_bar,
-        'bootstrap_link': bootstrap_link
     }
 
     if field_id != 'new':
@@ -242,7 +192,6 @@ def queries(request):
     all_queries = Query.objects.all()
     context = {
         'queries': all_queries,
-        'nav_bar': nav_bar
     }
     return render(request, 'dm/queries.html', context)
 
@@ -255,8 +204,6 @@ def query(request, query_id):
         'query': query_item,
         'filtered_query': filtered_query,
         # 'queries': all_queries,
-        'nav_bar': nav_bar,
-        'bootstrap_link': bootstrap_link
     }
     return render(request, 'dm/query.html', context)
 
@@ -265,7 +212,6 @@ def source_lists(request):
     all_source_lists = SourceList.objects.all()
     context = {
         'source_lists': all_source_lists,
-        'nav_bar': nav_bar
     }
     return render(request, 'dm/source_lists.html', context)
 
@@ -285,16 +231,12 @@ def source_list(request, source_list_id):
     context = {
         'form': form,
         'edit': False,
-        'nav_bar': nav_bar,
-        'bootstrap_link': bootstrap_link
     }
     return render(request, 'dm/source_list.html', context)
 
 
 def source_list_edit(request, source_list_id):
     context = {
-        'nav_bar': nav_bar,
-        'bootstrap_link': bootstrap_link
     }
     if source_list != 'new':
         sourcelist = get_object_or_404(SourceList, id=source_list_id)
@@ -323,7 +265,6 @@ def sources(request):
     context = {
         'sources': all_sources,
         'source_lists': all_source_lists,
-        'nav_bar': nav_bar
     }
     return render(request, 'dm/sources.html', context)
 
@@ -340,7 +281,6 @@ def source_list_item(request, source_list_id, type):
         'sources': filtered_sources,
         'source_lists': all_source_lists,
         'current_source_list': source_list,
-        'nav_bar': nav_bar
     }
     return render(request, 'dm/sources.html', context)
 
@@ -349,7 +289,6 @@ def reports(request):
     all_reports = Report.objects.all()
     context = {
         'reports': all_reports,
-        'nav_bar': nav_bar
     }
     return render(request, 'dm/reports.html', context)
 
@@ -362,8 +301,6 @@ def report(request, report_name):
         'report': report_item,
         'filtered_report': filtered_report,
         # 'queries': all_queries,
-        'nav_bar': nav_bar,
-        'bootstrap_link': bootstrap_link
     }
     return render(request, 'dm/report.html', context)
 

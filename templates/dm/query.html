@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <title>Query form</title>
-    {{ bootstrap_link|safe }}
+    {% include "dm/_bootstrap.html" %}
 </head>
 <body>
 <header>
-    {{ nav_bar|safe }}
+    {% include "dm/_nav_bar.html" %}
 </header>
 <h5>Query details</h5>
             <table id="queryTable" class="table table-sm table-striped table-hover">

@@ -374,7 +374,21 @@ query = f"""INSERT INTO storage_field (...) VALUES (
 
 ## P2 — прибирання й превентив
 
-### [ ] SEC-08 · Прибрати 19 hotspots `nav_bar|safe` / `bootstrap_link|safe`
+### [x] SEC-08 · Прибрати 19 hotspots `nav_bar|safe` / `bootstrap_link|safe`
+
+> **Статус:** виконано. `grep -rn "|safe" templates/` тепер не повертає нічого.
+>
+> **Відступ від плану:** зроблено через `{% include %}`, а не `{% extends base.html %}`.
+> Причина — переведення 14 шаблонів з різними `<head>` і наборами скриптів на
+> блочну структуру не можна перевірити без запуску застосунку, а мета таски
+> (прибрати `|safe`) досягається механічною заміною без ризику. Розмітка живе
+> в `templates/dm/_nav_bar.html` і `templates/dm/_bootstrap.html`, з `dm/views.py`
+> прибрано обидві константи і **27** записів у контекстах.
+>
+> **Окремий випадок `storage/sql_create.html`:** його в'юха (`storage/admin.py:408`)
+> ніколи не передавала ні `nav_bar`, ні `bootstrap_link` — обидва теги рендерилися
+> порожніми. Тому там теги просто видалено, а не замінено на `include`: інакше
+> сторінка несподівано отримала б навбар і Bootstrap, яких у неї ніколи не було.
 
 **EN title:** Extract `nav_bar` and `bootstrap_link` into a base template
 **EN description:** Nineteen auto-escaping hotspots come from HTML markup stored in Python string constants and rendered with `|safe` in every template. They are false positives today, but the pattern reintroduces them with each new page. Move the markup into `templates/base.html` and have the pages extend it; marking the hotspots Safe in Sonar is the stopgap alternative.
