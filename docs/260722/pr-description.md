@@ -43,14 +43,25 @@ One commit per task, `SEC-01` through `SEC-10`. Full analysis in [`docs/260722/s
 
 **SEC-07 was twice the size it looked.** `json_script` fixes the script-context breakout, but markmap renders each node's `content` as HTML, and that content is built by concatenating SVG markup with field names and descriptions straight from the database. Escaping was needed at 22 call sites.
 
-## Before merging — DevOps actions required
+## DevOps actions required
 
-Full checklist in [`docs/260722/devops-handover.md`](docs/260722/devops-handover.md). The blocking ones:
+Full checklist, phase by phase, in [`docs/260722/devops-handover.md`](docs/260722/devops-handover.md).
+Merging this PR deploys nothing by itself, so the work splits into two gates.
 
-- [ ] **Check `Dockerfile.dockerfile` for `COPY .env`** — the file is no longer in the repository, so a build that copies it now fails. The Dockerfile lives outside this repo and could not be inspected.
-- [ ] **Set `SECURE_SSL_REDIRECT=False` and `SECURE_HSTS_SECONDS=0` in Vault for the first deploy.** Defaults are on. `SECURE_SSL_REDIRECT` only behaves if the ingress forwards `X-Forwarded-Proto`; otherwise Django answers 301 to every request including health probes.
-- [ ] **Set `ALLOWED_HOSTS` in Vault** if probes reach the pod by IP — `["*"]` is gone, so they would get 400.
-- [ ] **Rotate the leaked credentials**: database password, `DJANGO_SECRET_KEY`, `DJANGO_SUPERUSER_PASSWORD` (currently 5 characters), and revoke both Okta client secrets. They remain valid, and present in git history, until rotated.
+**Phase 0 — blocks this merge.** Two of these are answers rather than changes, but they decide what goes into Vault next:
+
+- [ ] **D1. Check `Dockerfile.dockerfile` for `COPY .env`** — the file is no longer in the repository, so a build that copies it fails after merge. The Dockerfile lives outside this repo and could not be inspected here.
+- [ ] **E1. Approve `.github/workflows/security_checks.yml`** — `.github/**` is `merge=ours` with `CODEOWNERS @kgetihad`, so this cannot merge without a DevOps review.
+- [ ] **C1. Does the ingress forward `X-Forwarded-Proto`?** If not, `SECURE_SSL_REDIRECT` makes Django answer 301 to every request, health probes included, and the pods never reach `Ready`.
+- [ ] **C2. How do the probes address the pod?** `ALLOWED_HOSTS = ["*"]` is gone, so probes arriving by pod IP get 400.
+
+**Phase 1 — blocks the deploy, not this merge.** One Vault edit and one image rebuild:
+
+- [ ] **B2–B4.** Set `ALLOWED_HOSTS` from C2, and ship `SECURE_SSL_REDIRECT=False` and `SECURE_HSTS_SECONDS=0` for the first deploy — both default to on, and HSTS is hard to walk back once browsers cache it.
+- [ ] **A1–A4. Rotate the leaked credentials**: database password, `DJANGO_SECRET_KEY`, `DJANGO_SUPERUSER_PASSWORD` (currently 5 characters), and revoke both Okta client secrets. All four remain valid, and present in git history, until rotated. The Okta secrets do not depend on the deploy — do those first.
+- [ ] **D2. Rebuild the image** — `requirements.txt` gained `python-dotenv`.
+
+Phases 2 and 3 — deploy smoke tests and follow-up — are in the handover document.
 
 ## Testing status
 
