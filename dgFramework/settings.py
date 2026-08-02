@@ -11,29 +11,57 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+from urllib.parse import urlparse
 import os
 import platform
 
+from django.core.exceptions import ImproperlyConfigured
+from dotenv import load_dotenv
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load .env for local development. Variables already present in the real
+# environment (Vault-injected in Kubernetes) always take precedence.
+load_dotenv(BASE_DIR / ".env")
+
+
+def _require_env(name):
+    """Return a mandatory setting, failing loudly instead of falling back."""
+    value = os.environ.get(name)
+    if not value:
+        raise ImproperlyConfigured(
+            f"{name} is not set. Copy .env.example to .env and fill it in, or "
+            f"provide the variable through the deployment environment."
+        )
+    return value
+
+
+def _env_flag(name, default=False):
+    """Read a boolean setting from the environment."""
+    return os.environ.get(name, str(default)).strip().lower() in ("1", "true", "yes", "on")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-# SECRET_KEY = "django-insecure-o!46yfbflocr&c9s3z8(azkfzrilj*z+c79g^5@!7xhu!(5s($"
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-o!46yfbflocr&c9s3z8(azkfzrilj*z+c79g^5@!7xhu!(5s($')
+# No fallback on purpose: a default here would let the app boot in production
+# with a publicly known key instead of failing.
+SECRET_KEY = _require_env("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# if platform.system() == "Windows":
-#     DEBUG = True
-# else:
-#     DEBUG = False
+DEBUG = _env_flag("DEBUG", default=False)
 
-# DEBUG = False
-DEBUG = True
+# Public base URL of this deployment, also used for CORS and CSRF below.
+HOST = os.environ.get("HOST", "http://localhost:8000").rstrip("/")
 
-ALLOWED_HOSTS = ["*"]
+# An explicit ALLOWED_HOSTS wins; otherwise derive the hostname from HOST.
+ALLOWED_HOSTS = [h.strip() for h in os.environ.get("ALLOWED_HOSTS", "").split(",") if h.strip()]
+if not ALLOWED_HOSTS:
+    ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+    _host_name = urlparse(HOST).hostname
+    if _host_name and _host_name not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(_host_name)
 
 # Application definition
 
@@ -65,17 +93,16 @@ MIDDLEWARE = [
     # 'mozilla_django_oidc.middleware.SessionRefresh',
 ]
 
-CORS_ALLOWED_ORIGINS = [
+_TRUSTED_ORIGINS = [
     "http://localhost:8000",
     "http://0.0.0.0:8000",
-    os.getenv('HOST', 'http://0.0.0.0:8000'),
 ]
+if HOST not in _TRUSTED_ORIGINS:
+    _TRUSTED_ORIGINS.append(HOST)
 
-CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:8000",
-    "http://0.0.0.0:8000",
-    os.getenv('HOST', 'http://0.0.0.0:8000'),
-]
+CORS_ALLOWED_ORIGINS = list(_TRUSTED_ORIGINS)
+
+CSRF_TRUSTED_ORIGINS = list(_TRUSTED_ORIGINS)
 
 ROOT_URLCONF = "dgFramework.urls"
 
@@ -100,51 +127,16 @@ WSGI_APPLICATION = "dgFramework.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-# if platform.system() == "Windows":
-#     DATABASES = {
-#         "default": {
-#             "ENGINE": "django.db.backends.postgresql_psycopg2",
-#             "NAME": "dg_bae",
-#             "USER": "postgres",
-#             "PASSWORD": "postgres",
-#             "HOST": "localhost",
-#             "PORT": "5432"
-#         }
-#     }
-# else:
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': os.environ.get('DB_NAME', 'dg_bae'),  # Your database name
-        'USER': os.environ.get('DB_USER', 'postgres'),  # Your database user
-        'PASSWORD': os.environ.get('DB_PASSWORD', 'postgres'),  # Your database password
-        'HOST': os.environ.get('DB_HOST', 'localhost'),  # Your database endpoint
-        'PORT': os.environ.get('DB_PORT', '5432'),  # Default PostgreSQL port
+    "default": {
+        "ENGINE": "django.db.backends.postgresql_psycopg2",
+        "NAME": os.environ.get("DB_NAME", "dg_bae"),
+        "USER": os.environ.get("DB_USER", "postgres"),
+        "PASSWORD": _require_env("DB_PASSWORD"),
+        "HOST": os.environ.get("DB_HOST", "localhost"),
+        "PORT": os.environ.get("DB_PORT", "5432"),
     }
 }
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-#         'NAME': os.getenv('DB_NAME', 'dg_bae'),  # Your database name
-#         'USER': os.getenv('DB_USER', 'postgres'),  # Your database user
-#         'PASSWORD': os.getenv('DB_PASSWORD', 'postgres'),  # Your database password
-#         'HOST': os.getenv('DB_HOST', 'localhost'),  # Your database endpoint
-#         'PORT': os.getenv('DB_PORT', '5432'),  # Default PostgreSQL port
-#     }
-# }
-
-
-# DATABASES = {
-#         "default": {
-#             "ENGINE": "django.db.backends.postgresql_psycopg2",
-#             "NAME": "dg_bae",
-#             "USER": "postgres",
-#             "PASSWORD": "postgres",
-#             "HOST": "localhost",
-#             "PORT": "5432"
-#         }
-#     }
 
 
 # Password validation

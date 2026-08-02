@@ -100,7 +100,25 @@ $ git log --oneline -- .env
 
 ---
 
-### [ ] SEC-02 · Прибрати хардкоджений SECRET_KEY, перевести DEBUG/ALLOWED_HOSTS на env
+### [x] SEC-02 · Прибрати хардкоджений SECRET_KEY, перевести DEBUG/ALLOWED_HOSTS на env
+
+> **Статус:** виконано.
+>
+> **Знахідка під час роботи:** `.env` у проєкті не читався ніким — ні `python-dotenv`,
+> ні `django-environ` не було в залежностях. Саме тому й існувала гілка
+> `platform.system() == "Windows"` з хардкодженими креденшлами: на локальній машині
+> env-змінних просто не було. Тому в обсяг таски додано `python-dotenv==1.2.2` і
+> виклик `load_dotenv()` — інакше видалення Windows-гілки зламало б локальну розробку.
+> Реальні env-змінні мають пріоритет над `.env`, тож у Kubernetes значення з Vault
+> продовжують перекривати файл.
+>
+> **⚠️ Перед деплоєм — потрібна дія DevOps:**
+> `DEBUG` і `ALLOWED_HOSTS` відсутні в `helm-values/dev.yaml`. Тепер `DEBUG` без
+> змінної дефолтиться у `False` (це і є фікс — раніше прод працював з `DEBUG=True`),
+> а `ALLOWED_HOSTS` виводиться з `HOST`, який у Vault уже є. Але якщо kubelet
+> звертається до поду за IP, health-проби почнуть отримувати 400 — тоді треба явно
+> задати `ALLOWED_HOSTS` у Vault, включно з pod CIDR або `.svc.cluster.local`.
+> `helm-values/**` захищений `merge=ours` і належить DevOps, тому я його не чіпав.
 
 **EN title:** Remove the hardcoded SECRET_KEY and move DEBUG / ALLOWED_HOSTS to environment variables
 **EN description:** `settings.py` holds the Django secret key both in a comment and as an `os.environ` fallback, ships with `DEBUG = True` and `ALLOWED_HOSTS = ["*"]` hardcoded, and keeps a Windows-only `DATABASES` branch with plaintext credentials. Read all of these from the environment and fail fast on startup when the secret key is missing.
