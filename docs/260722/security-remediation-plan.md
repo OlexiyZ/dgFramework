@@ -192,7 +192,11 @@ cursor = connection.cursor()
 
 ---
 
-### [ ] SEC-04 · Видалити мертвий код `views_old.py` і `views_dg.py`
+### [x] SEC-04 · Видалити мертвий код `views_old.py` і `views_dg.py`
+
+> **Статус:** виконано. Обидва модулі визначали ті самі імена
+> (`excelImport`, `upload_file`, `select_table`, `load2db`), що й `views.py` —
+> це старі копії. `storage/urls.py` бере їх з `.views`, тож маршрути не зачеплені.
 
 **EN title:** Delete the unused `views_old.py` and `views_dg.py` modules
 **EN description:** Both modules are dead code — nothing in the project imports them and no URL routes to them — yet they account for one vulnerability and three security hotspots. Removing them clears the findings at no functional cost; git history keeps the files recoverable.
