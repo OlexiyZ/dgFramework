@@ -407,7 +407,22 @@ query = f"""INSERT INTO storage_field (...) VALUES (
 
 ---
 
-### [ ] SEC-09 · Secret scanning у CI та pre-commit
+### [~] SEC-09 · Secret scanning у CI та pre-commit
+
+> **Статус:** файли додано, але вони **не запускалися** — ні gitleaks, ні pre-commit
+> у цьому оточенні немає, а workflow виконується лише на боці GitHub.
+>
+> **Ключове рішення:** скан робиться з `--no-git`, тобто по робочому дереву, а не
+> по історії. Історія досі містить секрети, злиті до SEC-01, тож повний скан падав би
+> на кожному запуску. Перемкнути на `gitleaks detect --redact` (з історією) можна
+> буде після очищення історії — це пункт у «Залишилось вручну» SEC-01.
+>
+> **⚠️ Що потрібно від DevOps:** `.github/**` захищений `merge=ours`, а `CODEOWNERS`
+> віддає весь репозиторій `@kgetihad` — новий workflow потребує їхнього апруву.
+> Також перший запуск може підсвітити те, що я не міг перевірити локально:
+> Okta `CLIENT_ID` у `settings.py` і ECR account id у `helm-values/dev.yaml`.
+> Якщо це визнають безпечним — виносити в `.gitleaks.toml` allowlist, а не
+> послаблювати правила.
 
 **EN title:** Add secret scanning to pre-commit and CI
 **EN description:** SEC-01 happened because a `.env` file reached a commit unnoticed. Add gitleaks as a pre-commit hook and as a pull-request check, and enforce the Sonar quality gate on merges, so committed credentials are blocked automatically instead of surfacing in an audit months later.

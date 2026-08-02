@@ -1,0 +1,30 @@
+name: 'Security checks'
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+      - dev
+
+jobs:
+  secret-scan:
+    name: 'Secret scan'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install gitleaks
+        run: |
+          curl -sSfL \
+            "https://github.com/gitleaks/gitleaks/releases/download/v8.18.4/gitleaks_8.18.4_linux_x64.tar.gz" \
+            | tar -xz gitleaks
+          ./gitleaks version
+
+      # --no-git scans the checked-out tree rather than the commit history.
+      # History still contains the credentials leaked before SEC-01, so a full
+      # history scan would fail every run until that history is rewritten.
+      # Switch to `detect --redact` once the purge in SEC-01 is done.
+      - name: Scan working tree for secrets
+        run: ./gitleaks detect --no-git --redact --verbose --exit-code 1

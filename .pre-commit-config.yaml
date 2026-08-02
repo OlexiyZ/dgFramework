@@ -1,0 +1,24 @@
+# Install once per clone:
+#   pip install pre-commit
+#   pre-commit install
+#
+# Run against everything on demand:
+#   pre-commit run --all-files
+
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.4
+    hooks:
+      # Scans staged changes, so a credential is blocked before it ever
+      # reaches a commit - which is how .env slipped in originally.
+      - id: gitleaks
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: detect-private-key
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ['--maxkb=2048']
+      - id: end-of-file-fixer
+        exclude: '\.(xlsx|png)$'
