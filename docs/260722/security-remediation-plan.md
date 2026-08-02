@@ -218,7 +218,26 @@ cursor = connection.cursor()
 
 ## P1 — наступний спринт
 
-### [ ] SEC-05 · SQL injection в імпорті даних
+### [x] SEC-05 · SQL injection в імпорті даних
+
+> **Статус:** виконано. Запит винесено в константу `INSERT_FIELD_SQL` з 11
+> плейсхолдерами `%s`, значення передаються через `cursor.execute(sql, params)`.
+> Обидва хелпери екранування (`sanitize_for_import` і вкладений
+> `__sanitize_for_sql`) видалено — вони більше не потрібні й лише провокували
+> небезпечне повторне використання.
+>
+> **Аудит решти raw SQL:** `cursor.execute(INSERT_FIELD_SQL, params)` — тепер
+> єдине місце виконання сирого SQL у проєкті. `.raw()` і `RawSQL` не
+> використовуються ніде, решта запису йде через ORM.
+>
+> **⚠️ Зміна поведінки, яку треба перевірити на реальному файлі:** порожні
+> клітинки. Раніше `NaN` з pandas потрапляв у БД як текст `'nan'`, бо підставлявся
+> в рядок. Тепер драйвер не може прив'язати `NaN` до текстової колонки, тож
+> `__bind_value` конвертує порожні значення в `NULL`. Це коректніша семантика,
+> але значення в базі для таких рядків зміняться з `'nan'` на `NULL`.
+>
+> `COALESCE((SELECT ...), NULL)` прибрано як тотожність — `COALESCE(x, NULL)`
+> завжди дорівнює `x`.
 
 **EN title:** Parameterize the SQL queries in the data import flow
 **EN description:** The Excel/CSV import builds `INSERT` statements by f-string interpolation of user-supplied values, and the local `escape_value` helper only partially escapes quotes — this is exploitable SQL injection. Switch to parameterized queries and audit the remaining raw SQL in the project.

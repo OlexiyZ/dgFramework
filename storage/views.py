@@ -329,46 +329,67 @@ def select_table(request):
         return HttpResponse("Method not allowed", status=405)
 
 
-def sanitize_for_import(value):
-    if isinstance(value, str):
-        escaped_value = value.replace("'", "''")
-        return escaped_value
-    elif isinstance(value, list):
-        value_list = json.dumps(value)
-        return value_list
-    elif isinstance(value, dict):
-        str_value = str(value)
-        escaped_value = str_value.replace("'", '"')
-        return escaped_value
-    elif isinstance(value, set):
-        str_value = str(value)
-        escaped_value = str_value.replace("'", "''")
-        return escaped_value
-    elif not value:
-        escaped_value = None
-        return escaped_value
-    else:
-        return value
+# Values come from a user-supplied spreadsheet, so every one of them is bound
+# as a parameter rather than interpolated into the statement.
+INSERT_FIELD_SQL = """
+    INSERT INTO storage_field (
+        field_list_id,
+        source_list_id,
+        field_alias,
+        field_source_type,
+        field_source_id,
+        field_name,
+        field_value,
+        field_function,
+        function_field_list,
+        field_description
+    )
+    VALUES (
+        (SELECT id
+           FROM storage_fieldlist
+          WHERE field_list_name LIKE %s),
+
+        (SELECT id
+           FROM storage_sourcelist
+          WHERE source_list_name LIKE %s),
+
+        %s,
+        %s,
+
+        (SELECT id
+           FROM storage_source
+          WHERE source_alias LIKE %s
+            AND source_union_list_name_id = (SELECT id
+                                               FROM storage_sourcelist
+                                              WHERE source_list_name LIKE %s)),
+
+        %s,
+        %s,
+        %s,
+        %s,
+        %s
+    );
+"""
 
 
 def load2db(self, df):
-    def __sanitize_for_sql(value):
-        if isinstance(value, str):
-            escaped_value = value.replace("'", "''")
-            return escaped_value
-        elif isinstance(value, list):
-            value_list = json.dumps(value)
-            return value_list
-        elif isinstance(value, dict):
-            str_value = str(value)
-            escaped_value = str_value.replace("'", '"')
-            return escaped_value
-        elif isinstance(value, set):
-            str_value = str(value)
-            escaped_value = str_value.replace("'", "''")
-            return escaped_value
-        else:
-            return value
+    def __bind_value(value):
+        """Prepare a spreadsheet cell for parameter binding.
+
+        Only the conversions the driver cannot do itself: containers become
+        JSON text and missing values become NULL. Quote escaping is gone -
+        that is the driver's job now.
+        """
+        if isinstance(value, (list, dict)):
+            return json.dumps(value)
+        if isinstance(value, set):
+            return json.dumps(sorted(value))
+        try:
+            if pd.isna(value):
+                return None
+        except (TypeError, ValueError):
+            pass
+        return value
 
     # Reuse the connection Django already configured from DATABASES, so the
     # credentials live in the environment rather than in this file.
@@ -376,43 +397,21 @@ def load2db(self, df):
         with connection.cursor() as cursor:
             # Populate rows
             for _, row in df.iterrows():
-                query = f"""INSERT INTO storage_field (
-                    field_list_id, 
-                    source_list_id, 
-                    field_alias, 
-                    field_source_type, 
-                    field_source_id,
-                    field_name, 
-                    field_value, 
-                    field_function, 
-                    function_field_list, 
-                    field_description) 
-                    VALUES (
-                        (select id 
-                        from storage_fieldlist 
-                        where field_list_name like '{row['field_list']}'),
-                    
-                        COALESCE((select id 
-                        from storage_sourcelist 
-                        where source_list_name like '{row['source_list']}'), NULL),
-                    
-                        '{row['field_alias']}', 
-                        '{row['field_source_type']}', 
-                    
-                        COALESCE((select id
-                        from storage_source 
-                        where source_alias like '{row['field_source']}' and source_union_list_name_id = (select id 
-                        from storage_sourcelist 
-                        where source_list_name like '{row['source_list']}')), NULL), 
-                    
-                        '{row['field_name']}', 
-                        '{row['field_value']}', 
-                        '{__sanitize_for_sql(row['field_function'])}', 
-                        '{row['function_field_list']}', 
-                        '{row['field_description']}'
-                    );"""
+                params = [__bind_value(row[column]) for column in (
+                    'field_list',
+                    'source_list',
+                    'field_alias',
+                    'field_source_type',
+                    'field_source',
+                    'source_list',
+                    'field_name',
+                    'field_value',
+                    'field_function',
+                    'function_field_list',
+                    'field_description',
+                )]
 
-                cursor.execute(query)
+                cursor.execute(INSERT_FIELD_SQL, params)
         print("Data inserted successfully")
     except Exception as e:
         # The connection is owned by Django and must not be closed here; the
@@ -469,11 +468,6 @@ def import_csv(request):
                     field_source = Source.objects.get(source_union_list=source_list, source_alias=row['field_source'])
                 else:
                     field_source = None
-                # sanitized_field_name = sanitize_for_import(row['field_name'])
-                # sanitized_field_value = sanitize_for_import(row['field_value'])
-                # sanitized_field_function = sanitize_for_import(row['field_function'])
-                # sanitized_function_field_list = sanitize_for_import(row['function_field_list'])
-                # sanitized_field_description = sanitize_for_import(row['field_description'])
 
                 if row['field_alias']:
                     field, created = Field.objects.update_or_create(
