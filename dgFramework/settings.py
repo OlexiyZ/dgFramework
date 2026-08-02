@@ -63,6 +63,24 @@ if not ALLOWED_HOSTS:
     if _host_name and _host_name not in ALLOWED_HOSTS:
         ALLOWED_HOSTS.append(_host_name)
 
+# Security headers, checked by `manage.py check --deploy`.
+# TLS terminates at the ingress, so Django has to trust the forwarded scheme
+# before any of the settings below can tell HTTP from HTTPS.
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = "DENY"
+
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+
+# Both stay overridable: if the ingress does not forward X-Forwarded-Proto,
+# SECURE_SSL_REDIRECT=False keeps Django from redirect-looping health probes,
+# and SECURE_HSTS_SECONDS=0 backs the header out.
+SECURE_SSL_REDIRECT = _env_flag("SECURE_SSL_REDIRECT", default=not DEBUG)
+SECURE_HSTS_SECONDS = int(os.environ.get("SECURE_HSTS_SECONDS", 0 if DEBUG else 31536000))
+SECURE_HSTS_INCLUDE_SUBDOMAINS = SECURE_HSTS_SECONDS > 0
+SECURE_HSTS_PRELOAD = SECURE_HSTS_SECONDS > 0
+
 # Application definition
 
 INSTALLED_APPS = [

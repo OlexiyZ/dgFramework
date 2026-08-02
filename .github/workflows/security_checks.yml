@@ -28,3 +28,30 @@ jobs:
       # Switch to `detect --redact` once the purge in SEC-01 is done.
       - name: Scan working tree for secrets
         run: ./gitleaks detect --no-git --redact --verbose --exit-code 1
+
+  deploy-check:
+    name: 'Django deployment checklist'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # Values below only satisfy the settings module - the checks inspect
+      # configuration, they never open a connection.
+      - name: Run manage.py check --deploy
+        env:
+          # Django's W009 check rejects keys shorter than 50 characters.
+          DJANGO_SECRET_KEY: 'ci-only-placeholder-not-a-real-secret-key-0123456789abcdef'
+          DB_PASSWORD: 'ci-only-placeholder'
+          DEBUG: 'False'
+          ALLOWED_HOSTS: 'example.invalid'
+          HOST: 'https://example.invalid'
+        run: python manage.py check --deploy --fail-level WARNING

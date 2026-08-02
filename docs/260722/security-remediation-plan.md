@@ -442,7 +442,29 @@ query = f"""INSERT INTO storage_field (...) VALUES (
 
 ---
 
-### [ ] SEC-10 · `manage.py check --deploy` у пайплайні
+### [~] SEC-10 · `manage.py check --deploy` у пайплайні
+
+> **Статус:** налаштування додано, job у workflow додано, але сам чек **не запускався** —
+> Django в цьому оточенні не встановлений. Значення параметрів звірено вручну
+> проти списку перевірок Django (W001, W002, W008, W009, W012, W016, W018–W021).
+>
+> Додано в `settings.py`: `SECURE_PROXY_SSL_HEADER`, `SECURE_CONTENT_TYPE_NOSNIFF`,
+> `X_FRAME_OPTIONS=DENY`, `SESSION_COOKIE_SECURE`/`CSRF_COOKIE_SECURE` (прив'язані
+> до `DEBUG`), `SECURE_SSL_REDIRECT`, `SECURE_HSTS_SECONDS` (рік у проді, 0 локально).
+>
+> **⚠️ Найризикованіше місце всього набору змін.** `SECURE_SSL_REDIRECT=True` у
+> Kubernetes працює лише за умови, що ingress передає заголовок `X-Forwarded-Proto`.
+> Якщо ні — Django відповідатиме 301 на кожен HTTP-запит, включно з health-пробами,
+> і поди не піднімуться. Тому обидва небезпечні параметри винесені в env і
+> вимикаються без зміни коду:
+>
+> ```
+> SECURE_SSL_REDIRECT=False
+> SECURE_HSTS_SECONDS=0
+> ```
+>
+> Перед деплоєм DevOps має підтвердити поведінку ingress, або одразу виставити
+> ці дві змінні у Vault і вмикати їх окремо після перевірки.
 
 **EN title:** Run `manage.py check --deploy` as a blocking pipeline step
 **EN description:** Django's deployment checklist catches insecure settings — `DEBUG = True`, wildcard `ALLOWED_HOSTS`, missing HSTS and insecure session/CSRF cookies — before a release rather than after. Add it to CI with production-like environment variables and make it blocking.
