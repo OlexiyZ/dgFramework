@@ -75,6 +75,9 @@
         document.body.append(el);
       });
     </script>
+    {# The tree is built from database values, so it is shipped as escaped JSON
+       rather than pasted into the script body. #}
+    {{ model|json_script:"markmap-data" }}
     <script>
       ((getMarkmap, getOptions, root2, jsonOptions) => {
         const markmap = getMarkmap();
@@ -86,7 +89,7 @@
       })(
         () => window.markmap,
         null,
-        {{ model|safe }},
+        JSON.parse(document.getElementById("markmap-data").textContent),
         // {
         //   "color": ["blue","yellow", "green", "red"],
         // },

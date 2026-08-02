@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils.html import escape
 # from .models import *
 # from storage.models import *
 from .forms import *
@@ -395,7 +396,7 @@ def linearization(source_type, source_name, fields2content):
             "content": source_type,
             "children": [
                 {
-                    "content": brown_rect + source_name
+                    "content": brown_rect + escape(source_name)
                 }
             ]
         }
@@ -432,13 +433,13 @@ def linearization(source_type, source_name, fields2content):
                         ff_field = Field.objects.get(field_list=field.field_list, field_name=f)
                         field_display_name = f"{ff_field.field_source}.{ff_field}" if ff_field.field_source else ff_field
                         ff_fields.append(
-                            {"content": f"<a href=\"/storage/field/{ff_field.id}/ \"target=\"_blank\">{field_display_name}</a>"})
+                            {"content": f"<a href=\"/storage/field/{ff_field.id}/ \"target=\"_blank\">{escape(field_display_name)}</a>"})
                     except Field.DoesNotExist:
-                        ff_fields.append({"content": f})
+                        ff_fields.append({"content": escape(f)})
                 # for ff in ff_list:
                     # ff_field = Field.objects.get(id=ff)
                     # field_name["children"].append({"content": ff})
-                field_name["children"] = [{"content": purple_rect + field.field_function,
+                field_name["children"] = [{"content": purple_rect + escape(field.field_function),
                                            "children": ff_fields
                                           }
                                           ]
@@ -475,28 +476,28 @@ def linearization(source_type, source_name, fields2content):
 
     # End recursive body
     if source_type == 'data_source':
-        data_source_hyperlink = f"<a href=\"/dm/sources/{str(source.source_union_list_id)}/union/ \"target=\"_blank\">{source.source_union_list.source_list}</a>"
+        data_source_hyperlink = f"<a href=\"/dm/sources/{str(source.source_union_list_id)}/union/ \"target=\"_blank\">{escape(source.source_union_list.source_list)}</a>"
         content = blue_rect + data_source_hyperlink
     elif source_type == 'query':
         query = Query.objects.get(id=source_name)
-        data_source_hyperlink = f"<a href=\"/dm/query/{source_name}/ \"target=\"_blank\">{str(query.query_name)}</a>"
+        data_source_hyperlink = f"<a href=\"/dm/query/{source_name}/ \"target=\"_blank\">{escape(query.query_name)}</a>"
         if query.query_description:
-            description = f"<p>Metadata: {query.query_description}</p>"
+            description = f"<p>Metadata: {escape(query.query_description)}</p>"
             content = green_rect + data_source_hyperlink + description
         else:
             content = green_rect + data_source_hyperlink
     elif source_type == 'report':
-        data_source_hyperlink = f"<a href=\"/dm/sources/{str(source.source_union_list_id)}/union/ \"target=\"_blank\">{source.source_union_list.source_list}</a>"
-        description = f"<p>{source.source_description}</p>"
+        data_source_hyperlink = f"<a href=\"/dm/sources/{str(source.source_union_list_id)}/union/ \"target=\"_blank\">{escape(source.source_union_list.source_list)}</a>"
+        description = f"<p>{escape(source.source_description)}</p>"
         content = purple_rect + data_source_hyperlink
     else:
-        content = str(source_name)
+        content = escape(source_name)
 
     # Recursive return value
     if field_list:
-        field_list_hyperlink = f"<a href=\"/dm/fields/{str(field_list.id)}/\" target=\"_blank\">{str(field_list)}</a>"
+        field_list_hyperlink = f"<a href=\"/dm/fields/{str(field_list.id)}/\" target=\"_blank\">{escape(field_list)}</a>"
     else:
-        field_list_hyperlink = f"<a href=\"/dm/fields/{str(field_list)}/\" target=\"_blank\">{str(field_list)}</a>"
+        field_list_hyperlink = f"<a href=\"/dm/fields/{str(field_list)}/\" target=\"_blank\">{escape(field_list)}</a>"
     field_list_content = yellow_rect + field_list_hyperlink
     if source_type in ('query', 'report'):
         return {
@@ -599,7 +600,7 @@ def field_diagram(request, source_id, field_id):
     # logging.debug(f"Start {field.field_alias}/{field.field_name}")
     linear, fn_source = field_linearization(source, field)
     field_display_name = f"{field.field_source}.{field}" if field.field_source else field
-    linear_m = {"content": f"<a href=\"/storage/field/{field.id}/ \"target=\"_blank\">{field_display_name}</a>",  # str(field),
+    linear_m = {"content": f"<a href=\"/storage/field/{field.id}/ \"target=\"_blank\">{escape(field_display_name)}</a>",  # str(field),
                 "children": [linear]}
     context = {"model": linear_m}
     # logging.debug(f"End: {fn_source}")
@@ -627,7 +628,7 @@ def field_linearization(source, field):
                 "content": "value",
                 "children": [
                     {
-                        "content": green_rect + field.field_value
+                        "content": green_rect + escape(field.field_value)
                     }
                 ]
             }, "value"
@@ -638,10 +639,10 @@ def field_linearization(source, field):
             field_display_name = f"{field.field_source}.{field}" if field.field_source else field
             return {
                        # "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>",
-                       "content": f"<a href=\"/storage/field/{field.id}/ \"target=\"_blank\">{field_display_name}</a>",
+                       "content": f"<a href=\"/storage/field/{field.id}/ \"target=\"_blank\">{escape(field_display_name)}</a>",
                        "children": [
                            {
-                               "content": brown_rect + field.field_value
+                               "content": brown_rect + escape(field.field_value)
                            }
                        ]
                    }, "value"
@@ -649,7 +650,7 @@ def field_linearization(source, field):
             field_display_name = f"{field.field_source}.{field}" if field.field_source else field
             return {
                 # "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>",
-                "content": f"<a href=\"/storage/field/{field.id}/ \"target=\"_blank\">{field_display_name}</a>",
+                "content": f"<a href=\"/storage/field/{field.id}/ \"target=\"_blank\">{escape(field_display_name)}</a>",
                 "children": [
                     {
                         "content": 'TBD'
@@ -703,7 +704,7 @@ def field_linearization(source, field):
             "children": [
                 {
                     # "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>"
-                    "content": f"<a href=\"/storage/field/{field.id}/ \"target=\"_blank\">{field_display_name}</a>"
+                    "content": f"<a href=\"/storage/field/{field.id}/ \"target=\"_blank\">{escape(field_display_name)}</a>"
                 },
                 {
                     "content": source.table_name
@@ -730,7 +731,7 @@ def field_linearization(source, field):
                 "content": "function",
                     "children": [
                     {
-                        "content": purple_rect + field.field_function,
+                        "content": purple_rect + escape(field.field_function),
                         "children": children  # ff_fields
                     }
                 ]
@@ -740,7 +741,7 @@ def field_linearization(source, field):
                        "content": "function",
                        "children": [
                            {
-                               "content": purple_rect + field.field_function,
+                               "content": purple_rect + escape(field.field_function),
                                "children": children  # ff_fields
                            }
                        ]
@@ -781,7 +782,7 @@ def field_linearization(source, field):
                        "children": [
                            {
                                # "content": f"<a href=\"/dm/fields/{field.field_source_id}/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>"
-                               "content": f"<a href=\"/storage/field/{field.id}/ \"target=\"_blank\">{field_display_name}</a>"
+                               "content": f"<a href=\"/storage/field/{field.id}/ \"target=\"_blank\">{escape(field_display_name)}</a>"
                            },
                            {
                                "content": content,
@@ -802,7 +803,7 @@ def field_linearization(source, field):
                        "children": [
                            {
                                # "content": f"<a href=\"/storage/field/{field.id}/ \"target=\"_blank\">{str(field.field_name)}</a>"
-                               "content": f"<a href=\"/storage/field/{field.id}/ \"target=\"_blank\">{field_display_name}</a>"
+                               "content": f"<a href=\"/storage/field/{field.id}/ \"target=\"_blank\">{escape(field_display_name)}</a>"
                            },
                            {
                                "content": content,

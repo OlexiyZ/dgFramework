@@ -322,7 +322,26 @@ query = f"""INSERT INTO storage_field (...) VALUES (
 
 ---
 
-### [ ] SEC-07 · XSS у `diagram.html`
+### [x] SEC-07 · XSS у `diagram.html`
+
+> **Статус:** виконано, але фікс виявився ширшим за шаблон.
+>
+> `{{ model|safe }}` рендерив **Python-repr словника** прямо в тіло `<script>` —
+> працювало це лише тому, що repr зі одинарними лапками випадково є валідним
+> JS-літералом. Одна лапка в назві поля ламала сторінку, а `'});…({'` давало
+> виконання коду. Замінено на `{{ model|json_script:"markmap-data" }}` +
+> `JSON.parse(...)`.
+>
+> **Але цього мало:** markmap рендерить `content` як HTML, а `content` збирається
+> в `dm/views.py` конкатенацією SVG-розмітки з назвами полів, описами й значеннями
+> з БД. Тобто після фікса транспорту `<img onerror=...>` в назві поля все одно
+> виконався б. Тому додано `escape()` з `django.utils.html` — **22 місця**, де
+> значення з БД потрапляють у HTML-рядок. Навмисна розмітка (svg-прямокутники,
+> `<a href>`) лишається неекранованою, екранується лише вміст із бази.
+>
+> **⚠️ Побічний ефект:** якщо в описах джерел чи запитів (`query_description`,
+> `source_description`) навмисно зберігали HTML для форматування, він тепер
+> показуватиметься як текст. Треба глянути на реальних даних.
 
 **EN title:** Fix the XSS in `diagram.html` by replacing `|safe` with `json_script`
 **EN description:** Database-derived data is injected straight into a `<script>` block through `{{ model|safe }}`, which is the one genuine XSS among the twenty auto-escaping hotspots. Serialize the value with the `json_script` filter and parse it client-side.
